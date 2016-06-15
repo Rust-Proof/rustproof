@@ -1,0 +1,6 @@
+[package]
+name = "rustproof"
+version = "0.1.0"
+authors = ["Matthew Slocum <arco000@gmail.com>"]
+
+[dependencies]
