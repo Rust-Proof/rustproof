@@ -1,0 +1,14 @@
+[package]
+name = "rustproof"
+version = "0.1.0"
+authors = [
+            "Matthew Slocum <arco000@gmail.com>",
+            "Sami Sahli <>",
+            "Vincent Schuster <>",
+            "Matt O'Brien <>",
+            "Michael Salter <>",
+            "Bardley Rasmussen <>",
+            "Drew Gohman <>"
+          ]
+
+[dependencies]
