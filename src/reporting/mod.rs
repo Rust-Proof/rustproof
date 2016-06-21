@@ -1,4 +1,4 @@
-//trash code [demo]
+// trash code [demo]
 pub fn demo() {
     println!("reporting - reporting in");
 }
@@ -6,20 +6,20 @@ pub fn demo() {
 /// Reports successful rustproof behavior to the compiler
 /// # Arguments
 /// * 'msg' - The message to report
-pub fn success() {    
+pub fn success() {
     unimplemented!();
 }
 
 /// Reports noteworthy rustproof behavior to the compiler
 /// # Arguments
 /// * 'msg' - The message to report
-pub fn warning() {    
+pub fn warning() {
     unimplemented!();
 }
 
 /// Reports errors to the compiler
 /// # Arguments
 /// * 'msg' - The message to report
-pub fn error() {    
+pub fn error() {
     unimplemented!();
 }

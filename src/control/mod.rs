@@ -1,4 +1,4 @@
-//trash code [demo]
+// trash code [demo]
 pub fn demo() {
     println!("control - reporting in");
 }
