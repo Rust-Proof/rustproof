@@ -1,13 +1,17 @@
-#![feature(plugin)]
-#![plugin(mir_dump)]
+#![feature(plugin, custom_attribute)]
+#![plugin(mir_dump2)]
 
 extern crate rustproof;
 
+#[precondition]
 fn main() {
-    hello_world();
-    println!("Goodbye, world!");
+    let mut x = 3;
+    x = add_five(x);
+    println!("{:?}", x);
 }
 
-fn hello_world() {
-    println!("Hello, world!");
+#[precondition]
+fn add_five(mut x: i32) -> i32 {
+    x = x + 5;
+    return x;
 }

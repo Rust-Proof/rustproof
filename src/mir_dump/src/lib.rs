@@ -32,7 +32,7 @@ struct PrintVisitor;
 impl<'tcx> Visitor<'tcx> for PrintVisitor {
     fn visit_basic_block_data(&mut self, bb: BasicBlock, d: &BasicBlockData<'tcx>) {
         println!("{:?}:", bb);
-        println!("{:?}", d);
+        println!("{:?}", d.statements);
     }
 }
 

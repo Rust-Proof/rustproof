@@ -11,6 +11,6 @@ authors = [
             "Drew Gohman <>"
           ]
 
-[dependencies.mir_dump]
-name = "mir_dump"
-path = "src/mir_dump"
+[dependencies.mir_dump2]
+name = "mir_dump2"
+path = "src/mir_dump2"
