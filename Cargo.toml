@@ -11,4 +11,6 @@ authors = [
             "Drew Gohman <>"
           ]
 
-[dependencies]
+[dependencies.mir_dump]
+name = "mir_dump"
+path = "src/mir_dump"

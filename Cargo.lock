@@ -1,0 +1,11 @@
+[root]
+name = "rustproof"
+version = "0.1.0"
+dependencies = [
+ "mir_dump 0.1.0",
+]
+
+[[package]]
+name = "mir_dump"
+version = "0.1.0"
+
