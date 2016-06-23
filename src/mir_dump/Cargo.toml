@@ -1,0 +1,9 @@
+[package]
+name = "mir_dump"
+version = "0.1.0"
+authors = ["Aaron Tomb"]
+
+[lib]
+name = "mir_dump"
+path = "src/lib.rs"
+plugin = true
