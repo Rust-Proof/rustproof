@@ -10,7 +10,7 @@ fn main() {
     println!("{:?}", x);
 }
 
-#[precondition]
+#[precondition(cond="x > 0")]
 fn add_five(mut x: i32) -> i32 {
     x = x + 5;
     return x;

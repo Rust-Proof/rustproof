@@ -23,7 +23,7 @@ fn expand_precondition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &An
     match item {
         &Annotatable::Item(ref inner_item) => match inner_item.node {
             ItemKind::Fn(..) => {
-                expand_precondition_fn();
+                expand_precondition_fn(meta);
             },
             _ => expand_bad_item(ctx, span),
         },
@@ -31,8 +31,9 @@ fn expand_precondition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &An
     }
 }
 
-fn expand_precondition_fn() {
+fn expand_precondition_fn(meta: &MetaItem) {
     println!("This is correctly placed on a function");
+    println!("{:?}", meta);
 }
 
 fn expand_bad_item(ctx: &mut ExtCtxt, span: Span) {
