@@ -3,20 +3,20 @@
 
 extern crate rustproof;
 
-#[precondition]
+#[condition]
 fn main() {
     let mut x = 3;
     x = add_five(x);
     println!("{:?}", x);
 }
 
-#[precondition(cond="x > 0")]
+#[condition(pre="x > 0", post="x >= 5")]
 fn add_five(mut x: i32) -> i32 {
     x = x + 5;
     return x;
 }
 
-#[precondition]
+#[condition]
 struct Foo {
     x: i32,
 }
