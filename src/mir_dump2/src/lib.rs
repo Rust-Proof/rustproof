@@ -6,7 +6,6 @@ extern crate syntax;
 extern crate rustc_plugin;
 
 use rustc_plugin::Registry;
-
 use syntax::ast::{MetaItem, Item, ItemKind};
 use syntax::ext::base::{ExtCtxt, Annotatable};
 use syntax::codemap::Span;
@@ -36,6 +35,8 @@ fn expand_precondition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &An
 fn expand_precondition_fn(meta: &MetaItem) {
     println!("This is correctly placed on a function");
     println!("{:?}", meta);
+    let data = statements::new();
+    data::print();
 }
 
 // If the #[precondition] is not on a function, error out
