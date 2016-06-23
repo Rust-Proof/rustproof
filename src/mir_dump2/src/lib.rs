@@ -19,6 +19,7 @@ pub fn registrar(reg: &mut Registry) {
     reg.register_syntax_extension(intern("precondition"), MultiDecorator(Box::new(expand_precondition)));
 }
 
+// For every #[precondition], this function is called
 fn expand_precondition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annotatable, push: &mut FnMut(Annotatable)) {
     match item {
         &Annotatable::Item(ref inner_item) => match inner_item.node {
@@ -31,11 +32,13 @@ fn expand_precondition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &An
     }
 }
 
+// If the #[precondition] is on a function... 
 fn expand_precondition_fn(meta: &MetaItem) {
     println!("This is correctly placed on a function");
     println!("{:?}", meta);
 }
 
+// If the #[precondition] is not on a function, error out
 fn expand_bad_item(ctx: &mut ExtCtxt, span: Span) {
     ctx.span_err(span, "#[precondition] must be placed over a function".into());
 }
