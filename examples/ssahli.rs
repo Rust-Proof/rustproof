@@ -15,3 +15,8 @@ fn add_five(mut x: i32) -> i32 {
     x = x + 5;
     return x;
 }
+
+#[precondition]
+struct Foo {
+    x: i32,
+}
