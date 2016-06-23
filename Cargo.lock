@@ -1,11 +1,4 @@
 [root]
 name = "rustproof"
-version = "0.1.0"
-dependencies = [
- "mir_dump2 0.1.0",
-]
-
-[[package]]
-name = "mir_dump2"
-version = "0.1.0"
+version = "0.0.1"
 

@@ -1,9 +1,9 @@
 [package]
 name = "rustproof"
-version = "0.1.0"
+version = "0.0.1"
 authors = [
             "Matthew Slocum <arco000@gmail.com>",
-            "Sami Sahli <>",
+            "Sami Sahli <samisahli@me.com>",
             "Vincent Schuster <>",
             "Matt O'Brien <>",
             "Michael Salter <>",
@@ -11,6 +11,7 @@ authors = [
             "Drew Gohman <>"
           ]
 
-[dependencies.mir_dump2]
-name = "mir_dump2"
-path = "src/mir_dump2"
+[lib]
+name = "rustproof"
+path = "src/lib.rs"
+plugin = true

@@ -1,5 +1,5 @@
 #![feature(plugin, custom_attribute)]
-#![plugin(mir_dump2)]
+#![plugin(rustproof)]
 
 extern crate rustproof;
 
