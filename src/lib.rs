@@ -76,7 +76,6 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
 }
 
 
-
 // If the #[condition] is on a function...
 fn expand_condition_fn(meta: &MetaItem) {
     match meta.node {
@@ -94,10 +93,6 @@ fn expand_condition_fn(meta: &MetaItem) {
     }
     //let () = meta.node;
 }
-
-
-
-
 
 
 // If the #[condition] is not on a function, error out
