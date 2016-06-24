@@ -28,6 +28,7 @@ pub mod reporting;
 pub mod z3_interface;
 pub mod weakest_precondition;
 pub mod parser;
+pub mod data;
 
 #[cfg(test)]
 mod tests;
@@ -75,7 +76,7 @@ fn expand_condition_fn(meta: &MetaItem) {
         // FIXME: at the moment, error out if there are no arguments to the attribute
         MetaItemKind::List(ref attribute_name, ref args) => {
             // FIXME: arguments should be parsed by the parser module, not in this control module
-            expand_args(args);
+            parser::expand_args(args);
         },
         _ => {
             panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
@@ -84,53 +85,8 @@ fn expand_condition_fn(meta: &MetaItem) {
     //let () = meta.node;
 }
 
-#[derive(Debug)]
-struct attr {
-    pre: Option<syntax::ast::LitKind>,
-    post: Option<syntax::ast::LitKind>,
-}
 
-// FIXME: this should be in the parser module!
-// Parse the condition arguments
-fn expand_args(args: &Vec<P<MetaItem>>) {
-    let mut builder = attr {pre: None, post: None};
-    match args.len() {
-        1 => {
-            println!("Found 1 argument:\n");
-            println!("{:?}\n", args[0]);
-            match args[0].node {
-                MetaItemKind::NameValue(ref x, ref y) =>
-                    {
-                        if x=="pre" {
-                            builder.pre = Some(y.node.clone());
-                        } else {
-                            builder.post = Some(y.node.clone());
-                        }
-                    },
-                _ => {},
-            }
-        },
-        2 => {
-            println!("Found 2 arguments:\n");
-            println!("{:?}\n", args[0]);
-            println!("{:?}\n", args[1]);
-            match args[0].node {
-                MetaItemKind::NameValue(ref x, ref y) => { builder.pre = Some(y.node.clone()); },
-                _ => {},
-            }
-            match args[1].node {
-                MetaItemKind::NameValue(ref x, ref y) => { builder.post = Some(y.node.clone()); },
-                _ => {},
-            }
-        },
-        _ => {
-            panic!("Too many arguments found for #[condition]; must have pre and/or post conditions");
-        }
-    }
 
-    println!("precondition {:?}", builder.pre.unwrap());
-    println!("postcondition {:?}", builder.post.unwrap());
-}
 
 
 
