@@ -1,5 +1,6 @@
 #[derive(Debug)]
-struct attr {
-    pre: Option<syntax::ast::LitKind>,
-    post: Option<syntax::ast::LitKind>,
+pub struct attr {
+    // FIXME: super?
+    pub pre: Option<super::syntax::ast::LitKind>,
+    pub post: Option<super::syntax::ast::LitKind>,
 }
