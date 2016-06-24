@@ -1,6 +1,6 @@
-
-// Copyright 2016 The Rust-Proof Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution
+// The Rust-Proof Project is copyright 2016, Sami Sahli,
+// Michael Salter, Matthew Slocum, Vincent Schuster,
+// Bradley Rasmussen, and Drew Gohman.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
