@@ -30,8 +30,8 @@ pub fn demo() {
 
 // FIXME: this should be in the parser module!
 // Parse the condition arguments
-pub fn expand_args(args: &Vec<P<MetaItem>>) {
-    let mut builder = super::data::attr {pre: None, post: None};
+pub fn expand_args(builder: &mut super::attr, args: &Vec<P<MetaItem>>) {
+
     match args.len() {
         1 => {
             println!("Found 1 argument:\n");
@@ -66,6 +66,7 @@ pub fn expand_args(args: &Vec<P<MetaItem>>) {
         }
     }
 
-    println!("precondition {:?}", builder.pre.unwrap());
-    println!("postcondition {:?}", builder.post.unwrap());
+    // FIXME: clone?
+    println!("precondition {:?}", builder.clone().pre.unwrap());
+    println!("postcondition {:?}", builder.clone().post.unwrap());
 }

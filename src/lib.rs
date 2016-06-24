@@ -28,7 +28,7 @@ pub mod reporting;
 pub mod z3_interface;
 pub mod weakest_precondition;
 pub mod parser;
-pub mod data;
+//pub mod data;
 
 #[cfg(test)]
 mod tests;
@@ -41,7 +41,12 @@ use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 
-
+#[derive(Debug, Clone)]
+pub struct attr {
+    // FIXME: super?
+    pub pre: Option<syntax::ast::LitKind>,
+    pub post: Option<syntax::ast::LitKind>,
+}
 
 // Register plugin with compiler
 #[plugin_registrar]
@@ -76,7 +81,9 @@ fn expand_condition_fn(meta: &MetaItem) {
         // FIXME: at the moment, error out if there are no arguments to the attribute
         MetaItemKind::List(ref attribute_name, ref args) => {
             // FIXME: arguments should be parsed by the parser module, not in this control module
-            parser::expand_args(args);
+            // NOTE: EXPERIMENT: control flow happens here
+            let mut builder = attr {pre: None, post: None};
+            parser::expand_args(&mut builder, args);
         },
         _ => {
             panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
