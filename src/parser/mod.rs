@@ -34,6 +34,8 @@ pub fn expand_args(builder: &mut super::attr, args: &Vec<P<MetaItem>>) {
 
     match args.len() {
         1 => {
+            panic!("You must provide pre AND post conditions.");
+            /*
             println!("Found 1 argument:\n");
             println!("{:?}\n", args[0]);
             match args[0].node {
@@ -41,23 +43,48 @@ pub fn expand_args(builder: &mut super::attr, args: &Vec<P<MetaItem>>) {
                     {
                         if x=="pre" {
                             builder.pre = Some(y.node.clone());
-                        } else {
+                        } else if x=="post" {
                             builder.post = Some(y.node.clone());
+                        } else {
+                            panic!("expecting pre and/or post condition {} provided.", x);
                         }
                     },
                 _ => {},
             }
+            */
         },
         2 => {
             println!("Found 2 arguments:\n");
             println!("{:?}\n", args[0]);
             println!("{:?}\n", args[1]);
             match args[0].node {
-                MetaItemKind::NameValue(ref x, ref y) => { builder.pre = Some(y.node.clone()); },
+                MetaItemKind::NameValue(ref x, ref y) => {
+                    if x!="pre" { panic!("The first argument must be 'pre'. {} was provided.", x); }
+                    match y.node {
+                        super::syntax::ast::LitKind::Str(ref x, ref y) => {
+                            builder.pre_str = x.to_string();
+                        }
+                        _ => {}
+                    }
+                    //println!("\nDEBUG\n{:?}\n", y.node);
+                    //let () = y.node;
+                    //FIXME: future removal
+                    builder.pre = Some(y.node.clone());
+                },
                 _ => {},
             }
             match args[1].node {
-                MetaItemKind::NameValue(ref x, ref y) => { builder.post = Some(y.node.clone()); },
+                MetaItemKind::NameValue(ref x, ref y) => {
+                    if x!="post" { panic!("The second argument must be 'post'. {} was provided.", x); }
+                    match y.node {
+                        super::syntax::ast::LitKind::Str(ref x, ref y) => {
+                            builder.post_str = x.to_string();
+                        }
+                        _ => {}
+                    }
+                    //FIXME: future removal?
+                    builder.post = Some(y.node.clone());
+                },
                 _ => {},
             }
         },
