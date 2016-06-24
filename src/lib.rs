@@ -45,7 +45,9 @@ use syntax::ptr::P;
 pub struct attr {
     // FIXME: super?
     pub pre: Option<syntax::ast::LitKind>,
+    pub pre_str: String,
     pub post: Option<syntax::ast::LitKind>,
+    pub post_str: String,
 }
 
 // Register plugin with compiler
@@ -82,8 +84,9 @@ fn expand_condition_fn(meta: &MetaItem) {
         MetaItemKind::List(ref attribute_name, ref args) => {
             // FIXME: arguments should be parsed by the parser module, not in this control module
             // NOTE: EXPERIMENT: control flow happens here
-            let mut builder = attr {pre: None, post: None};
+            let mut builder = attr {pre: None, post: None, pre_str: "".to_string(), post_str: "".to_string()};
             parser::expand_args(&mut builder, args);
+            println!("\nFINAL\n{:?}\n", builder);
         },
         _ => {
             panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
