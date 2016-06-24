@@ -54,9 +54,9 @@ pub fn expand_args(builder: &mut super::attr, args: &Vec<P<MetaItem>>) {
             */
         },
         2 => {
-            println!("Found 2 arguments:\n");
-            println!("{:?}\n", args[0]);
-            println!("{:?}\n", args[1]);
+            //println!("Found 2 arguments:\n");
+            //println!("{:?}\n", args[0]);
+            //println!("{:?}\n", args[1]);
             match args[0].node {
                 MetaItemKind::NameValue(ref x, ref y) => {
                     if x!="pre" { panic!("The first argument must be 'pre'. {} was provided.", x); }
@@ -94,6 +94,6 @@ pub fn expand_args(builder: &mut super::attr, args: &Vec<P<MetaItem>>) {
     }
 
     // FIXME: clone?
-    println!("precondition {:?}", builder.clone().pre.unwrap());
-    println!("postcondition {:?}", builder.clone().post.unwrap());
+    //println!("precondition {:?}", builder.clone().pre.unwrap());
+    //println!("postcondition {:?}", builder.clone().post.unwrap());
 }
