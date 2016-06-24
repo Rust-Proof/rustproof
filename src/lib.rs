@@ -1,6 +1,6 @@
-// The Rust-Proof Project is copyright 2016, Sami Sahli,
-// Michael Salter, Matthew Slocum, Vincent Schuster,
-// Bradley Rasmussen, and Drew Gohman.
+
+// Copyright 2016 The Rust-Proof Project Developers. See the COPYRIGHT
+// file at the top-level directory of this distribution
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -15,6 +15,9 @@
 // see: 'reporting' module
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
+// FIXME: these should not be here!
+#![allow(unused_variables)]
+#![allow(unused_imports)]
 
 #[macro_use]
 extern crate rustc;
@@ -30,11 +33,12 @@ pub mod parser;
 mod tests;
 
 use rustc_plugin::Registry;
-use syntax::ast::{MetaItem, Item, ItemKind};
+use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
 use syntax::ext::base::{ExtCtxt, Annotatable};
 use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::codemap::Span;
 use syntax::parse::token::intern;
+use syntax::ptr::P;
 
 
 
@@ -67,9 +71,65 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
 
 // If the #[condition] is on a function...
 fn expand_condition_fn(meta: &MetaItem) {
-    // FIXME: both of these are just for debug
-    println!("This #[condition] is correctly placed on a function");
-    println!("{:?}", meta);
+    match meta.node {
+        // FIXME: at the moment, error out if there are no arguments to the attribute
+        MetaItemKind::List(ref attribute_name, ref args) => {
+            // FIXME: arguments should be parsed by the parser module, not in this control module
+            expand_args(args);
+        },
+        _ => {
+            panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
+        }
+    }
+    //let () = meta.node;
+}
+
+#[derive(Debug)]
+struct attr {
+    pre: Option<syntax::ast::LitKind>,
+    post: Option<syntax::ast::LitKind>,
+}
+
+// FIXME: this should be in the parser module!
+// Parse the condition arguments
+fn expand_args(args: &Vec<P<MetaItem>>) {
+    let mut builder = attr {pre: None, post: None};
+    match args.len() {
+        1 => {
+            println!("Found 1 argument:\n");
+            println!("{:?}\n", args[0]);
+            match args[0].node {
+                MetaItemKind::NameValue(ref x, ref y) =>
+                    {
+                        if x=="pre" {
+                            builder.pre = Some(y.node.clone());
+                        } else {
+                            builder.post = Some(y.node.clone());
+                        }
+                    },
+                _ => {},
+            }
+        },
+        2 => {
+            println!("Found 2 arguments:\n");
+            println!("{:?}\n", args[0]);
+            println!("{:?}\n", args[1]);
+            match args[0].node {
+                MetaItemKind::NameValue(ref x, ref y) => { builder.pre = Some(y.node.clone()); },
+                _ => {},
+            }
+            match args[1].node {
+                MetaItemKind::NameValue(ref x, ref y) => { builder.post = Some(y.node.clone()); },
+                _ => {},
+            }
+        },
+        _ => {
+            panic!("Too many arguments found for #[condition]; must have pre and/or post conditions");
+        }
+    }
+
+    println!("precondition {:?}", builder.pre.unwrap());
+    println!("postcondition {:?}", builder.post.unwrap());
 }
 
 
