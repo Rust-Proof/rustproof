@@ -15,6 +15,9 @@
 // see: 'reporting' module
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
+// FIXME: these should not be here!
+#![allow(unused_variables)]
+#![allow(unused_imports)]
 
 #[macro_use]
 extern crate rustc;
@@ -25,18 +28,27 @@ pub mod reporting;
 pub mod z3_interface;
 pub mod weakest_precondition;
 pub mod parser;
+//pub mod data;
 
 #[cfg(test)]
 mod tests;
 
 use rustc_plugin::Registry;
-use syntax::ast::{MetaItem, Item, ItemKind};
+use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
 use syntax::ext::base::{ExtCtxt, Annotatable};
 use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::codemap::Span;
 use syntax::parse::token::intern;
+use syntax::ptr::P;
 
-
+#[derive(Debug, Clone)]
+pub struct Attr {
+    // FIXME: super?
+    pub pre: Option<syntax::ast::LitKind>,
+    pub pre_str: String,
+    pub post: Option<syntax::ast::LitKind>,
+    pub post_str: String,
+}
 
 // Register plugin with compiler
 #[plugin_registrar]
@@ -64,14 +76,23 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
 }
 
 
-
 // If the #[condition] is on a function...
 fn expand_condition_fn(meta: &MetaItem) {
-    // FIXME: both of these are just for debug
-    println!("This #[condition] is correctly placed on a function");
-    println!("{:?}", meta);
+    match meta.node {
+        // FIXME: at the moment, error out if there are no arguments to the attribute
+        MetaItemKind::List(ref attribute_name, ref args) => {
+            // FIXME: arguments should be parsed by the parser module, not in this control module
+            // NOTE: EXPERIMENT: control flow happens here
+            let mut builder = Attr {pre: None, post: None, pre_str: "".to_string(), post_str: "".to_string()};
+            parser::expand_args(&mut builder, args);
+            println!("\nFINAL\n{:?}\n", builder);
+        },
+        _ => {
+            panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
+        }
+    }
+    //let () = meta.node;
 }
-
 
 
 // If the #[condition] is not on a function, error out
