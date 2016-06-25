@@ -43,10 +43,9 @@ use syntax::ptr::P;
 
 #[derive(Debug, Clone)]
 pub struct Attr {
-    // FIXME: super?
-    pub pre: Option<syntax::ast::LitKind>,
+    pub pre_span: Option<Span>,
+    pub post_span: Option<Span>,
     pub pre_str: String,
-    pub post: Option<syntax::ast::LitKind>,
     pub post_str: String,
 }
 
@@ -68,10 +67,17 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
                 println!("\nDEBUG\n{:?}\n", item);
                 // NOTE: EXPERIMENT: control flow happens here
                 //struct to hold all data pertaining to operations
-                let mut builder = Attr {pre: None, post: None, pre_str: "".to_string(), post_str: "".to_string()};
+                //init to 'nulls'
+                let mut builder = Attr {
+                    pre_str: "".to_string(),
+                    post_str: "".to_string(),
+                    pre_span: None,
+                    post_span: None,
+                };
                 //get attribute values
                 parser::parse_attribute(&mut builder, meta);
-                //get function name
+
+                println!("\nFINAL\n{:?}\n", builder);
 
             },
             // Otherwise, it shouldn't have #[condition] on it
