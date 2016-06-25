@@ -43,6 +43,8 @@ use syntax::ptr::P;
 
 #[derive(Debug, Clone)]
 pub struct Attr {
+    pub func_name: String,
+    pub func_span: Option<Span>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
     pub pre_str: String,
@@ -64,11 +66,12 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
         &Annotatable::Item(ref it) => match it.node {
             // If the item is a function
             ItemKind::Fn(..) => {
-                println!("\nDEBUG\n{:?}\n", item);
                 // NOTE: EXPERIMENT: control flow happens here
                 //struct to hold all data pertaining to operations
                 //init to 'nulls'
                 let mut builder = Attr {
+                    func_name: "".to_string(),
+                    func_span: None,
                     pre_str: "".to_string(),
                     post_str: "".to_string(),
                     pre_span: None,
@@ -76,6 +79,8 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
                 };
                 //get attribute values
                 parser::parse_attribute(&mut builder, meta);
+                //get function name and span
+                parser::parse_func_name(&mut builder, item);
 
                 println!("\nFINAL\n{:?}\n", builder);
 

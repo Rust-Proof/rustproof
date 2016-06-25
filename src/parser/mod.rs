@@ -21,14 +21,19 @@ use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 
-// trash code [demo]
-pub fn demo() {
-    println!("parser - reporting in");
+// Parse out function name and span
+pub fn parse_func_name(builder: &mut super::Attr, item: &Annotatable) {
+    match item {
+        &Annotatable::Item(ref x) => {
+            //get function name
+            builder.func_name = x.ident.to_string();
+            //get span
+            builder.func_span = Some(x.span);
+        },
+        _ => {}
+    }
 }
 
-pub fn parse_func_name(builder: &mut super::Attr) {
-
-}
 
 // Parse the condition arguments
 pub fn parse_attribute(builder: &mut super::Attr, meta: &MetaItem) {
@@ -58,7 +63,7 @@ pub fn parse_attribute(builder: &mut super::Attr, meta: &MetaItem) {
                 },
                 2 => {
                     //println!("Found 2 arguments:\n");
-                    println!("{:?}\n", args[0]);
+                    //println!("{:?}\n", args[0]);
                     //println!("{:?}\n", args[1]);
                     match args[0].node {
                         MetaItemKind::NameValue(ref x, ref y) => {
