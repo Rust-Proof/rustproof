@@ -43,10 +43,11 @@ use syntax::ptr::P;
 
 #[derive(Debug, Clone)]
 pub struct Attr {
-    // FIXME: super?
-    pub pre: Option<syntax::ast::LitKind>,
+    pub func_name: String,
+    pub func_span: Option<Span>,
+    pub pre_span: Option<Span>,
+    pub post_span: Option<Span>,
     pub pre_str: String,
-    pub post: Option<syntax::ast::LitKind>,
     pub post_str: String,
 }
 
@@ -65,7 +66,24 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
         &Annotatable::Item(ref it) => match it.node {
             // If the item is a function
             ItemKind::Fn(..) => {
-                expand_condition_fn(meta);
+                // NOTE: EXPERIMENT: control flow happens here
+                //struct to hold all data pertaining to operations
+                //init to 'nulls'
+                let mut builder = Attr {
+                    func_name: "".to_string(),
+                    func_span: None,
+                    pre_str: "".to_string(),
+                    post_str: "".to_string(),
+                    pre_span: None,
+                    post_span: None,
+                };
+                //get attribute values
+                parser::parse_attribute(&mut builder, meta);
+                //get function name and span
+                parser::parse_func_name(&mut builder, item);
+
+                println!("\nFINAL\n{:?}\n", builder);
+
             },
             // Otherwise, it shouldn't have #[condition] on it
             _ => expand_bad_item(ctx, span),
@@ -73,25 +91,6 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
         // If it isn't an item at all, also shouldn't have #[condition] on it
         _ => expand_bad_item(ctx, span),
     }
-}
-
-
-// If the #[condition] is on a function...
-fn expand_condition_fn(meta: &MetaItem) {
-    match meta.node {
-        // FIXME: at the moment, error out if there are no arguments to the attribute
-        MetaItemKind::List(ref attribute_name, ref args) => {
-            // FIXME: arguments should be parsed by the parser module, not in this control module
-            // NOTE: EXPERIMENT: control flow happens here
-            let mut builder = Attr {pre: None, post: None, pre_str: "".to_string(), post_str: "".to_string()};
-            parser::expand_args(&mut builder, args);
-            println!("\nFINAL\n{:?}\n", builder);
-        },
-        _ => {
-            panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
-        }
-    }
-    //let () = meta.node;
 }
 
 
