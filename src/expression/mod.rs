@@ -14,31 +14,43 @@
 //extern crate rustc_plugin;
 
 use rustc_plugin::Registry;
+use std::fmt;
+
+pub struct AndData { p1: Box<Predicate>, p2: Box<Predicate> }
+pub struct OrData { p1: Box<Predicate>, p2: Box<Predicate> }
+pub struct NotData { p: Box<Predicate> }
+pub struct ImpliesData { p1: Box<Predicate>, p2: Box<Predicate> }
+pub struct IntegerComparisonData { op: IntegerComparisonOperand, t1: Term, t2: Term }
 
 //Boolean Expression type
-enum Predicate {
+pub enum Predicate {
     //Boolean literals
-    True,
-    False,
+    BooleanLiteral(bool),
     //Boolean operations
-    And { p1: Predicate, p2: Predicate },
-    Or { p1: Predicate, p2: Predicate },
-    Not { p: Predicate },
-    Implies { p1: Predicate, p2: Predicate }
+    And(AndData),
+    Or(OrData),
+    Not(NotData),
+    Implies(ImpliesData),
     //Integer comparison, which yields boolean
-    IntegerComparison { op: IntegerComparisonOperand, t1: Term, t2: Term },
+    IntegerComparison(IntegerComparisonData),
 }
+
+pub struct VariableMappingData { name: String, var_type: String}
+pub struct BinaryExpressionData { op: IntegerBinaryOperand, t1: Box<Term>, t2: Box<Term> }
+pub struct UnaryExpressionData { op: IntegerUnaryOperand, t: Box<Term> }
+pub struct UnsignedBitVectorData { size: u8, value: u64 }
+pub struct SignedBitVectorData { size: u8, value: i64 }
 
 //A literal, variable, or expression involving either
-enum Term {
-    VariableMapping { name: String, type: String}
-    BinaryExpression { op: IntegerBinaryOperand, t1: Term, t2: Term },
-    UnaryExpression { op: IntegerUnaryExpression, t: Term },
-    UnsignedBitVector { size: u8, value: u64},
-    SignedBitVector { size: u8, value: i64}
+pub enum Term {
+    VariableMapping(VariableMappingData),
+    BinaryExpression(BinaryExpressionData),
+    UnaryExpression(UnaryExpressionData),
+    UnsignedBitVector(UnsignedBitVectorData),
+    SignedBitVector(SignedBitVectorData)
 }
 
-enum IntegerBinaryOperand {
+pub enum IntegerBinaryOperand {
     Addition,
     Subtraction,
     Multiplication,
@@ -48,11 +60,11 @@ enum IntegerBinaryOperand {
     ArrayUpdate
 }
 
-enum IntegerUnaryOperand {
+pub enum IntegerUnaryOperand {
     Negation
 }
 
-enum IntegerComparisonOperand {
+pub enum IntegerComparisonOperand {
     LessThan,
     LessThanOrEqual,
     GreatherThan,
@@ -67,11 +79,22 @@ pub fn parse() {
 }
 
 //Recurses through a Predicate and replaces any Variable Mapping with the given Term
-pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: Term::VariableMapping, e: Term ) -> P {
+pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: VariableMappingData, e: Term ) -> Predicate {
 
+    // FIXME: shouldn't always return "true"
+    Predicate::BooleanLiteral(true)
 }
 
 
-pub fn substitute_varible_in_term_with_term ( t1: Term, x: Term::VariableMapping, t2: Term ) -> Term {
-    
+pub fn substitute_varible_in_term_with_term ( t1: Term, x: VariableMappingData, t2: Term ) -> Term {
+
+    // FIXME: shouldn't always return a variable mapping for an i64 whose value is 1
+    Term::SignedBitVector( SignedBitVectorData {size: 64u8, value: 1i64})
+}
+
+// FIXME: Needs to properly represent the contents as a string, recursively, for all cases
+impl fmt::Display for Predicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "predicate")
+    }
 }
