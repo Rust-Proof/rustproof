@@ -30,7 +30,7 @@ pub fn demo() {
 
 // FIXME: this should be in the parser module!
 // Parse the condition arguments
-pub fn expand_args(builder: &mut super::Attr, args: &Vec<P<MetaItem>>) {
+pub fn parse_attribute(builder: &mut super::Attr, args: &Vec<P<MetaItem>>) {
 
     match args.len() {
         1 => {
