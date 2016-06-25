@@ -70,17 +70,7 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
                 //struct to hold all data pertaining to operations
                 let mut builder = Attr {pre: None, post: None, pre_str: "".to_string(), post_str: "".to_string()};
                 //get attribute values
-                match meta.node {
-                    // FIXME: at the moment, error out if there are no arguments to the attribute
-                    MetaItemKind::List(ref attribute_name, ref args) => {
-                        // FIXME: arguments should be parsed by the parser module, not in this control module
-                        parser::parse_attribute(&mut builder, args);
-                        println!("\nFINAL\n{:?}\n", builder);
-                    },
-                    _ => {
-                        panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
-                    }
-                }
+                parser::parse_attribute(&mut builder, meta);
                 //get function name
 
             },
