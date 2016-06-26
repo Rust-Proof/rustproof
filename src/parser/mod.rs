@@ -20,11 +20,13 @@ use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
+use super::dev_tools; // FIXME: remove for production
+use super::Attr;
 
 
 
 // Parse out function name and span
-pub fn parse_func_name(builder: &mut super::Attr, item: &Annotatable) {
+pub fn parse_func_name(builder: &mut Attr, item: &Annotatable) {
     match item {
         &Annotatable::Item(ref x) => {
             //get function name
@@ -32,10 +34,10 @@ pub fn parse_func_name(builder: &mut super::Attr, item: &Annotatable) {
             //get span
             builder.func_span = Some(x.span);
             println!("\nDEBUG\n{:#?}\n", x.node);
-            //super::dev_tools::print_type_of(&x.node);
-//            match x.node {
-
-//            }
+            dev_tools::print_type_of(&x.node);
+            match x.node {
+                _ => {}
+            }
         },
         _ => {}
     }
@@ -43,7 +45,7 @@ pub fn parse_func_name(builder: &mut super::Attr, item: &Annotatable) {
 
 
 // Parse the condition arguments
-pub fn parse_attribute(builder: &mut super::Attr, meta: &MetaItem) {
+pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
     match meta.node {
         // FIXME: at the moment, error out if there are no arguments to the attribute
         MetaItemKind::List(ref attribute_name, ref args) => {

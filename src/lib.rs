@@ -73,9 +73,8 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
     //get function name and span
     parser::parse_func_name(&mut builder, item);
 
-    println!("\nDEBUG Item\n{:#?}\n", item);
-
-    println!("\nDEBUG Builder\n{:#?}\n", builder);
+    //println!("\nDEBUG Item\n{:#?}\n", item);
+    //println!("\nDEBUG Builder\n{:#?}\n", builder);
 }
 
 // Register plugin with compiler
