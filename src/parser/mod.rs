@@ -21,6 +21,8 @@ use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 
+
+
 // Parse out function name and span
 pub fn parse_func_name(builder: &mut super::Attr, item: &Annotatable) {
     match item {
@@ -29,6 +31,11 @@ pub fn parse_func_name(builder: &mut super::Attr, item: &Annotatable) {
             builder.func_name = x.ident.to_string();
             //get span
             builder.func_span = Some(x.span);
+            println!("\nDEBUG\n{:#?}\n", x.node);
+            //super::dev_tools::print_type_of(&x.node);
+//            match x.node {
+
+//            }
         },
         _ => {}
     }

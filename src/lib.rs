@@ -19,6 +19,9 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+// FIXME: remove below. only for dev tools
+#![feature(core_intrinsics)]
+
 #[macro_use]
 extern crate rustc;
 extern crate syntax;
@@ -28,6 +31,7 @@ pub mod reporting;
 pub mod z3_interface;
 pub mod weakest_precondition;
 pub mod parser;
+pub mod dev_tools;
 //pub mod data;
 
 #[cfg(test)]
@@ -45,6 +49,7 @@ use syntax::ptr::P;
 pub struct Attr {
     pub func_name: String,
     pub func_span: Option<Span>,
+    //pub func_stmts: Vec<_>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
     pub pre_str: String,
