@@ -33,9 +33,11 @@ pub fn parse_func_name(builder: &mut Attr, item: &Annotatable) {
             builder.func_name = x.ident.to_string();
             //get span
             builder.func_span = Some(x.span);
-            println!("\nDEBUG\n{:#?}\n", x.node);
-            dev_tools::print_type_of(&x.node);
+            //dev_tools::print_type_of(&x.node);
             match x.node {
+                ItemKind::Fn(ref a, ref b, ref c, ref d, ref e, ref block) => {
+                    builder.func = Some(block.clone());
+                },
                 _ => {}
             }
         },

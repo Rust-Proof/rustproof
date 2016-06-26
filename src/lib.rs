@@ -50,6 +50,7 @@ pub struct Attr {
     pub func_name: String,
     pub func_span: Option<Span>,
     //pub func_stmts: Vec<_>,
+    pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
     pub pre_str: String,
@@ -63,6 +64,7 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
     let mut builder = Attr {
         func_name: "".to_string(),
         func_span: None,
+        func: None,
         pre_str: "".to_string(),
         post_str: "".to_string(),
         pre_span: None,
@@ -74,7 +76,7 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
     parser::parse_func_name(&mut builder, item);
 
     //println!("\nDEBUG Item\n{:#?}\n", item);
-    //println!("\nDEBUG Builder\n{:#?}\n", builder);
+    println!("\nDEBUG Builder\n{:#?}\n", builder);
 }
 
 // Register plugin with compiler
