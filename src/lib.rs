@@ -19,6 +19,9 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+// FIXME: remove below. only for dev tools
+#![feature(core_intrinsics)]
+
 #[macro_use]
 extern crate rustc;
 extern crate syntax;
@@ -28,6 +31,7 @@ pub mod reporting;
 pub mod z3_interface;
 pub mod weakest_precondition;
 pub mod parser;
+pub mod dev_tools;
 //pub mod data;
 
 #[cfg(test)]
@@ -45,6 +49,8 @@ use syntax::ptr::P;
 pub struct Attr {
     pub func_name: String,
     pub func_span: Option<Span>,
+    //pub func_stmts: Vec<_>,
+    pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
     pub pre_str: String,
@@ -58,6 +64,7 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
     let mut builder = Attr {
         func_name: "".to_string(),
         func_span: None,
+        func: None,
         pre_str: "".to_string(),
         post_str: "".to_string(),
         pre_span: None,
@@ -68,7 +75,8 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
     //get function name and span
     parser::parse_func_name(&mut builder, item);
 
-    println!("\nDEBUG\n{:?}\n", builder);
+    //println!("\nDEBUG Item\n{:#?}\n", item);
+    println!("\nDEBUG Builder\n{:#?}\n", builder);
 }
 
 // Register plugin with compiler
