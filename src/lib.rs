@@ -28,6 +28,7 @@ pub mod reporting;
 pub mod z3_interface;
 pub mod weakest_precondition;
 pub mod parser;
+pub mod expression;
 //pub mod data;
 
 #[cfg(test)]
@@ -84,7 +85,14 @@ fn expand_condition_fn(meta: &MetaItem) {
             // FIXME: arguments should be parsed by the parser module, not in this control module
             // NOTE: EXPERIMENT: control flow happens here
             let mut builder = Attr {pre: None, post: None, pre_str: "".to_string(), post_str: "".to_string()};
-            parser::expand_args(&mut builder, args);
+
+            // Parse the conditions
+            let conditions = parser::expand_args(&mut builder, args);
+
+            // FIXME: Debug printing
+            println!("precondition: {}", conditions.0.to_string());
+            println!("postcondition: {}", conditions.1.to_string());
+
             println!("\nFINAL\n{:?}\n", builder);
         },
         _ => {

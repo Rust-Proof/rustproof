@@ -20,6 +20,7 @@ use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
+use expression::Predicate;
 
 // trash code [demo]
 pub fn demo() {
@@ -30,7 +31,7 @@ pub fn demo() {
 
 // FIXME: this should be in the parser module!
 // Parse the condition arguments
-pub fn expand_args(builder: &mut super::Attr, args: &Vec<P<MetaItem>>) {
+pub fn expand_args(builder: &mut super::Attr, args: &Vec<P<MetaItem>>) -> (Predicate, Predicate) {
 
     match args.len() {
         1 => {
@@ -96,4 +97,9 @@ pub fn expand_args(builder: &mut super::Attr, args: &Vec<P<MetaItem>>) {
     // FIXME: clone?
     //println!("precondition {:?}", builder.clone().pre.unwrap());
     //println!("postcondition {:?}", builder.clone().post.unwrap());
+
+    //FIXME: Debug statement
+    println!("Precondition: {}", builder.pre_str);
+    println!("Postcondition: {}", builder.post_str);
+    (Predicate::BooleanLiteral(true), Predicate::BooleanLiteral(true))
 }

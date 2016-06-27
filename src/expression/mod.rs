@@ -1,6 +1,6 @@
 // The Rust-Proof Project is copyright 2016, Sami Sahli,
 // Michael Salter, Matthew Slocum, Vincent Schuster,
-// Bradley Rasmussen, and Drew Gohman.
+// Bradley Rasmussen, Drew Gohman, and Matthew O'Brien.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -73,11 +73,6 @@ pub enum IntegerComparisonOperand {
     NotEqual
 }
 
-//Master function for the parser module. Checks pre- and post-conditions and builds them into expressions.
-pub fn parse() {
-
-}
-
 //Recurses through a Predicate and replaces any Variable Mapping with the given Term
 pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: VariableMappingData, e: Term ) -> Predicate {
 
@@ -85,7 +80,7 @@ pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: VariableMap
     Predicate::BooleanLiteral(true)
 }
 
-
+//Recurses through a Term and replaces any Variable Mapping with the given Term
 pub fn substitute_varible_in_term_with_term ( t1: Term, x: VariableMappingData, t2: Term ) -> Term {
 
     // FIXME: shouldn't always return a variable mapping for an i64 whose value is 1
