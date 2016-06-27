@@ -26,7 +26,7 @@ use super::Attr;
 
 
 // Parse out function name and span
-pub fn parse_func(builder: &mut Attr, item: &Annotatable) {
+pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
     match item {
         &Annotatable::Item(ref x) => {
             //get function name
