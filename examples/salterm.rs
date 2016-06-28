@@ -1,3 +1,3 @@
-extern crate rustproof;
+//extern crate rustproof;
 
 fn main() {}

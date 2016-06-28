@@ -15,6 +15,7 @@ fn add_five(mut x: i32) -> i32 {
     return x;
 }
 
-struct Foo {
+/*struct Foo {
     x: i32,
 }
+*/

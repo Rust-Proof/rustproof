@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-mod test_control;
+
 mod test_reporting;
 mod test_z3_interface;
 mod test_weakest_precondition;

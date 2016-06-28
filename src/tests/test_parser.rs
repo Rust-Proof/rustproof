@@ -12,4 +12,5 @@
 fn demo() {
     use super::super::parser;
     parser::demo();
+    //assert!(false);
 }

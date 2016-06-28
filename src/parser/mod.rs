@@ -46,7 +46,7 @@ pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
 }
 
 /// Parses attribute information from a *MetaItem* associated with an attribute.
-/// *builder* is passed by reference 
+/// *builder* is passed by reference
 pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
     match meta.node {
         // FIXME: at the moment, error out if there are no arguments to the attribute
@@ -121,4 +121,8 @@ pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
     // FIXME: clone?
     //println!("precondition {:?}", builder.clone().pre.unwrap());
     //println!("postcondition {:?}", builder.clone().post.unwrap());
+}
+
+pub fn demo() {
+    println!("parser - reporting in");
 }
