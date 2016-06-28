@@ -24,9 +24,9 @@ use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 
 
-
-// Parse out function name and span
-pub fn parse_func_name(builder: &mut Attr, item: &Annotatable) {
+/// Parses function information from an *Annotatable* associated with an attribute.
+/// *builder* is passed by reference
+pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
     match item {
         &Annotatable::Item(ref x) => {
             //get function name
@@ -45,8 +45,8 @@ pub fn parse_func_name(builder: &mut Attr, item: &Annotatable) {
     }
 }
 
-
-// Parse the condition arguments
+/// Parses attribute information from a *MetaItem* associated with an attribute.
+/// *builder* is passed by reference 
 pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
     match meta.node {
         // FIXME: at the moment, error out if there are no arguments to the attribute

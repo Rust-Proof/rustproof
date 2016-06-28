@@ -73,7 +73,7 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
     //get attribute values
     parser::parse_attribute(&mut builder, meta);
     //get function name and span
-    parser::parse_func_name(&mut builder, item);
+    parser::parse_function(&mut builder, item);
 
     //println!("\nDEBUG Item\n{:#?}\n", item);
     println!("\nDEBUG Builder\n{:#?}\n", builder);
@@ -87,6 +87,7 @@ pub fn registrar(reg: &mut Registry) {
 
 // For every #[condition], this function is called
 // FIXME: I don't really know what `push: &mut FnMut(Annotatable)` is, but I know its required.
+/// Checks an attribute for proper placement and starts the control flow of the application
 fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annotatable, push: &mut FnMut(Annotatable)) {
     match item {
         &Annotatable::Item(ref it) => match it.node {
