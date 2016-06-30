@@ -4,7 +4,6 @@
 fn main() {
     let mut x = 3;
     x = add_five(x);
-    println!("{:#?}", x);
 }
 
 fn add_five(mut x: i32) -> i32 {
