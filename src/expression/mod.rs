@@ -16,11 +16,11 @@
 use rustc_plugin::Registry;
 use std::fmt;
 
-pub struct AndData { p1: Box<Predicate>, p2: Box<Predicate> }
-pub struct OrData { p1: Box<Predicate>, p2: Box<Predicate> }
-pub struct NotData { p: Box<Predicate> }
-pub struct ImpliesData { p1: Box<Predicate>, p2: Box<Predicate> }
-pub struct IntegerComparisonData { op: IntegerComparisonOperator, t1: Term, t2: Term }
+pub struct AndData { pub p1: Box<Predicate>, pub p2: Box<Predicate> }
+pub struct OrData { pub p1: Box<Predicate>, pub p2: Box<Predicate> }
+pub struct NotData { pub p: Box<Predicate> }
+pub struct ImpliesData { pub p1: Box<Predicate>, pub p2: Box<Predicate> }
+pub struct IntegerComparisonData { pub op: IntegerComparisonOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
 //Boolean Expression type
 pub enum Predicate {
@@ -35,11 +35,11 @@ pub enum Predicate {
     IntegerComparison(IntegerComparisonData),
 }
 
-pub struct VariableMappingData { name: String, var_type: String}
-pub struct BinaryExpressionData { op: IntegerBinaryOperator, t1: Box<Term>, t2: Box<Term> }
-pub struct UnaryExpressionData { op: IntegerUnaryOperator, t: Box<Term> }
-pub struct UnsignedBitVectorData { size: u8, value: u64 }
-pub struct SignedBitVectorData { size: u8, value: i64 }
+pub struct VariableMappingData { pub name: String, pub var_type: String}
+pub struct BinaryExpressionData { pub op: IntegerBinaryOperator, pub t1: Box<Term>, pub t2: Box<Term> }
+pub struct UnaryExpressionData { pub op: IntegerUnaryOperator, pub t: Box<Term> }
+pub struct UnsignedBitVectorData { pub size: u8, pub value: u64 }
+pub struct SignedBitVectorData { pub size: u8, pub value: i64 }
 
 //A literal, variable, or expression involving either
 pub enum Term {
@@ -50,6 +50,7 @@ pub enum Term {
     SignedBitVector(SignedBitVectorData)
 }
 
+#[derive(Clone)]
 pub enum IntegerBinaryOperator {
     //Normal operators
     Addition,
@@ -68,11 +69,13 @@ pub enum IntegerBinaryOperator {
     ArrayUpdate
 }
 
+#[derive(Clone)]
 pub enum IntegerUnaryOperator {
     Negation,
     BitwiseNot
 }
 
+#[derive(Clone)]
 pub enum IntegerComparisonOperator {
     LessThan,
     LessThanOrEqual,
@@ -84,19 +87,111 @@ pub enum IntegerComparisonOperator {
 
 //Recurses through a Predicate and replaces any Variable Mapping with the given Term
 pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: VariableMappingData, e: Term ) -> Predicate {
-
-    unimplemented!()
+    match p {
+        Predicate::And(a) => {
+            unimplemented!()
+        },
+        Predicate::Or(o) => {
+            unimplemented!()
+        },
+        Predicate::Not(n) => {
+            unimplemented!()
+        },
+        Predicate::Implies(i) => {
+            unimplemented!()
+        },
+        Predicate::IntegerComparison(ic) => {
+            unimplemented!()
+        },
+        _ => {
+            unimplemented!()
+        }
+    };
 }
 
-//Recurses through a Term and replaces any Variable Mapping with the given Term
-pub fn substitute_varible_in_term_with_term ( t1: Term, x: VariableMappingData, t2: Term ) -> Term {
+//Recurses through a Term and replaces any matching Variable Mapping with the given Term. Returns a copy of the source Term with replacements.
+pub fn substitute_varible_in_term_with_term ( source_term: Term, sought: VariableMappingData, replacement_term: Term ) -> Term {
+    match source_term {
+        Term::VariableMapping(v) => {
+            if v == sought {
+                return_term_copy(replacement_term)
+            } else {
+                Term::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
+            }
+        },
+        Term::BinaryExpression(b) => {
+            unimplemented!()
+        },
+        Term::UnaryExpression(u) => {
+            unimplemented!()
+        },
+        _ => {
+            unimplemented!()
+        }
+    }
+}
 
-    unimplemented!();
+//Returns a Term identical to the one that was submitted.
+pub fn return_term_copy( original: Term ) -> Term {
+    match original {
+        Term::VariableMapping(v) => {
+            Term::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
+        }
+        Term::BinaryExpression(b) => {
+            Term::BinaryExpression(
+                BinaryExpressionData {
+                    op: b.op.clone(),
+                    t1: Box::new(return_term_copy(*b.t1)),
+                    t2: Box::new(return_term_copy(*b.t2))
+                }
+            )
+        },
+        Term::UnaryExpression(u) => {
+            Term::UnaryExpression(
+                UnaryExpressionData {
+                    op: u.op.clone(),
+                    t: Box::new(return_term_copy(*u.t))
+                }
+            )
+        },
+        Term::UnsignedBitVector(u) => {
+            Term::UnsignedBitVector(
+                UnsignedBitVectorData {
+                    size: u.size,
+                    value: u.value
+                }
+            )
+        },
+        Term::SignedBitVector(s) => {
+            Term::SignedBitVector(
+                SignedBitVectorData {
+                    size: s.size,
+                    value: s.value
+                }
+            )
+        }
+    }
 }
 
 //Used for representing Predicate types as strings, recursively.
 impl fmt::Display for Predicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "predicate")
+        //FIXME: this commented line below is the format to use
+        //write!(f, "predicate")
+        unimplemented!()
     }
 }
+
+//Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
+impl PartialEq for VariableMappingData {
+    fn eq(&self, _rhs: &VariableMappingData) -> bool {
+        if (self.name == _rhs.name) && (self.var_type == _rhs.var_type) {
+            true
+        } else {
+            false
+        }
+    }
+}
+
+//Ensures it is clear that VariableMappingData has full equality
+impl Eq for VariableMappingData {}
