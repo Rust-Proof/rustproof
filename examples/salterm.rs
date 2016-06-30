@@ -1,6 +1,10 @@
 #![feature(plugin, custom_attribute)]
 #![plugin(rustproof)]
 
+extern crate rustproof;
+
+use rustproof::expression::VariableMappingData;
+
 fn main() {
 	let x = 7u32;
 	let z = foo(x);
