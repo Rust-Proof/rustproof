@@ -1,0 +1,9 @@
+[package]
+name = "mirtest"
+version = "0.1.0"
+authors = ["found101 <dagohman@gmail.com>"]
+
+[lib]
+name = "mirtest"
+path = "src/lib.rs"
+plugin = true
