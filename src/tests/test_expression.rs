@@ -10,7 +10,7 @@
 
 use expression::VariableMappingData;
 use expression::Term;
-use expression::substitute_varible_in_term_with_term;
+use expression::substitute_variable_in_term_with_term;
 
 #[test]
 fn variable_mapping_data_equality() {
@@ -47,7 +47,7 @@ fn variable_mapping_data_replaced_with_variable_mapping_data() {
 	let term2: Term = Term::VariableMapping(VariableMappingData { name: "y".to_string(), var_type: "u32".to_string() });
 	let term3: Term = Term::VariableMapping(VariableMappingData { name: "y".to_string(), var_type: "u32".to_string() });
 
-	let term4: Term = substitute_varible_in_term_with_term(term1, var1, term2);
+	let term4: Term = substitute_variable_in_term_with_term(term1, var1, term2);
 	match term4 {
 		Term::VariableMapping(v) => {
 			match term3 {

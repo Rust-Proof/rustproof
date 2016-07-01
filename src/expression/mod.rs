@@ -110,17 +110,28 @@ pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: VariableMap
 }
 
 //Recurses through a Term and replaces any matching Variable Mapping with the given Term. Returns a copy of the source Term with replacements.
-pub fn substitute_varible_in_term_with_term ( source_term: Term, sought: VariableMappingData, replacement_term: Term ) -> Term {
+pub fn substitute_variable_in_term_with_term ( source_term: Term, sought: VariableMappingData, replacement_term: Term ) -> Term {
     match source_term {
         Term::VariableMapping(v) => {
             if v == sought {
-                return_term_copy(replacement_term)
+                return_term_copy(&replacement_term)
             } else {
                 Term::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
             }
         },
         Term::BinaryExpression(b) => {
-            unimplemented!()
+            Term::BinaryExpression( BinaryExpressionData {
+            op: b.op,
+            t1: Box::new(substitute_variable_in_term_with_term(
+                *b.t1,
+                VariableMappingData { name: sought.name.clone(), var_type: sought.var_type.clone() },
+                return_term_copy(&replacement_term))
+            ),
+            t2: Box::new(substitute_variable_in_term_with_term(
+                *b.t2,
+                VariableMappingData { name: sought.name.clone(), var_type: sought.var_type.clone() },
+                return_term_copy(&replacement_term)))
+            } )
         },
         Term::UnaryExpression(u) => {
             unimplemented!()
@@ -132,29 +143,29 @@ pub fn substitute_varible_in_term_with_term ( source_term: Term, sought: Variabl
 }
 
 //Returns a Term identical to the one that was submitted.
-pub fn return_term_copy( original: Term ) -> Term {
+pub fn return_term_copy( original: &Term ) -> Term {
     match original {
-        Term::VariableMapping(v) => {
+        &Term::VariableMapping(ref v) => {
             Term::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
         }
-        Term::BinaryExpression(b) => {
+        &Term::BinaryExpression(ref b) => {
             Term::BinaryExpression(
                 BinaryExpressionData {
                     op: b.op.clone(),
-                    t1: Box::new(return_term_copy(*b.t1)),
-                    t2: Box::new(return_term_copy(*b.t2))
+                    t1: Box::new(return_term_copy(&(*b.t1))),
+                    t2: Box::new(return_term_copy(&(*b.t2)))
                 }
             )
         },
-        Term::UnaryExpression(u) => {
+        &Term::UnaryExpression(ref u) => {
             Term::UnaryExpression(
                 UnaryExpressionData {
                     op: u.op.clone(),
-                    t: Box::new(return_term_copy(*u.t))
+                    t: Box::new(return_term_copy(&(*u.t)))
                 }
             )
         },
-        Term::UnsignedBitVector(u) => {
+        &Term::UnsignedBitVector(ref u) => {
             Term::UnsignedBitVector(
                 UnsignedBitVectorData {
                     size: u.size,
@@ -162,7 +173,7 @@ pub fn return_term_copy( original: Term ) -> Term {
                 }
             )
         },
-        Term::SignedBitVector(s) => {
+        &Term::SignedBitVector(ref s) => {
             Term::SignedBitVector(
                 SignedBitVectorData {
                     size: s.size,
