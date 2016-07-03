@@ -262,11 +262,117 @@ impl fmt::Display for Predicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // FIXME: this commented line below is the format to use
         // write!(f, "predicate")
-        unimplemented!()
+        match self {
+            &Predicate::BooleanLiteral (ref b) => {
+                write!(f, "{}", b)
+            },
+            &Predicate::And (ref a) => {
+                write!(f, "{} && {}", *a.p1, *a.p2)
+            },
+            &Predicate::Or (ref o) => {
+                write!(f, "{} || {}", *o.p1, *o.p2)
+            },
+            &Predicate::Not (ref n) => {
+                write!(f, "¬{}", *n.p)
+            },
+            &Predicate::Implies (ref i) => {
+                write!(f, "{} -> {}", *i.p1, *i.p2)
+            },
+            &Predicate::IntegerComparison (ref i) => {
+                match i.op {
+                    IntegerComparisonOperator::LessThan => {
+                        write!(f, "{} < {}", *i.t1, *i.t2)
+                    },
+                    IntegerComparisonOperator::LessThanOrEqual => {
+                        write!(f, "{} <= {}", *i.t1, *i.t2)
+                    },
+                    IntegerComparisonOperator::GreatherThan => {
+                        write!(f, "{} > {}", *i.t1, *i.t2)
+                    },
+                    IntegerComparisonOperator::GreatherThanOrEqual => {
+                        write!(f, "{} >= {}", *i.t1, *i.t2)
+                    },
+                    IntegerComparisonOperator::Equal => {
+                        write!(f, "{} == {}", *i.t1, *i.t2)
+                    },
+                    IntegerComparisonOperator::NotEqual => {
+                        write!(f, "{} != {}", *i.t1, *i.t2)
+                    }
+                }
+            }
+        }
     }
 }
 
-// User for representing Term types as strings, recursively.
+// Used for representing Term types as strings, recursively.
+impl fmt::Display for Term {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // FIXME: this commented line below is the format to use
+        // write!(f, "predicate")
+        match self {
+            &Term::VariableMapping(ref v) => {
+                write!(f, "{}", v.name)
+            },
+            &Term::BinaryExpression(ref b) => {
+                match b.op {
+                    IntegerBinaryOperator::Addition => {
+                        write!(f, "{} + {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::Subtraction => {
+                        write!(f, "{} - {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::Multiplication => {
+                        write!(f, "{} * {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::Division => {
+                        write!(f, "{} ÷ {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::Modulo => {
+                        write!(f, "{} % {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::BitwiseOr => {
+                        write!(f, "{} | {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::BitwiseAnd => {
+                        write!(f, "{} & {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::BitwiseXor => {
+                        write!(f, "{} ^ {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::BitwiseLeftShift => {
+                        write!(f, "{} << {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::BitwiseRightShift => {
+                        write!(f, "{} >> {}", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::ArrayLookup => {
+                        write!(f, "{}[{}]", *b.t1, *b.t2)
+                    },
+                    IntegerBinaryOperator::ArrayUpdate => {
+                        write!(f, "{}[{}]", *b.t1, *b.t2)
+                    }
+                }
+            },
+            &Term::UnaryExpression(ref u) => {
+                match u.op {
+                    IntegerUnaryOperator::Negation => {
+                        write!(f, "-{}", *u.t)
+                    },
+                    IntegerUnaryOperator::BitwiseNot => {
+                        write!(f, "!{}", *u.t)
+                    }
+                }
+            },
+            &Term::UnsignedBitVector(ref u) => {
+                write!(f, "{}", u.value)
+            },
+            &Term::SignedBitVector(ref s) => {
+                write!(f, "{}", s.value)
+            }
+        }
+    }
+}
+
 
 // Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
 impl PartialEq for VariableMappingData {
