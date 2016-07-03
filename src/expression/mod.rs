@@ -110,34 +110,50 @@ pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: VariableMap
 }
 
 //Recurses through a Term and replaces any matching Variable Mapping with the given Term. Returns a copy of the source Term with replacements.
-pub fn substitute_variable_in_term_with_term ( source_term: Term, sought: VariableMappingData, replacement_term: Term ) -> Term {
+pub fn substitute_variable_in_term_with_term ( source_term: Term, target: VariableMappingData, replacement_term: Term ) -> Term {
     match source_term {
         Term::VariableMapping(v) => {
-            if v == sought {
+            //Replace the VariableMapping with replacement_term if it matches target, otherwise return a copy
+            if v == target {
                 return_term_copy(&replacement_term)
             } else {
                 Term::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
             }
         },
         Term::BinaryExpression(b) => {
+            //Recursively call the sub-terms and return new BinaryExpression
             Term::BinaryExpression( BinaryExpressionData {
-            op: b.op,
-            t1: Box::new(substitute_variable_in_term_with_term(
-                *b.t1,
-                VariableMappingData { name: sought.name.clone(), var_type: sought.var_type.clone() },
-                return_term_copy(&replacement_term))
-            ),
-            t2: Box::new(substitute_variable_in_term_with_term(
-                *b.t2,
-                VariableMappingData { name: sought.name.clone(), var_type: sought.var_type.clone() },
-                return_term_copy(&replacement_term)))
+                op: b.op,
+                t1: Box::new(substitute_variable_in_term_with_term(
+                    *b.t1,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term))
+                ),
+                t2: Box::new(substitute_variable_in_term_with_term(
+                    *b.t2,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                ))
             } )
         },
         Term::UnaryExpression(u) => {
-            unimplemented!()
+            //Recusrively call the sub-term and return new UnaryExpression
+            Term::UnaryExpression( UnaryExpressionData {
+                op: u.op,
+                t: Box::new(substitute_variable_in_term_with_term(
+                    *u.t,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                ))
+            })
         },
-        _ => {
-            unimplemented!()
+        Term::UnsignedBitVector(u) => {
+            //Return a copy
+            return_term_copy(&replacement_term)
+        },
+        Term::SignedBitVector(s) => {
+            //Return a copy
+            return_term_copy(&replacement_term)
         }
     }
 }
