@@ -22,16 +22,16 @@ pub struct NotData { pub p: Box<Predicate> }
 pub struct ImpliesData { pub p1: Box<Predicate>, pub p2: Box<Predicate> }
 pub struct IntegerComparisonData { pub op: IntegerComparisonOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
-//Boolean Expression type
+// Boolean Expression type
 pub enum Predicate {
-    //Boolean literals
+    // Boolean literals
     BooleanLiteral(bool),
-    //Boolean operations
+    // Boolean operations
     And(AndData),
     Or(OrData),
     Not(NotData),
     Implies(ImpliesData),
-    //Integer comparison, which yields boolean
+    // Integer comparison, which yields boolean
     IntegerComparison(IntegerComparisonData),
 }
 
@@ -41,7 +41,7 @@ pub struct UnaryExpressionData { pub op: IntegerUnaryOperator, pub t: Box<Term> 
 pub struct UnsignedBitVectorData { pub size: u8, pub value: u64 }
 pub struct SignedBitVectorData { pub size: u8, pub value: i64 }
 
-//A literal, variable, or expression involving either
+// A literal, variable, or expression involving either.
 pub enum Term {
     VariableMapping(VariableMappingData),
     BinaryExpression(BinaryExpressionData),
@@ -52,19 +52,19 @@ pub enum Term {
 
 #[derive(Clone)]
 pub enum IntegerBinaryOperator {
-    //Normal operators
+    // Normal operators
     Addition,
     Subtraction,
     Multiplication,
     Division,
     Modulo,
-    //Bitwise operators
+    // Bitwise operators
     BitwiseOr,
     BitwiseAnd,
     BitwiseXor,
     BitwiseLeftShift,
     BitwiseRightShift,
-    //Array operators
+    // Array operators
     ArrayLookup,
     ArrayUpdate
 }
@@ -85,35 +85,92 @@ pub enum IntegerComparisonOperator {
     NotEqual
 }
 
-//Recurses through a Predicate and replaces any Variable Mapping with the given Term
-pub fn substitute_variable_in_predicate_with_term ( p: Predicate, x: VariableMappingData, e: Term ) -> Predicate {
-    match p {
+// Recurses through a Predicate and replaces any Variable Mapping with the given Term.
+pub fn substitute_variable_in_predicate_with_term ( source_predicate: Predicate, target: VariableMappingData, replacement_term: Term ) -> Predicate {
+    match source_predicate {
+        Predicate::BooleanLiteral(b) => {
+            // Return a copy.
+            Predicate::BooleanLiteral ( b )
+        },
         Predicate::And(a) => {
-            unimplemented!()
+            // Recurisvely call the sub-predicates and return a new And.
+            Predicate::And ( AndData {
+                p1: Box::new(substitute_variable_in_predicate_with_term(
+                    *a.p1,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                )),
+                p2: Box::new(substitute_variable_in_predicate_with_term(
+                    *a.p2,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                ))
+            } )
         },
         Predicate::Or(o) => {
-            unimplemented!()
+            // Recurisvely call the sub-predicates and return a new Or.
+            Predicate::Or ( OrData {
+                p1: Box::new(substitute_variable_in_predicate_with_term(
+                    *o.p1,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                )),
+                p2: Box::new(substitute_variable_in_predicate_with_term(
+                    *o.p2,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                ))
+            } )
         },
         Predicate::Not(n) => {
-            unimplemented!()
+            // Recurisvely call the sub-predicate and return a new Not.
+            Predicate::Not ( NotData {
+                p: Box::new(substitute_variable_in_predicate_with_term(
+                    *n.p,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                ))
+            } )
         },
         Predicate::Implies(i) => {
-            unimplemented!()
+            // Recurisvely call the sub-predicates and return a new Implies.
+            Predicate::Implies ( ImpliesData {
+                p1: Box::new(substitute_variable_in_predicate_with_term(
+                    *i.p1,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                )),
+                p2: Box::new(substitute_variable_in_predicate_with_term(
+                    *i.p2,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                ))
+            } )
         },
-        Predicate::IntegerComparison(ic) => {
-            unimplemented!()
-        },
-        _ => {
-            unimplemented!()
+        Predicate::IntegerComparison(i) => {
+            // Recurisvely call the sub-terms and return a new IntegerComparison.
+            Predicate::IntegerComparison( IntegerComparisonData {
+                op: i.op,
+                t1: Box::new(substitute_variable_in_term_with_term(
+                    *i.t1,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                )),
+                t2: Box::new(substitute_variable_in_term_with_term(
+                    *i.t2,
+                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
+                    return_term_copy(&replacement_term)
+                ))
+            } )
         }
-    };
+    }
 }
 
-//Recurses through a Term and replaces any matching Variable Mapping with the given Term. Returns a copy of the source Term with replacements.
+// Recurses through a Term and replaces any matching Variable Mapping with the given Term. Returns a copy of the source Term with replacements.
 pub fn substitute_variable_in_term_with_term ( source_term: Term, target: VariableMappingData, replacement_term: Term ) -> Term {
     match source_term {
         Term::VariableMapping(v) => {
-            //Replace the VariableMapping with replacement_term if it matches target, otherwise return a copy
+            // Replace the VariableMapping with replacement_term if it matches target, otherwise return a copy.
             if v == target {
                 return_term_copy(&replacement_term)
             } else {
@@ -121,14 +178,14 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
             }
         },
         Term::BinaryExpression(b) => {
-            //Recursively call the sub-terms and return new BinaryExpression
+            // Recursively call the sub-terms and return new BinaryExpression.
             Term::BinaryExpression( BinaryExpressionData {
                 op: b.op,
                 t1: Box::new(substitute_variable_in_term_with_term(
                     *b.t1,
                     VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
-                    return_term_copy(&replacement_term))
-                ),
+                    return_term_copy(&replacement_term)
+                )),
                 t2: Box::new(substitute_variable_in_term_with_term(
                     *b.t2,
                     VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
@@ -137,7 +194,7 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
             } )
         },
         Term::UnaryExpression(u) => {
-            //Recusrively call the sub-term and return new UnaryExpression
+            // Recusrively call the sub-term and return new UnaryExpression.
             Term::UnaryExpression( UnaryExpressionData {
                 op: u.op,
                 t: Box::new(substitute_variable_in_term_with_term(
@@ -145,20 +202,20 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
                     VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
                     return_term_copy(&replacement_term)
                 ))
-            })
+            } )
         },
         Term::UnsignedBitVector(u) => {
-            //Return a copy
+            // Return a copy.
             return_term_copy(&replacement_term)
         },
         Term::SignedBitVector(s) => {
-            //Return a copy
+            // Return a copy
             return_term_copy(&replacement_term)
         }
     }
 }
 
-//Returns a Term identical to the one that was submitted.
+// Returns a Term identical to the one that was submitted.
 pub fn return_term_copy( original: &Term ) -> Term {
     match original {
         &Term::VariableMapping(ref v) => {
@@ -200,16 +257,18 @@ pub fn return_term_copy( original: &Term ) -> Term {
     }
 }
 
-//Used for representing Predicate types as strings, recursively.
+// Used for representing Predicate types as strings, recursively.
 impl fmt::Display for Predicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        //FIXME: this commented line below is the format to use
-        //write!(f, "predicate")
+        // FIXME: this commented line below is the format to use
+        // write!(f, "predicate")
         unimplemented!()
     }
 }
 
-//Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
+// User for representing Term types as strings, recursively.
+
+// Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
 impl PartialEq for VariableMappingData {
     fn eq(&self, _rhs: &VariableMappingData) -> bool {
         if (self.name == _rhs.name) && (self.var_type == _rhs.var_type) {
@@ -220,5 +279,5 @@ impl PartialEq for VariableMappingData {
     }
 }
 
-//Ensures it is clear that VariableMappingData has full equality
+// Ensures it is clear that VariableMappingData has full equality.
 impl Eq for VariableMappingData {}
