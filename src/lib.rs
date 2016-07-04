@@ -90,16 +90,18 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
     //reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
-    let builder = MirVisitor {
-        func_name: "".to_string(),
-        func_span: None,
-        func: None,
-        pre_str: "".to_string(),
-        post_str: "".to_string(),
-        pre_span: None,
-        post_span: None,
+    let visitor = MirVisitor {
+        builder : Attr {
+            func_name: "".to_string(),
+            func_span: None,
+            func: None,
+            pre_str: "".to_string(),
+            post_str: "".to_string(),
+            pre_span: None,
+            post_span: None,
+        },
     };
-    reg.register_mir_pass(Box::new(builder));
+    reg.register_mir_pass(Box::new(visitor));
 }
 
 // FIXME: FOR NOW, THIS IS COMMENTED OUT FOR REFERENCE PURPOSES.
@@ -133,14 +135,7 @@ fn expand_bad_item(ctx: &mut ExtCtxt, span: Span) {
 
 
 struct MirVisitor {
-    pub func_name: String,
-    pub func_span: Option<Span>,
-    //pub func_stmts: Vec<_>,
-    pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
-    pub pre_span: Option<Span>,
-    pub post_span: Option<Span>,
-    pub pre_str: String,
-    pub post_str: String,
+    builder: Attr,
 }
 
 // This must be here, and it must be blank
@@ -157,6 +152,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         println!("\tdef id: {:#?}", def_id);
         println!("\tfn name: {:#?}", name);
         println!("\tattributes: {:#?}", attrs);
+        //parser::parse_function();
         MirVisitor::visit_mir(self, mir);
     }
 }
