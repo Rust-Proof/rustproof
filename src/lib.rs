@@ -148,17 +148,25 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let def_id = tcx.map.local_def_id(item_id);
         let name = tcx.item_path_str(def_id);
         let attrs = tcx.map.attrs(item_id);
-        println!("node id: {:#?}", item_id);
-        println!("\tdef id: {:#?}", def_id);
-        println!("\tfn name: {:#?}", name);
-        println!("\tattributes: {:#?}", attrs);
-        //parser::parse_function();
+
+        //println!("node id: {:#?}", item_id);
+        //println!("\tdef id: {:#?}", def_id);
+        //println!("\tfn name: {:#?}", name);
+        //println!("\tattributes: {:#?}", attrs);
+
+        self.builder.func_name = name;
+        println!("\tfn name: {:#?}", self.builder.func_name);
+
+        // FIXME: the parser needs to be redone pretty much :(
+        //parser::parse_function(self); // Maybe not needed?
+        //parser::parse_attribute(self, attrs);
+
         MirVisitor::visit_mir(self, mir);
     }
 }
 
 impl<'tcx> Visitor<'tcx> for MirVisitor {
     fn visit_mir(&mut self, mir: &Mir<'tcx>) {
-
+        parser::parse_mir(&self.builder, mir); // FIXME: needs to be implemented in parser
     }
 }
