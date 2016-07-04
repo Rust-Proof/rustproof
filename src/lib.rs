@@ -46,6 +46,12 @@ use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 
+use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
+use rustc::mir::mir_map::MirMap;
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
+use rustc::mir::visit::Visitor;
+use rustc::ty::TyCtxt;
+
 #[derive(Debug, Clone)]
 pub struct Attr {
     pub func_name: String,
@@ -83,12 +89,23 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
-    reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
+    //reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
+    reg.register_mir_pass(Box::new(MirVisitor {
+        func_name: "".to_string(),
+        func_span: None,
+        func: None,
+        pre_str: "".to_string(),
+        post_str: "".to_string(),
+        pre_span: None,
+        post_span: None,
+    }));
 }
 
+// FIXME: FOR NOW, THIS IS COMMENTED OUT FOR REFERENCE PURPOSES.
 // For every #[condition], this function is called
 // FIXME: I don't really know what `push: &mut FnMut(Annotatable)` is, but I know its required.
 /// Checks an attribute for proper placement and starts the control flow of the application
+/*
 fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annotatable, push: &mut FnMut(Annotatable)) {
     match item {
         &Annotatable::Item(ref it) => match it.node {
@@ -103,9 +120,48 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
         _ => expand_bad_item(ctx, span),
     }
 }
+*/
 
-
+// FIXME: THIS WILL BE USED SOON
 // If the #[condition] is not on a function, error out
+/*
 fn expand_bad_item(ctx: &mut ExtCtxt, span: Span) {
     ctx.span_err(span, "#[condition] must be placed on a function".into());
+}
+*/
+
+
+struct MirVisitor {
+    pub func_name: String,
+    pub func_span: Option<Span>,
+    //pub func_stmts: Vec<_>,
+    pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
+    pub pre_span: Option<Span>,
+    pub post_span: Option<Span>,
+    pub pre_str: String,
+    pub post_str: String,
+}
+
+// This must be here, and it must be blank
+impl <'tcx> Pass for MirVisitor {
+}
+
+impl <'tcx> MirPass<'tcx> for MirVisitor {
+    fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
+        let item_id = src.item_id();
+        let def_id = tcx.map.local_def_id(item_id);
+        let name = tcx.item_path_str(def_id);
+        let attrs = tcx.map.attrs(item_id);
+        println!("node id: {:#?}", item_id);
+        println!("\tdef id: {:#?}", def_id);
+        println!("\tfn name: {:#?}", name);
+        println!("\tattributes: {:#?}", attrs);
+        MirVisitor.visit_mir(mir);
+    }
+}
+
+impl<'tcx> Visitor<'tcx> for MirVisitor {
+    fn visit_mir(&mut self, mir: &Mir<'tcx>) {
+
+    }
 }
