@@ -90,7 +90,7 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
     //reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
-    reg.register_mir_pass(Box::new(MirVisitor {
+    let builder = MirVisitor {
         func_name: "".to_string(),
         func_span: None,
         func: None,
@@ -98,7 +98,8 @@ pub fn registrar(reg: &mut Registry) {
         post_str: "".to_string(),
         pre_span: None,
         post_span: None,
-    }));
+    };
+    reg.register_mir_pass(Box::new(builder));
 }
 
 // FIXME: FOR NOW, THIS IS COMMENTED OUT FOR REFERENCE PURPOSES.
@@ -156,7 +157,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         println!("\tdef id: {:#?}", def_id);
         println!("\tfn name: {:#?}", name);
         println!("\tattributes: {:#?}", attrs);
-        MirVisitor.visit_mir(mir);
+        MirVisitor::visit_mir(self, mir);
     }
 }
 
