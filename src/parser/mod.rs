@@ -22,6 +22,7 @@ use syntax::parse::token::intern;
 use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
 
 
 /// Parses function information from an *Annotatable* associated with an attribute.
@@ -122,6 +123,12 @@ pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
     //println!("precondition {:?}", builder.clone().pre.unwrap());
     //println!("postcondition {:?}", builder.clone().post.unwrap());
 }
+
+// FIXME: Needs implementing
+pub fn parse_mir(builder: &Attr, mir: &Mir) {
+    //println!("\nfn name: {:#?}", builder.func_name);
+}
+
 
 pub fn demo() {
     println!("parser - reporting in");

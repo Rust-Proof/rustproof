@@ -46,6 +46,12 @@ use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 
+use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
+use rustc::mir::mir_map::MirMap;
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
+use rustc::mir::visit::Visitor;
+use rustc::ty::TyCtxt;
+
 #[derive(Debug, Clone)]
 pub struct Attr {
     pub func_name: String,
@@ -83,12 +89,26 @@ fn control_flow(meta: &MetaItem, item: &Annotatable) {
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
-    reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
+    //reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
+    let visitor = MirVisitor {
+        builder : Attr {
+            func_name: "".to_string(),
+            func_span: None,
+            func: None,
+            pre_str: "".to_string(),
+            post_str: "".to_string(),
+            pre_span: None,
+            post_span: None,
+        },
+    };
+    reg.register_mir_pass(Box::new(visitor));
 }
 
+// FIXME: FOR NOW, THIS IS COMMENTED OUT FOR REFERENCE PURPOSES.
 // For every #[condition], this function is called
 // FIXME: I don't really know what `push: &mut FnMut(Annotatable)` is, but I know its required.
 /// Checks an attribute for proper placement and starts the control flow of the application
+/*
 fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annotatable, push: &mut FnMut(Annotatable)) {
     match item {
         &Annotatable::Item(ref it) => match it.node {
@@ -103,9 +123,50 @@ fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annot
         _ => expand_bad_item(ctx, span),
     }
 }
+*/
 
-
+// FIXME: THIS WILL BE USED SOON
 // If the #[condition] is not on a function, error out
+/*
 fn expand_bad_item(ctx: &mut ExtCtxt, span: Span) {
     ctx.span_err(span, "#[condition] must be placed on a function".into());
+}
+*/
+
+
+struct MirVisitor {
+    builder: Attr,
+}
+
+// This must be here, and it must be blank
+impl <'tcx> Pass for MirVisitor {
+}
+
+impl <'tcx> MirPass<'tcx> for MirVisitor {
+    fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
+        let item_id = src.item_id();
+        let def_id = tcx.map.local_def_id(item_id);
+        let name = tcx.item_path_str(def_id);
+        let attrs = tcx.map.attrs(item_id);
+
+        //println!("node id: {:#?}", item_id);
+        //println!("\tdef id: {:#?}", def_id);
+        //println!("\tfn name: {:#?}", name);
+        //println!("\tattributes: {:#?}", attrs);
+
+        self.builder.func_name = name;
+        println!("\tfn name: {:#?}", self.builder.func_name);
+
+        // FIXME: the parser needs to be redone pretty much :(
+        //parser::parse_function(self); // Maybe not needed?
+        //parser::parse_attribute(self, attrs);
+
+        MirVisitor::visit_mir(self, mir);
+    }
+}
+
+impl<'tcx> Visitor<'tcx> for MirVisitor {
+    fn visit_mir(&mut self, mir: &Mir<'tcx>) {
+        parser::parse_mir(&self.builder, mir); // FIXME: needs to be implemented in parser
+    }
 }
