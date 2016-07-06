@@ -59,7 +59,6 @@ use rustc::ty::TyCtxt;
 pub struct Attr {
     pub func_name: String,
     pub func_span: Option<Span>,
-    //pub func_blocks: Vec<&BasicBlockData>,
     pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
@@ -75,7 +74,6 @@ pub fn registrar(reg: &mut Registry) {
         builder : Attr {
             func_name: "".to_string(),
             func_span: None,
-            //func_blocks: Vec::new(),
             func: None,
             pre_str: "".to_string(),
             post_str: "".to_string(),
@@ -131,28 +129,22 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let name = tcx.item_path_str(def_id);
         let attrs = tcx.map.attrs(item_id);
 
-        //println!("node id: {:#?}", item_id);
-        //println!("\tdef id: {:#?}", def_id);
-        //println!("\tfn name: {:#?}", name);
-        //println!("\tattributes: {:#?}", attrs);
-
         self.builder.func_name = name;
         println!("\tfn name: {:#?}", self.builder.func_name);
 
         // FIXME: the parser needs to be redone pretty much :(
         //parser::parse_function(self); // Maybe not needed?
-        //parser::parse_attribute(self, attrs);
+
+        // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
+        for attr in attrs {
+            parser::parse_attribute(&self.builder, attr);
+        }
 
         MirVisitor::visit_mir(self, mir);
     }
 }
 
 impl<'tcx> Visitor<'tcx> for MirVisitor {
-    /*
-    fn visit_basic_block_data(&mut self, block: BasicBlock, data: &BasicBlockData<'tcx>) {
-        parser::parse_mir(&self.builder, block, data); // FIXME: needs to be implemented in parser
-    }
-    */
     // NOTE: Had trouble using visit_basic_block_data since I couldn't pass around the mir blocks.
     // This function instead implements visit_basic_block_data within it.
     fn visit_mir(&mut self, mir: &Mir<'tcx>) {
