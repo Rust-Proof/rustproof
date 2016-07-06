@@ -26,6 +26,7 @@
 extern crate rustc;
 extern crate syntax;
 extern crate rustc_plugin;
+extern crate rustc_data_structures;
 
 pub mod reporting;
 pub mod z3_interface;
@@ -37,6 +38,8 @@ pub mod expression;
 
 #[cfg(test)]
 mod tests;
+
+use rustc_data_structures::indexed_vec::Idx;
 
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
@@ -56,34 +59,12 @@ use rustc::ty::TyCtxt;
 pub struct Attr {
     pub func_name: String,
     pub func_span: Option<Span>,
-    //pub func_stmts: Vec<_>,
+    //pub func_blocks: Vec<&BasicBlockData>,
     pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
     pub pre_str: String,
     pub post_str: String,
-}
-
-fn control_flow(meta: &MetaItem, item: &Annotatable) {
-    // NOTE: EXPERIMENT: control flow happens here
-    //struct to hold all data pertaining to operations
-    //init to 'nulls'
-    let mut builder = Attr {
-        func_name: "".to_string(),
-        func_span: None,
-        func: None,
-        pre_str: "".to_string(),
-        post_str: "".to_string(),
-        pre_span: None,
-        post_span: None,
-    };
-    //get attribute values
-    parser::parse_attribute(&mut builder, meta);
-    //get function name and span
-    parser::parse_function(&mut builder, item);
-
-    //println!("\nDEBUG Item\n{:#?}\n", item);
-    println!("\nDEBUG Builder\n{:#?}\n", builder);
 }
 
 // Register plugin with compiler
@@ -94,6 +75,7 @@ pub fn registrar(reg: &mut Registry) {
         builder : Attr {
             func_name: "".to_string(),
             func_span: None,
+            //func_blocks: Vec::new(),
             func: None,
             pre_str: "".to_string(),
             post_str: "".to_string(),
@@ -166,7 +148,21 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 }
 
 impl<'tcx> Visitor<'tcx> for MirVisitor {
+    /*
+    fn visit_basic_block_data(&mut self, block: BasicBlock, data: &BasicBlockData<'tcx>) {
+        parser::parse_mir(&self.builder, block, data); // FIXME: needs to be implemented in parser
+    }
+    */
+    // NOTE: Had trouble using visit_basic_block_data since I couldn't pass around the mir blocks.
+    // This function instead implements visit_basic_block_data within it.
     fn visit_mir(&mut self, mir: &Mir<'tcx>) {
-        parser::parse_mir(&self.builder, mir); // FIXME: needs to be implemented in parser
+        let mut blocks = Vec::new();
+        let mut block_data = Vec::new();
+        for index in 0..mir.basic_blocks().len() {
+            let block = BasicBlock::new(index);
+            blocks.push(block);
+            block_data.push(&mir[block]);
+        }
+        parser::parse_mir(&self.builder, blocks, block_data);
     }
 }

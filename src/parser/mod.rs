@@ -125,8 +125,11 @@ pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
 }
 
 // FIXME: Needs implementing
-pub fn parse_mir(builder: &Attr, mir: &Mir) {
-    //println!("\nfn name: {:#?}", builder.func_name);
+pub fn parse_mir(builder: &Attr, blocks: Vec<BasicBlock>, data: Vec<&BasicBlockData>) {
+    for index in 0..blocks.len() {
+        println!("{:#?}", blocks[index]);
+        println!("{:#?}", data[index]);
+    }
 }
 
 
