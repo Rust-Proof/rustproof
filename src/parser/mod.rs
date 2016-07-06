@@ -23,6 +23,11 @@ use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
+use expression::Predicate;
+use expression::Term;
+use expression::AndData;
+use expression::OrData;
+use expression::ImpliesData;
 
 
 /// Parses function information from an *Annotatable* associated with an attribute.
@@ -132,4 +137,95 @@ pub fn parse_mir(builder: &Attr, mir: &Mir) {
 
 pub fn demo() {
     println!("parser - reporting in");
+}
+
+pub fn parse_predicate_from_string(condition: String) -> Predicate {
+    let mut v = Vec::new();
+    for s in condition.split_whitespace() {
+        println!("{}", s);
+        v.push(s);
+    }
+
+    parse_predicate_from_vec(v)
+}
+
+pub fn parse_predicate_from_vec(v: Vec<&str>) -> Predicate {
+    let v_length = v.len();
+
+    for i in 0..v_length {
+        match v[i] {
+            //In parentheses
+            "(" => {
+                unimplemented!();
+            } 
+            //Unary boolean operator
+            "!" => {
+                unimplemented!();
+            }
+            //Unary integer operator
+            //Integer literal
+            //Boolean literal
+            "true" | "false" => {
+                //Store the literal
+                let first_predicate = Predicate::BooleanLiteral( v[i].parse().unwrap() );
+
+                let i = i + 1;
+
+                //Could be single boolean literal
+                if i >= v_length {
+                    return first_predicate;
+                } else {
+                    //Look for boolean operator
+                    match v[i] {
+                        //Binary boolean operator
+                        "&&" => {
+                            let mut remaining = Vec::new();
+                            for j in (i + 1)..v_length {
+                                remaining.push(v[j]);
+                            }
+                            return Predicate::And( AndData {
+                                p1: Box::new(first_predicate),
+                                p2: Box::new(parse_predicate_from_vec(remaining))
+                            } );
+                        },
+                        "||" => {
+                            let mut remaining = Vec::new();
+                            for j in (i + 1)..v_length {
+                                remaining.push(v[j]);
+                            }
+                            return Predicate::Or( OrData {
+                                p1: Box::new(first_predicate),
+                                p2: Box::new(parse_predicate_from_vec(remaining))
+                            } );
+                        },
+                        "->" => {
+                            let mut remaining = Vec::new();
+                            for j in (i + 1)..v_length {
+                                remaining.push(v[j]);
+                            }
+                            return Predicate::Implies( ImpliesData {
+                                p1: Box::new(first_predicate),
+                                p2: Box::new(parse_predicate_from_vec(remaining))
+                            } );
+                        }
+                        _ => {
+                            //ERROR
+                            unimplemented!();
+                        }
+                    }
+                }
+            }
+            //Variable name
+            _ => {
+                //ERROR
+                unimplemented!();
+            }
+        }
+    }
+
+    unimplemented!();
+}
+
+pub fn parse_term_from_vec(v: Vec<&str>) -> Term {
+    unimplemented!();
 }

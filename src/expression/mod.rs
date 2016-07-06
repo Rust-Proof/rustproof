@@ -273,7 +273,7 @@ impl fmt::Display for Predicate {
                 write!(f, "({} || {})", *o.p1, *o.p2)
             },
             &Predicate::Not (ref n) => {
-                write!(f, "(¬{})", *n.p)
+                write!(f, "(!! {})", *n.p)
             },
             &Predicate::Implies (ref i) => {
                 write!(f, "({} -> {})", *i.p1, *i.p2)
@@ -346,20 +346,20 @@ impl fmt::Display for Term {
                         write!(f, "({} >> {})", *b.t1, *b.t2)
                     },
                     IntegerBinaryOperator::ArrayLookup => {
-                        write!(f, "({}[{}])", *b.t1, *b.t2)
+                        write!(f, "({} [{}])", *b.t1, *b.t2)
                     },
                     IntegerBinaryOperator::ArrayUpdate => {
-                        write!(f, "({}[{}])", *b.t1, *b.t2)
+                        write!(f, "({} [{}])", *b.t1, *b.t2)
                     }
                 }
             },
             &Term::UnaryExpression(ref u) => {
                 match u.op {
                     IntegerUnaryOperator::Negation => {
-                        write!(f, "(-{})", *u.t)
+                        write!(f, "(- {})", *u.t)
                     },
                     IntegerUnaryOperator::BitwiseNot => {
-                        write!(f, "(!{})", *u.t)
+                        write!(f, "(! {})", *u.t)
                     }
                 }
             },

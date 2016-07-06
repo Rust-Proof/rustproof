@@ -12,9 +12,11 @@ fn main() {
 	let z = foo(x);
 	let p = Predicate::And(AndData { p1: Box::new(Predicate::BooleanLiteral(true)), p2: Box::new(Predicate::BooleanLiteral(false)) });
 	println!("p: {}", p);
+	let q = rustproof::parser::parse_predicate_from_string("true && false".to_string());
+	println!("q: {}", q)
 }
 
-#[condition(pre="b", post="c")]
+#[condition(pre="1 > 3", post="true || false")]
 fn foo(x: u32) -> u32 {
 	let y = 5u32;
 	x + y
