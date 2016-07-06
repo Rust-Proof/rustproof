@@ -149,6 +149,8 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let name = tcx.item_path_str(def_id);
         let attrs = tcx.map.attrs(item_id);
 
+
+
         //println!("node id: {:#?}", item_id);
         //println!("\tdef id: {:#?}", def_id);
         //println!("\tfn name: {:#?}", name);
@@ -157,9 +159,55 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         self.builder.func_name = name;
         println!("\tfn name: {:#?}", self.builder.func_name);
 
-        // FIXME: the parser needs to be redone pretty much :(
-        //parser::parse_function(self); // Maybe not needed?
-        //parser::parse_attribute(self, attrs);
+
+        //get attributes out into builder
+        for attr in attrs {
+            match attr.node.value.node {
+                MetaItemKind::List(ref attribute_name, ref args) => {
+                    //check the attribute is 'condition'
+                    if attribute_name == "condition" {
+                        //error if incorrect arg count
+                        if args.len()!=2 {
+                            panic!("condition attribute must have exactly 2 arguments");
+                        }
+                        // parse arg 1
+                        match args[0].node {
+                            MetaItemKind::NameValue(ref x, ref y) => {
+                                if x!="pre" { panic!("The first argument must be 'pre'. {} was provided.", x); }
+                                //get argument
+                                match y.node {
+                                    syntax::ast::LitKind::Str(ref x, ref y) => {
+                                        self.builder.pre_str = x.to_string();
+                                    }
+                                    _ => {}
+                                }
+                                //get span
+                                self.builder.pre_span = Some(y.span);
+                            },
+                            _ => {},
+                        }
+                        // parse arg 2
+                        match args[1].node {
+                            MetaItemKind::NameValue(ref x, ref y) => {
+                                if x!="post" { panic!("The second argument must be 'post'. {} was provided.", x); }
+                                //get argument
+                                match y.node {
+                                    syntax::ast::LitKind::Str(ref x, ref y) => {
+                                        self.builder.post_str = x.to_string();
+                                    }
+                                    _ => {}
+                                }
+                                //get span
+                                self.builder.post_span = Some(y.span);
+                            },
+                            _ => {},
+                        }
+                    }
+
+                },
+                _ => {}
+            }
+        }
 
         MirVisitor::visit_mir(self, mir);
     }
