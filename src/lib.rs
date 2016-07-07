@@ -136,10 +136,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let attrs = tcx.map.attrs(item_id);
 
         self.builder.func_name = name;
-        //println!("\tfn name: {:#?}", self.builder.func_name);
-
-        // FIXME: the parser needs to be redone pretty much :(
-        //parser::parse_function(self); // Maybe not needed?
 
         // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
         for attr in attrs {
