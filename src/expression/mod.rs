@@ -79,8 +79,8 @@ pub enum IntegerUnaryOperator {
 pub enum IntegerComparisonOperator {
     LessThan,
     LessThanOrEqual,
-    GreatherThan,
-    GreatherThanOrEqual,
+    GreaterThan,
+    GreaterThanOrEqual,
     Equal,
     NotEqual
 }
@@ -286,10 +286,10 @@ impl fmt::Display for Predicate {
                     IntegerComparisonOperator::LessThanOrEqual => {
                         write!(f, "({} <= {})", *i.t1, *i.t2)
                     },
-                    IntegerComparisonOperator::GreatherThan => {
+                    IntegerComparisonOperator::GreaterThan => {
                         write!(f, "({} > {})", *i.t1, *i.t2)
                     },
-                    IntegerComparisonOperator::GreatherThanOrEqual => {
+                    IntegerComparisonOperator::GreaterThanOrEqual => {
                         write!(f, "({} >= {})", *i.t1, *i.t2)
                     },
                     IntegerComparisonOperator::Equal => {
@@ -325,7 +325,7 @@ impl fmt::Display for Term {
                         write!(f, "({} * {})", *b.t1, *b.t2)
                     },
                     IntegerBinaryOperator::Division => {
-                        write!(f, "({} ÷ {})", *b.t1, *b.t2)
+                        write!(f, "({} / {})", *b.t1, *b.t2)
                     },
                     IntegerBinaryOperator::Modulo => {
                         write!(f, "({} % {})", *b.t1, *b.t2)

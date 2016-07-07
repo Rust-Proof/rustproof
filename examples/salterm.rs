@@ -12,7 +12,7 @@ fn main() {
 	let z = foo(x);
 	let p = Predicate::And(AndData { p1: Box::new(Predicate::BooleanLiteral(true)), p2: Box::new(Predicate::BooleanLiteral(false)) });
 	println!("p: {}", p);
-	let q = rustproof::parser::parse_predicate_from_string("true && false".to_string());
+	let q = rustproof::parser::parse_predicate_from_string("3 > 1 && false".to_string());
 	println!("q: {}", q)
 }
 

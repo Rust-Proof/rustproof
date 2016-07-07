@@ -28,6 +28,10 @@ use expression::Term;
 use expression::AndData;
 use expression::OrData;
 use expression::ImpliesData;
+use expression::IntegerComparisonData;
+use expression::IntegerComparisonOperator;
+use expression::SignedBitVectorData;
+use std::str::FromStr;
 
 
 /// Parses function information from an *Annotatable* associated with an attribute.
@@ -151,9 +155,8 @@ pub fn parse_predicate_from_string(condition: String) -> Predicate {
 
 pub fn parse_predicate_from_vec(v: Vec<&str>) -> Predicate {
     let v_length = v.len();
-
-    for i in 0..v_length {
-        match v[i] {
+    if v_length >= 1 {
+        match v[0] {
             //In parentheses
             "(" => {
                 unimplemented!();
@@ -164,23 +167,57 @@ pub fn parse_predicate_from_vec(v: Vec<&str>) -> Predicate {
             }
             //Unary integer operator
             //Integer literal
+            _ if is_integer(v[0]) => {
+                //Store the literal
+                let first_term = Term::SignedBitVector( SignedBitVectorData {
+                    size: 64, value: v[0].parse().unwrap()
+                } );
+
+                if 3 >= v_length {
+                    //ERROR
+                    unimplemented!();
+                } else {
+                    //Look for integer operator or next boolean operator
+                    match v[1] {
+                        //Integer comparison operator
+                        ">" | ">=" | "<" | "<=" | "==" | "!=" => {
+                            let mut remaining = Vec::new();
+
+                            for j in (2)..v_length {
+                                remaining.push(v[j]);
+                            }
+                            return Predicate::IntegerComparison( IntegerComparisonData {
+                                op: return_boolean_operator(v[1]),
+                                t1: Box::new(first_term),
+                                t2: Box::new(parse_term_from_vec(remaining))
+                            } );
+                        },
+                        _ => {
+                            //ERROR
+                            unimplemented!();
+                        }
+                    }
+                }
+            }
             //Boolean literal
             "true" | "false" => {
                 //Store the literal
-                let first_predicate = Predicate::BooleanLiteral( v[i].parse().unwrap() );
-
-                let i = i + 1;
+                let first_predicate = Predicate::BooleanLiteral( v[0].parse().unwrap() );
 
                 //Could be single boolean literal
-                if i >= v_length {
+                if 1 >= v_length {
                     return first_predicate;
                 } else {
                     //Look for boolean operator
-                    match v[i] {
+                    match v[1] {
                         //Binary boolean operator
                         "&&" => {
                             let mut remaining = Vec::new();
-                            for j in (i + 1)..v_length {
+                            if 2 >= v_length {
+                                //ERROR
+                                unimplemented!();
+                            }
+                            for j in (2)..v_length {
                                 remaining.push(v[j]);
                             }
                             return Predicate::And( AndData {
@@ -190,7 +227,11 @@ pub fn parse_predicate_from_vec(v: Vec<&str>) -> Predicate {
                         },
                         "||" => {
                             let mut remaining = Vec::new();
-                            for j in (i + 1)..v_length {
+                            if 2 >= v_length {
+                                //ERROR
+                                unimplemented!();
+                            }
+                            for j in (2)..v_length {
                                 remaining.push(v[j]);
                             }
                             return Predicate::Or( OrData {
@@ -200,7 +241,11 @@ pub fn parse_predicate_from_vec(v: Vec<&str>) -> Predicate {
                         },
                         "->" => {
                             let mut remaining = Vec::new();
-                            for j in (i + 1)..v_length {
+                            if 2 >= v_length {
+                                //ERROR
+                                unimplemented!();
+                            }
+                            for j in (2)..v_length {
                                 remaining.push(v[j]);
                             }
                             return Predicate::Implies( ImpliesData {
@@ -228,4 +273,42 @@ pub fn parse_predicate_from_vec(v: Vec<&str>) -> Predicate {
 
 pub fn parse_term_from_vec(v: Vec<&str>) -> Term {
     unimplemented!();
+}
+
+pub fn is_integer(s: &str) -> bool {
+    match i64::from_str(s) {
+        Ok(..) => {
+            return true;
+        },
+        Err(..) => {
+            return false;
+        }
+    }
+}
+
+pub fn return_boolean_operator(s: &str) -> IntegerComparisonOperator {
+    match s {
+        ">" => {
+            return IntegerComparisonOperator::GreaterThan;
+        },
+        "<" => {
+            return IntegerComparisonOperator::LessThan;
+        },
+        ">=" => {
+            return IntegerComparisonOperator::GreaterThanOrEqual;
+        },
+        "<=" => {
+            return IntegerComparisonOperator::LessThanOrEqual;
+        },
+        "==" => {
+            return IntegerComparisonOperator::Equal;
+        },
+        "!=" => {
+            return IntegerComparisonOperator::NotEqual;
+        },
+        _ => {
+            //ERROR
+            unimplemented!();
+        }
+    }
 }
