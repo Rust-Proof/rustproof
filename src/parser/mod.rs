@@ -100,6 +100,7 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
 
 // FIXME: Needs implementing
 pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
+    println!("\n\n\n{:#?}", builder);
     for index in 0..data.len() {
         println!("bb{}", index);
         println!("{:#?}", data[index]);

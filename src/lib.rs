@@ -17,8 +17,8 @@
 // NOTE: Things to talk to rust devs about:
 //     - Referencing lifetime stuff in struct that has impl
 //     - Slice access; see line 143
-//     - Unused attribute warnings since we aren't using register_syntax_extension
-//     - String to expression
+//     - Unused attribute warnings since we aren't using register_syntax_extension internals.rust-lang.org / users.rust-lang.org
+//     - String to expression //libsyntax as parser / parse_exper_from_source_str
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
 // FIXME: these should not be here!
@@ -136,7 +136,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let attrs = tcx.map.attrs(item_id);
 
         self.builder.func_name = name;
-        println!("\tfn name: {:#?}", self.builder.func_name);
+        //println!("\tfn name: {:#?}", self.builder.func_name);
 
         // FIXME: the parser needs to be redone pretty much :(
         //parser::parse_function(self); // Maybe not needed?
