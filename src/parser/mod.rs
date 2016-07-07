@@ -10,14 +10,14 @@
 
 //#[macro_use]
 //extern crate rustc;
-//extern crate syntax;
+extern crate syntax;
 //extern crate rustc_plugin;
 
 use rustc_plugin::Registry;
-use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind};
+use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
 use syntax::ext::base::{ExtCtxt, Annotatable};
 use syntax::ext::base::SyntaxExtension::MultiDecorator;
-use syntax::codemap::Span;
+use syntax::codemap::{Span, Spanned};
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
@@ -25,8 +25,10 @@ use super::Attr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
 
 
+// FIXME: This needs to be updated; we are no longer using &Annotatable
 /// Parses function information from an *Annotatable* associated with an attribute.
 /// *builder* is passed by reference
+/*
 pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
     match item {
         &Annotatable::Item(ref x) => {
@@ -45,91 +47,62 @@ pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
         _ => {}
     }
 }
+*/
 
-/// Parses attribute information from a *MetaItem* associated with an attribute.
-/// *builder* is passed by reference
-pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
-    match meta.node {
-        // FIXME: at the moment, error out if there are no arguments to the attribute
+pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
+    match attr.node.value.node {
         MetaItemKind::List(ref attribute_name, ref args) => {
-            match args.len() {
-                1 => {
-                    panic!("You must provide pre AND post conditions.");
-                    /*
-                    println!("Found 1 argument:\n");
-                    println!("{:?}\n", args[0]);
-                    match args[0].node {
-                        MetaItemKind::NameValue(ref x, ref y) =>
-                            {
-                                if x=="pre" {
-                                    builder.pre = Some(y.node.clone());
-                                } else if x=="post" {
-                                    builder.post = Some(y.node.clone());
-                                } else {
-                                    panic!("expecting pre and/or post condition {} provided.", x);
-                                }
-                            },
-                        _ => {},
-                    }
-                    */
-                },
-                2 => {
-                    //println!("Found 2 arguments:\n");
-                    //println!("{:?}\n", args[0]);
-                    //println!("{:?}\n", args[1]);
-                    match args[0].node {
-                        MetaItemKind::NameValue(ref x, ref y) => {
-                            if x!="pre" { panic!("The first argument must be 'pre'. {} was provided.", x); }
-                            //get argument
-                            match y.node {
-                                super::syntax::ast::LitKind::Str(ref x, ref y) => {
-                                    builder.pre_str = x.to_string();
-                                }
-                                _ => {}
+            //check the attribute is 'condition'
+            if attribute_name == "condition" {
+                //error if incorrect arg count
+                if args.len() != 2 {
+                    panic!("condition attribute must have exactly 2 arguments");
+                }
+                // parse arg 1
+                match args[0].node {
+                    MetaItemKind::NameValue(ref i_string, ref literal) => {
+                        if i_string != "pre" { panic!("The first argument must be 'pre'. {} was provided.", i_string); }
+                        //get argument
+                        match literal.node {
+                            syntax::ast::LitKind::Str(ref i_string, _) => {
+                                builder.pre_str = i_string.to_string();
                             }
-                            //get span
-                            builder.pre_span = Some(y.span);
-                        },
-                        _ => {},
-                    }
-                    match args[1].node {
-                        MetaItemKind::NameValue(ref x, ref y) => {
-                            if x!="post" { panic!("The second argument must be 'post'. {} was provided.", x); }
-                            //get argument
-                            match y.node {
-                                super::syntax::ast::LitKind::Str(ref x, ref y) => {
-                                    builder.post_str = x.to_string();
-                                }
-                                _ => {}
+                            _ => {}
+                        }
+                        //get span
+                        builder.pre_span = Some(literal.span);
+                    },
+                    _ => {},
+                }
+                // parse arg 2
+                match args[1].node {
+                    MetaItemKind::NameValue(ref i_string, ref literal) => {
+                        if i_string != "post" { panic!("The second argument must be 'post'. {} was provided.", i_string); }
+                        //get argument
+                        match literal.node {
+                            syntax::ast::LitKind::Str(ref i_string, _) => {
+                                builder.post_str = i_string.to_string();
                             }
-                            //get span
-                            builder.post_span = Some(y.span);
-                        },
-                        _ => {},
-                    }
-                },
-                _ => {
-                    panic!("Too many arguments found for #[condition]; must have pre and/or post conditions");
+                            _ => {}
+                        }
+                        //get span
+                        builder.post_span = Some(literal.span);
+                    },
+                    _ => {},
                 }
             }
+
         },
-        _ => {
-            panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
-        }
+        _ => {}
     }
-
-
-    // FIXME: clone?
-    //println!("precondition {:?}", builder.clone().pre.unwrap());
-    //println!("postcondition {:?}", builder.clone().post.unwrap());
 }
+
 
 // FIXME: Needs implementing
-pub fn parse_mir(builder: &Attr, mir: &Mir) {
-    //println!("\nfn name: {:#?}", builder.func_name);
-}
-
-
-pub fn demo() {
-    println!("parser - reporting in");
+pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
+    println!("\n\n\n{:#?}", builder);
+    for index in 0..data.len() {
+        println!("bb{}", index);
+        println!("{:#?}", data[index]);
+    }
 }

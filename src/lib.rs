@@ -13,6 +13,12 @@
 // see: https://doc.rust-lang.org/book/crates-and-modules.html
 // see: 'tests' module (some things need pub that tests doesnt mind priv)
 // see: 'reporting' module
+
+// NOTE: Things to talk to rust devs about:
+//     - Referencing lifetime stuff in struct that has impl
+//     - Slice access; see line 143
+//     - Unused attribute warnings since we aren't using register_syntax_extension internals.rust-lang.org / users.rust-lang.org
+//     - String to expression //libsyntax as parser / parse_exper_from_source_str
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
 // FIXME: these should not be here!
@@ -26,6 +32,7 @@
 extern crate rustc;
 extern crate syntax;
 extern crate rustc_plugin;
+extern crate rustc_data_structures;
 
 pub mod reporting;
 pub mod z3_interface;
@@ -37,6 +44,8 @@ pub mod expression;
 
 #[cfg(test)]
 mod tests;
+
+use rustc_data_structures::indexed_vec::Idx;
 
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
@@ -56,7 +65,6 @@ use rustc::ty::TyCtxt;
 pub struct Attr {
     pub func_name: String,
     pub func_span: Option<Span>,
-    //pub func_stmts: Vec<_>,
     pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
@@ -64,34 +72,12 @@ pub struct Attr {
     pub post_str: String,
 }
 
-fn control_flow(meta: &MetaItem, item: &Annotatable) {
-    // NOTE: EXPERIMENT: control flow happens here
-    //struct to hold all data pertaining to operations
-    //init to 'nulls'
-    let mut builder = Attr {
-        func_name: "".to_string(),
-        func_span: None,
-        func: None,
-        pre_str: "".to_string(),
-        post_str: "".to_string(),
-        pre_span: None,
-        post_span: None,
-    };
-    //get attribute values
-    parser::parse_attribute(&mut builder, meta);
-    //get function name and span
-    parser::parse_function(&mut builder, item);
-
-    //println!("\nDEBUG Item\n{:#?}\n", item);
-    println!("\nDEBUG Builder\n{:#?}\n", builder);
-}
-
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
     //reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
     let visitor = MirVisitor {
-        builder : Attr {
+        builder: Attr {
             func_name: "".to_string(),
             func_span: None,
             func: None,
@@ -149,64 +135,11 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let name = tcx.item_path_str(def_id);
         let attrs = tcx.map.attrs(item_id);
 
-
-
-        //println!("node id: {:#?}", item_id);
-        //println!("\tdef id: {:#?}", def_id);
-        //println!("\tfn name: {:#?}", name);
-        //println!("\tattributes: {:#?}", attrs);
-
         self.builder.func_name = name;
-        println!("\tfn name: {:#?}", self.builder.func_name);
 
-
-        //get attributes out into builder
+        // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
         for attr in attrs {
-            match attr.node.value.node {
-                MetaItemKind::List(ref attribute_name, ref args) => {
-                    //check the attribute is 'condition'
-                    if attribute_name == "condition" {
-                        //error if incorrect arg count
-                        if args.len()!=2 {
-                            panic!("condition attribute must have exactly 2 arguments");
-                        }
-                        // parse arg 1
-                        match args[0].node {
-                            MetaItemKind::NameValue(ref x, ref y) => {
-                                if x!="pre" { panic!("The first argument must be 'pre'. {} was provided.", x); }
-                                //get argument
-                                match y.node {
-                                    syntax::ast::LitKind::Str(ref x, ref y) => {
-                                        self.builder.pre_str = x.to_string();
-                                    }
-                                    _ => {}
-                                }
-                                //get span
-                                self.builder.pre_span = Some(y.span);
-                            },
-                            _ => {},
-                        }
-                        // parse arg 2
-                        match args[1].node {
-                            MetaItemKind::NameValue(ref x, ref y) => {
-                                if x!="post" { panic!("The second argument must be 'post'. {} was provided.", x); }
-                                //get argument
-                                match y.node {
-                                    syntax::ast::LitKind::Str(ref x, ref y) => {
-                                        self.builder.post_str = x.to_string();
-                                    }
-                                    _ => {}
-                                }
-                                //get span
-                                self.builder.post_span = Some(y.span);
-                            },
-                            _ => {},
-                        }
-                    }
-
-                },
-                _ => {}
-            }
+            parser::parse_attribute(&mut self.builder, attr);
         }
 
         MirVisitor::visit_mir(self, mir);
@@ -214,7 +147,14 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 }
 
 impl<'tcx> Visitor<'tcx> for MirVisitor {
+    // NOTE: Had trouble using visit_basic_block_data since I couldn't pass around the mir blocks.
+    // This function instead implements visit_basic_block_data within it.
     fn visit_mir(&mut self, mir: &Mir<'tcx>) {
-        parser::parse_mir(&self.builder, mir); // FIXME: needs to be implemented in parser
+        let mut block_data = Vec::new();
+        for index in 0..mir.basic_blocks().len() {
+            let block = BasicBlock::new(index);
+            block_data.push(&mir[block]);
+        }
+        parser::parse_mir(&mut self.builder, block_data);
     }
 }
