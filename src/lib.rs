@@ -13,6 +13,12 @@
 // see: https://doc.rust-lang.org/book/crates-and-modules.html
 // see: 'tests' module (some things need pub that tests doesnt mind priv)
 // see: 'reporting' module
+
+// NOTE: Things to talk to rust devs about:
+//     - Referencing lifetime stuff in struct that has impl
+//     - Slice access; see line 143
+//     - Unused attribute warnings since we aren't using register_syntax_extension
+//     - String to expression
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
 // FIXME: these should not be here!
@@ -71,7 +77,7 @@ pub struct Attr {
 pub fn registrar(reg: &mut Registry) {
     //reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
     let visitor = MirVisitor {
-        builder : Attr {
+        builder: Attr {
             func_name: "".to_string(),
             func_span: None,
             func: None,
@@ -137,7 +143,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
         // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
         for attr in attrs {
-            parser::parse_attribute(&self.builder, attr);
+            parser::parse_attribute(&mut self.builder, attr);
         }
 
         MirVisitor::visit_mir(self, mir);
@@ -148,13 +154,11 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
     // NOTE: Had trouble using visit_basic_block_data since I couldn't pass around the mir blocks.
     // This function instead implements visit_basic_block_data within it.
     fn visit_mir(&mut self, mir: &Mir<'tcx>) {
-        let mut blocks = Vec::new();
         let mut block_data = Vec::new();
         for index in 0..mir.basic_blocks().len() {
             let block = BasicBlock::new(index);
-            blocks.push(block);
             block_data.push(&mir[block]);
         }
-        parser::parse_mir(&self.builder, blocks, block_data);
+        parser::parse_mir(&mut self.builder, block_data);
     }
 }

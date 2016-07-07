@@ -25,8 +25,10 @@ use super::Attr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
 
 
+// FIXME: This needs to be updated; we are no longer using &Annotatable
 /// Parses function information from an *Annotatable* associated with an attribute.
 /// *builder* is passed by reference
+/*
 pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
     match item {
         &Annotatable::Item(ref x) => {
@@ -45,88 +47,9 @@ pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
         _ => {}
     }
 }
-
-/*
-/// Parses attribute information from a *MetaItem* associated with an attribute.
-/// *builder* is passed by reference
-pub fn parse_attribute(builder: &mut Attr, meta: &MetaItem) {
-    match meta.node {
-        // FIXME: at the moment, error out if there are no arguments to the attribute
-        MetaItemKind::List(ref attribute_name, ref args) => {
-            match args.len() {
-                1 => {
-                    panic!("You must provide pre AND post conditions.");
-                    /*
-                    println!("Found 1 argument:\n");
-                    println!("{:?}\n", args[0]);
-                    match args[0].node {
-                        MetaItemKind::NameValue(ref x, ref y) =>
-                            {
-                                if x=="pre" {
-                                    builder.pre = Some(y.node.clone());
-                                } else if x=="post" {
-                                    builder.post = Some(y.node.clone());
-                                } else {
-                                    panic!("expecting pre and/or post condition {} provided.", x);
-                                }
-                            },
-                        _ => {},
-                    }
-                    */
-                },
-                2 => {
-                    //println!("Found 2 arguments:\n");
-                    //println!("{:?}\n", args[0]);
-                    //println!("{:?}\n", args[1]);
-                    match args[0].node {
-                        MetaItemKind::NameValue(ref x, ref y) => {
-                            if x!="pre" { panic!("The first argument must be 'pre'. {} was provided.", x); }
-                            //get argument
-                            match y.node {
-                                super::syntax::ast::LitKind::Str(ref x, ref y) => {
-                                    builder.pre_str = x.to_string();
-                                }
-                                _ => {}
-                            }
-                            //get span
-                            builder.pre_span = Some(y.span);
-                        },
-                        _ => {},
-                    }
-                    match args[1].node {
-                        MetaItemKind::NameValue(ref x, ref y) => {
-                            if x!="post" { panic!("The second argument must be 'post'. {} was provided.", x); }
-                            //get argument
-                            match y.node {
-                                super::syntax::ast::LitKind::Str(ref x, ref y) => {
-                                    builder.post_str = x.to_string();
-                                }
-                                _ => {}
-                            }
-                            //get span
-                            builder.post_span = Some(y.span);
-                        },
-                        _ => {},
-                    }
-                },
-                _ => {
-                    panic!("Too many arguments found for #[condition]; must have pre and/or post conditions");
-                }
-            }
-        },
-        _ => {
-            panic!("Invalid arguments for #[condition]; did you add a pre and/or post condition?");
-        }
-    }
-
-
-    // FIXME: clone?
-    //println!("precondition {:?}", builder.clone().pre.unwrap());
-    //println!("postcondition {:?}", builder.clone().post.unwrap());
-}
 */
 
-pub fn parse_attribute(builder: &Attr, attr: &Spanned<Attribute_>) {
+pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
     match attr.node.value.node {
         MetaItemKind::List(ref attribute_name, ref args) => {
             //check the attribute is 'condition'
@@ -176,14 +99,9 @@ pub fn parse_attribute(builder: &Attr, attr: &Spanned<Attribute_>) {
 
 
 // FIXME: Needs implementing
-pub fn parse_mir(builder: &Attr, blocks: Vec<BasicBlock>, data: Vec<&BasicBlockData>) {
-    for index in 0..blocks.len() {
-        println!("{:#?}", blocks[index]);
+pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
+    for index in 0..data.len() {
+        println!("bb{}", index);
         println!("{:#?}", data[index]);
     }
-}
-
-
-pub fn demo() {
-    println!("parser - reporting in");
 }
