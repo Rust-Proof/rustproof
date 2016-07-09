@@ -13,6 +13,8 @@
 //extern crate syntax;
 //extern crate rustc_plugin;
 
+mod lalrpop; // FIXME: Rename module
+
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind};
 use syntax::ext::base::{ExtCtxt, Annotatable};
@@ -32,7 +34,6 @@ use expression::IntegerComparisonData;
 use expression::IntegerComparisonOperator;
 use expression::SignedBitVectorData;
 use std::str::FromStr;
-
 
 /// Parses function information from an *Annotatable* associated with an attribute.
 /// *builder* is passed by reference
@@ -143,172 +144,13 @@ pub fn demo() {
     println!("parser - reporting in");
 }
 
-pub fn parse_predicate_from_string(condition: String) -> Predicate {
-    let mut v = Vec::new();
-    for s in condition.split_whitespace() {
-        println!("{}", s);
-        v.push(s);
-    }
-
-    parse_predicate_from_vec(v)
-}
-
-pub fn parse_predicate_from_vec(v: Vec<&str>) -> Predicate {
-    let v_length = v.len();
-    if v_length >= 1 {
-        match v[0] {
-            //In parentheses
-            "(" => {
-                unimplemented!();
-            } 
-            //Unary boolean operator
-            "!" => {
-                unimplemented!();
-            }
-            //Unary integer operator
-            //Integer literal
-            _ if is_integer(v[0]) => {
-                //Store the literal
-                let first_term = Term::SignedBitVector( SignedBitVectorData {
-                    size: 64, value: v[0].parse().unwrap()
-                } );
-
-                if 3 >= v_length {
-                    //ERROR
-                    unimplemented!();
-                } else {
-                    //Look for integer operator or next boolean operator
-                    match v[1] {
-                        //Integer comparison operator
-                        ">" | ">=" | "<" | "<=" | "==" | "!=" => {
-                            let mut remaining = Vec::new();
-
-                            for j in (2)..v_length {
-                                remaining.push(v[j]);
-                            }
-                            return Predicate::IntegerComparison( IntegerComparisonData {
-                                op: return_boolean_operator(v[1]),
-                                t1: Box::new(first_term),
-                                t2: Box::new(parse_term_from_vec(remaining))
-                            } );
-                        },
-                        _ => {
-                            //ERROR
-                            unimplemented!();
-                        }
-                    }
-                }
-            }
-            //Boolean literal
-            "true" | "false" => {
-                //Store the literal
-                let first_predicate = Predicate::BooleanLiteral( v[0].parse().unwrap() );
-
-                //Could be single boolean literal
-                if 1 >= v_length {
-                    return first_predicate;
-                } else {
-                    //Look for boolean operator
-                    match v[1] {
-                        //Binary boolean operator
-                        "&&" => {
-                            let mut remaining = Vec::new();
-                            if 2 >= v_length {
-                                //ERROR
-                                unimplemented!();
-                            }
-                            for j in (2)..v_length {
-                                remaining.push(v[j]);
-                            }
-                            return Predicate::And( AndData {
-                                p1: Box::new(first_predicate),
-                                p2: Box::new(parse_predicate_from_vec(remaining))
-                            } );
-                        },
-                        "||" => {
-                            let mut remaining = Vec::new();
-                            if 2 >= v_length {
-                                //ERROR
-                                unimplemented!();
-                            }
-                            for j in (2)..v_length {
-                                remaining.push(v[j]);
-                            }
-                            return Predicate::Or( OrData {
-                                p1: Box::new(first_predicate),
-                                p2: Box::new(parse_predicate_from_vec(remaining))
-                            } );
-                        },
-                        "->" => {
-                            let mut remaining = Vec::new();
-                            if 2 >= v_length {
-                                //ERROR
-                                unimplemented!();
-                            }
-                            for j in (2)..v_length {
-                                remaining.push(v[j]);
-                            }
-                            return Predicate::Implies( ImpliesData {
-                                p1: Box::new(first_predicate),
-                                p2: Box::new(parse_predicate_from_vec(remaining))
-                            } );
-                        }
-                        _ => {
-                            //ERROR
-                            unimplemented!();
-                        }
-                    }
-                }
-            }
-            //Variable name
-            _ => {
-                //ERROR
-                unimplemented!();
-            }
-        }
-    }
-
-    unimplemented!();
-}
-
-pub fn parse_term_from_vec(v: Vec<&str>) -> Term {
-    unimplemented!();
-}
-
-pub fn is_integer(s: &str) -> bool {
-    match i64::from_str(s) {
-        Ok(..) => {
-            return true;
+pub fn real_parse(condition: &str) -> Predicate {
+    match lalrpop::parse_P(condition) {
+        Ok(p) => {
+            return p;
         },
-        Err(..) => {
-            return false;
-        }
-    }
-}
-
-pub fn return_boolean_operator(s: &str) -> IntegerComparisonOperator {
-    match s {
-        ">" => {
-            return IntegerComparisonOperator::GreaterThan;
-        },
-        "<" => {
-            return IntegerComparisonOperator::LessThan;
-        },
-        ">=" => {
-            return IntegerComparisonOperator::GreaterThanOrEqual;
-        },
-        "<=" => {
-            return IntegerComparisonOperator::LessThanOrEqual;
-        },
-        "==" => {
-            return IntegerComparisonOperator::Equal;
-        },
-        "!=" => {
-            return IntegerComparisonOperator::NotEqual;
-        },
-        _ => {
-            //ERROR
-            unimplemented!();
+        Err(e) => {
+            panic!("Error parsing condition: {:?}", e);
         }
     }
 }
