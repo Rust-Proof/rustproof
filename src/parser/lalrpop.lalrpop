@@ -1,0 +1,80 @@
+use std::str::FromStr;
+use expression::Predicate;
+use expression::Term;
+use expression::NotData;
+use expression::AndData;
+use expression::OrData;
+use expression::ImpliesData;
+use expression::IntegerComparisonData;
+use expression::UnsignedBitVectorData;
+use expression::VariableMappingData;
+use expression::UnaryExpressionData;
+use expression::BinaryExpressionData;
+use expression::IntegerComparisonOperator;
+use expression::IntegerUnaryOperator;
+use expression::IntegerBinaryOperator;
+
+grammar;
+
+pub P: Predicate = {
+	"(" <p: P> ")" => p,
+	"!!" <p: P2> => Predicate::Not( NotData { p: Box::new(p) } ),
+	P2,
+};
+
+pub P2: Predicate = {
+	<p1: P2> "&&" <p2: P3> => Predicate::And( AndData { p1: Box::new(p1), p2: Box::new(p2) } ),
+	<p1: P2> "||" <p2: P3> => Predicate::Or( OrData { p1: Box::new(p1), p2: Box::new(p2) } ),
+	<p1: P2> "->" <p2: P3> => Predicate::Implies( ImpliesData { p1: Box::new(p1), p2: Box::new(p2) } ),
+	P3,
+};
+
+pub P3: Predicate = {
+	<t1: T> <op: INT_COMP> <t2: T> => Predicate::IntegerComparison( IntegerComparisonData { op: op, t1: Box::new(t1), t2: Box::new(t2) } ),
+	"true" => Predicate::BooleanLiteral(true),
+	"false" => Predicate::BooleanLiteral(false),
+};
+
+pub T: Term = {
+	"(" <t: T> ")" => t,
+	<op: INT_UNOP> <t: T> => Term::UnaryExpression( UnaryExpressionData { op: op, t: Box::new(t) } ),
+	T2,
+};
+
+pub T2: Term = {
+	<t1: T2> "[" <t2: T3> "]" => Term::BinaryExpression( BinaryExpressionData { op: IntegerBinaryOperator::ArrayLookup, t1: Box::new(t1), t2: Box::new(t2) } ),
+	<t1: T2> <op: INT_BOP> <t2: T3> => Term::BinaryExpression( BinaryExpressionData { op: op, t1: Box::new(t1), t2: Box::new(t2) } ),
+	T3,
+};
+
+pub T3: Term = {
+	<l:r"[0-9]+"> => Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(l).unwrap() } ),
+	<v:r"[a-z, A-Z, '_'][a-z, A-Z, 0-9, '_']*"> => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } ),
+};
+
+pub INT_COMP: IntegerComparisonOperator = {
+	"<" => IntegerComparisonOperator::LessThan,
+	"<=" => IntegerComparisonOperator::LessThanOrEqual,
+	">" => IntegerComparisonOperator::GreaterThan,
+	">=" => IntegerComparisonOperator::GreaterThanOrEqual,
+	"==" => IntegerComparisonOperator::Equal,
+	"!=" => IntegerComparisonOperator::NotEqual,
+};
+
+pub INT_UNOP: IntegerUnaryOperator = {
+	"-" => IntegerUnaryOperator::Negation,
+	"!" => IntegerUnaryOperator::BitwiseNot,
+};
+
+pub INT_BOP: IntegerBinaryOperator = {
+	"+" => IntegerBinaryOperator::Addition,
+	"-" => IntegerBinaryOperator::Subtraction,
+	"*" => IntegerBinaryOperator::Multiplication,
+	"/" => IntegerBinaryOperator::Division,
+	"%" => IntegerBinaryOperator::Modulo,
+	"&" => IntegerBinaryOperator::BitwiseOr,
+	"|" => IntegerBinaryOperator::BitwiseAnd,
+	"^" => IntegerBinaryOperator::BitwiseXor,
+	"<<" => IntegerBinaryOperator::BitwiseLeftShift,
+	">>" => IntegerBinaryOperator::BitwiseRightShift,
+};

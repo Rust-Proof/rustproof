@@ -13,6 +13,8 @@
 extern crate syntax;
 //extern crate rustc_plugin;
 
+mod lalrpop; // FIXME: Rename module
+
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
 use syntax::ext::base::{ExtCtxt, Annotatable};
@@ -23,7 +25,15 @@ use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
-
+use expression::Predicate;
+use expression::Term;
+use expression::AndData;
+use expression::OrData;
+use expression::ImpliesData;
+use expression::IntegerComparisonData;
+use expression::IntegerComparisonOperator;
+use expression::SignedBitVectorData;
+use std::str::FromStr;
 
 // FIXME: This needs to be updated; we are no longer using &Annotatable
 /// Parses function information from an *Annotatable* associated with an attribute.
@@ -104,5 +114,16 @@ pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
     for index in 0..data.len() {
         println!("bb{}", index);
         println!("{:#?}", data[index]);
+    }
+}
+
+pub fn real_parse(condition: &str) -> Predicate {
+    match lalrpop::parse_P(condition) {
+        Ok(p) => {
+            return p;
+        },
+        Err(e) => {
+            panic!("Error parsing condition: {:?}", e);
+        }
     }
 }
