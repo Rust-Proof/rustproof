@@ -14,13 +14,12 @@ To run example code:
 
 # Contributors
 [Matthew Slocum][acro]  
-
-[Sami Sahli][sahli]
-[Vincent Schuster][schuster]
-[Michael Salter][salter]
-[Bradley Rasmussen][rasmussen]
-[Drew Gohman][gohman]
-[Matthew O'Brien][obrien]
+[Sami Sahli][sahli]  
+[Vincent Schuster][schuster]  
+[Michael Salter][salter]  
+[Bradley Rasmussen][rasmussen]  
+[Drew Gohman][gohman]  
+[Matthew O'Brien][obrien]  
 
 [acro]:https://github.com/arc3x
 [sahli]:https://github.com/ssahli
