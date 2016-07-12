@@ -4,14 +4,39 @@ A Rust compiler plugin to verify correctness of functions.
 To run example code:
     `cargo build --example <example>`
 
-## Reporting Issues
+# Code usage example
+
+
+# Motivation
+
+
+
+
+# Contributors
+[Matthew Slocum][acro]
+[Sami Sahli][sahli]
+[Vincent Schuster][schuster]
+[Michael Salter][salter]
+[Bradley Rasmussen][rasmussen]
+[Drew Gohman][gohman]
+[Matthew O'Brien][obrien]
+
+[acro]:https://github.com/arc3x
+[sahli]:https://github.com/ssahli
+[schuster]:https://github.com/VSchuster
+[salter]:https://github.com/salterm
+[rasmussen]:https://github.com/bajr
+[gohman]:https://github.com/found101
+[obrien]:https://github.com/obriematt
+
+# Reporting Issues
 
 Please report all issues on the github [issue tracker][issues].
 
 [issues]:https://github.com/Rust-Proof/rustproof/issues
 
 
-## License
+# License
 
 Rustproof is primarily distributed under the terms of both the MIT license and the Apache License (Version 2.0).
 
