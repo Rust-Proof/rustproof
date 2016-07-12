@@ -13,7 +13,8 @@ To run example code:
 
 
 # Contributors
-[Matthew Slocum][acro]
+[Matthew Slocum][acro]  
+
 [Sami Sahli][sahli]
 [Vincent Schuster][schuster]
 [Michael Salter][salter]
