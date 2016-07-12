@@ -72,6 +72,18 @@ pub struct Attr {
     pub post_str: String,
 }
 
+impl Attr {
+    fn clear(&mut self) {
+        self.func_name = "".to_string();
+        self.func_span = None;
+        self.func = None;
+        self.pre_span = None;
+        self.post_span = None;
+        self.pre_str = "".to_string();
+        self.post_str = "".to_string();
+    }
+}
+
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
@@ -130,6 +142,9 @@ impl <'tcx> Pass for MirVisitor {
 
 impl <'tcx> MirPass<'tcx> for MirVisitor {
     fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
+        //clear the stored attributes in the builder
+        self.builder.clear();
+        
         let item_id = src.item_id();
         let def_id = tcx.map.local_def_id(item_id);
         let name = tcx.item_path_str(def_id);
