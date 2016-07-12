@@ -1,4 +1,4 @@
-# rust-proof
+# Rustproof
 A Rust compiler plugin to verify correctness of functions.
 
 To run example code:
@@ -13,7 +13,7 @@ Please report all issues on the github [issue tracker][issues].
 
 ## License
 
-RustProof is primarily distributed under the terms of both the MIT license and the Apache License (Version 2.0).
+Rustproof is primarily distributed under the terms of both the MIT license and the Apache License (Version 2.0).
 
 See [LICENSE-APACHE][1], [LICENSE-MIT][2], and [COPYRIGHT][3] for details.
 
