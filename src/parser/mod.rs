@@ -22,7 +22,7 @@ use syntax::parse::token::intern;
 use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
 
 
 // FIXME: This needs to be updated; we are no longer using &Annotatable
@@ -105,4 +105,30 @@ pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
         println!("bb{}", index);
         println!("{:#?}", data[index]);
     }
+
+    //WORK IN PROGRESS
+    //wp(0, &data);
+
+}
+
+fn wp(index: usize, data: &Vec<&BasicBlockData>) -> Option<String> {
+    let terminator = data[index].terminator.clone().unwrap().kind;
+    //terminator.
+    //println!("{:#?}", terminator);
+    dev_tools::print_type_of(&terminator);
+    match terminator {
+        TerminatorKind::Assert{cond, expected, msg, target, cleanup} => unimplemented!(),
+        TerminatorKind::Call{func, args, destination, cleanup} => unimplemented!(),
+        TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
+        TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
+        TerminatorKind::Unreachable => unimplemented!(),
+        TerminatorKind::Return => unimplemented!(),
+        TerminatorKind::Resume => unimplemented!(),
+        TerminatorKind::Goto{target} => unimplemented!(),
+        TerminatorKind::If{cond, targets} => unimplemented!(),
+        TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
+        TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
+    }
+    return None;
+
 }
