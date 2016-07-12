@@ -1,15 +1,32 @@
 # Rustproof
 A Rust compiler plugin to verify correctness of functions.
 
-To run example code:
+To run example code:  
     `cargo build --example <example>`
 
+To ensure a clean build on the code:  
+    `cargo clean && cargo build --example <example>`
+
 # Code usage example
+
+To use rustproof:
+    `
+    #[condition(pre="x > 0", post="x >= 5")]
+    fn add_five_or_three(x: i32) -> i32 {
+        if x > 3 {  
+            x + 5  
+        }  
+        else {  
+            x + 3  
+        }  
+    }
+
 
 
 # Motivation
 
 
+# Todo
 
 
 # Contributors
