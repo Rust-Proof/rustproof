@@ -52,7 +52,7 @@ pub T2: Term = {
 
 pub T3: Term = {
 	<l:r"[0-9]+"> => Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(l).unwrap() } ),
-	<v:r"[a-z, A-Z, '_'][a-z, A-Z, 0-9, '_']*"> => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } ),
+	<v:r"[a-z, A-Z, '_'][a-z, A-Z, 0-9, '_']*"> => Term::VariableMapping( VariableMappingData { name: v.trim().to_string(), var_type: "".to_string() } ),
 	"(" <t: T1> ")" => t,
 };
 

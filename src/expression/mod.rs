@@ -35,6 +35,12 @@ pub enum Predicate {
     IntegerComparison(IntegerComparisonData),
 }
 
+impl fmt::Debug for Predicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
 pub struct VariableMappingData { pub name: String, pub var_type: String}
 pub struct BinaryExpressionData { pub op: IntegerBinaryOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 pub struct UnaryExpressionData { pub op: IntegerUnaryOperator, pub t: Box<Term> }

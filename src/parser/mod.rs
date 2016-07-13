@@ -118,10 +118,7 @@ pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
         //println!("\n{:#?}-------------", data[index]);
     }
 
-    // if
-    if builder.pre_str != "" {
-        wp(0, &data, builder);
-    }
+    wp(0, &data, builder);
 }
 
 // computes the weakest precondition

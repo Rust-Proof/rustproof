@@ -54,6 +54,7 @@ use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
+use expression::Predicate;
 
 use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
 use rustc::mir::mir_map::MirMap;
@@ -61,7 +62,7 @@ use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
 use rustc::mir::visit::Visitor;
 use rustc::ty::TyCtxt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Attr {
     pub func_name: String,
     pub func_span: Option<Span>,
@@ -70,6 +71,8 @@ pub struct Attr {
     pub post_span: Option<Span>,
     pub pre_str: String,
     pub post_str: String,
+    pub pre_expr: Option<Predicate>,
+    pub post_expr: Option<Predicate>,
 }
 
 impl Attr {
@@ -81,6 +84,8 @@ impl Attr {
         self.post_span = None;
         self.pre_str = "".to_string();
         self.post_str = "".to_string();
+        self.pre_expr = None;
+        self.post_expr = None;
     }
 }
 
@@ -97,6 +102,8 @@ pub fn registrar(reg: &mut Registry) {
             post_str: "".to_string(),
             pre_span: None,
             post_span: None,
+            pre_expr: None,
+            post_expr: None,
         },
     };
     reg.register_mir_pass(Box::new(visitor));
@@ -157,7 +164,13 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             parser::parse_attribute(&mut self.builder, attr);
         }
 
-        MirVisitor::visit_mir(self, mir);
+        if self.builder.pre_str != "" {
+            println!("{}", parser::parse_condition(self.builder.pre_str.as_str()));
+            self.builder.pre_expr = Some(parser::parse_condition(self.builder.pre_str.as_str()));
+            println!("{}", parser::parse_condition(self.builder.post_str.as_str()));
+            self.builder.post_expr = Some(parser::parse_condition(self.builder.post_str.as_str()));
+            MirVisitor::visit_mir(self, mir);
+        }
     }
 }
 
