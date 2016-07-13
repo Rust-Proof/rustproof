@@ -144,10 +144,10 @@ pub fn demo() {
     println!("parser - reporting in");
 }
 
-pub fn real_parse(condition: &str) -> Term {
-    match lalrpop::parse_T1(condition) {
-        Ok(t) => {
-            return t;
+pub fn parse_condition(condition: &str) -> Predicate {
+    match lalrpop::parse_P1(condition) {
+        Ok(p) => {
+            return p;
         },
         Err(e) => {
             panic!("Error parsing condition: {:?}", e);
