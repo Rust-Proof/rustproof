@@ -1,0 +1,60 @@
+use std::str::FromStr;
+use expression::Predicate;
+use expression::Term;
+use expression::NotData;
+use expression::AndData;
+use expression::OrData;
+use expression::ImpliesData;
+use expression::IntegerComparisonData;
+use expression::UnsignedBitVectorData;
+use expression::VariableMappingData;
+use expression::UnaryExpressionData;
+use expression::BinaryExpressionData;
+use expression::IntegerComparisonOperator;
+use expression::IntegerUnaryOperator;
+use expression::IntegerBinaryOperator;
+
+grammar;
+
+pub T1: Term = {
+	<t1: T1> <op: INT_BOP> <t2: T2> => Term::BinaryExpression( BinaryExpressionData { op: op, t1: Box::new(t1), t2: Box::new(t2) } ),
+	T2,
+};
+
+pub T2: Term = {
+	<op: INT_UOP> <t: T3> => Term::UnaryExpression( UnaryExpressionData { op: op, t: Box::new(t) } ),
+	T3,
+};
+
+pub T3: Term = {
+	<l:r"[0-9]+"> => Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(l).unwrap() } ),
+	<v:r"[a-z, A-Z, '_'][a-z, A-Z, 0-9, '_']*"> => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } ),
+	"(" <t: T1> ")" => t,
+};
+
+pub INT_COMP: IntegerComparisonOperator = {
+	"<" => IntegerComparisonOperator::LessThan,
+	"<=" => IntegerComparisonOperator::LessThanOrEqual,
+	">" => IntegerComparisonOperator::GreaterThan,
+	">=" => IntegerComparisonOperator::GreaterThanOrEqual,
+	"==" => IntegerComparisonOperator::Equal,
+	"!=" => IntegerComparisonOperator::NotEqual,
+};
+
+pub INT_UOP: IntegerUnaryOperator = {
+	"-" => IntegerUnaryOperator::Negation,
+	"!" => IntegerUnaryOperator::BitwiseNot,
+};
+
+pub INT_BOP: IntegerBinaryOperator = {
+	"+" => IntegerBinaryOperator::Addition,
+	"-" => IntegerBinaryOperator::Subtraction,
+	"*" => IntegerBinaryOperator::Multiplication,
+	"/" => IntegerBinaryOperator::Division,
+	"%" => IntegerBinaryOperator::Modulo,
+	"&" => IntegerBinaryOperator::BitwiseAnd,
+	"|" => IntegerBinaryOperator::BitwiseOr,
+	"^" => IntegerBinaryOperator::BitwiseXor,
+	"<<" => IntegerBinaryOperator::BitwiseLeftShift,
+	">>" => IntegerBinaryOperator::BitwiseRightShift,
+};
