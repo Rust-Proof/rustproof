@@ -32984,7 +32984,7 @@ pub fn __action27<
     (_, v, _): (usize, &'input str, usize),
 ) -> Term
 {
-    Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } )
+    Term::VariableMapping( VariableMappingData { name: v.trim().to_string(), var_type: "".to_string() } )
 }
 
 pub fn __action28<
