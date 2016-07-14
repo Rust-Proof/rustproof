@@ -33959,6 +33959,11 @@ mod __intern_token {
                             __current_state = 34;
                             continue;
                         }
+                        95 => /* '_' */ {
+                            __current_match = Some((29, __index + 1));
+                            __current_state = 34;
+                            continue;
+                        }
                         97 ... 122 => {
                             __current_match = Some((29, __index + __ch.len_utf8()));
                             __current_state = 34;
@@ -34187,6 +34192,11 @@ mod __intern_token {
                             __current_state = 38;
                             continue;
                         }
+                        95 => /* '_' */ {
+                            __current_match = Some((29, __index + 1));
+                            __current_state = 38;
+                            continue;
+                        }
                         97 ... 122 => {
                             __current_match = Some((29, __index + __ch.len_utf8()));
                             __current_state = 38;
@@ -34291,6 +34301,11 @@ mod __intern_token {
                         }
                         65 ... 90 => {
                             __current_match = Some((29, __index + __ch.len_utf8()));
+                            __current_state = 38;
+                            continue;
+                        }
+                        95 => /* '_' */ {
+                            __current_match = Some((29, __index + 1));
                             __current_state = 38;
                             continue;
                         }
