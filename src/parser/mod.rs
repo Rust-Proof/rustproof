@@ -13,6 +13,8 @@
 extern crate syntax;
 //extern crate rustc_plugin;
 
+mod lalrpop; // FIXME: Rename module
+
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
 use syntax::ext::base::{ExtCtxt, Annotatable};
@@ -22,6 +24,15 @@ use syntax::parse::token::intern;
 use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
+use expression::Predicate;
+use expression::Term;
+use expression::AndData;
+use expression::OrData;
+use expression::ImpliesData;
+use expression::IntegerComparisonData;
+use expression::IntegerComparisonOperator;
+use expression::SignedBitVectorData;
+use std::str::FromStr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
 use rustc_data_structures::indexed_vec::Idx;
 
@@ -107,10 +118,7 @@ pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
         //println!("\n{:#?}-------------", data[index]);
     }
 
-    // if
-    if builder.pre_str != "" {
-        wp(0, &data, builder);
-    }
+    wp(0, &data, builder);
 }
 
 // computes the weakest precondition
@@ -168,4 +176,15 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> String {
 
     // FIXME: remove
     return "".to_string();
+}
+
+pub fn parse_condition(condition: &str) -> Predicate {
+    match lalrpop::parse_P1(condition) {
+        Ok(p) => {
+            return p;
+        },
+        Err(e) => {
+            panic!("Error parsing condition \"{}\": {:?}", condition, e);
+        }
+    }
 }
