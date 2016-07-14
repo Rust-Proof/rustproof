@@ -184,7 +184,7 @@ pub fn parse_condition(condition: &str) -> Predicate {
             return p;
         },
         Err(e) => {
-            panic!("Error parsing condition: {:?}", e);
+            panic!("Error parsing condition \"{}\": {:?}", condition, e);
         }
     }
 }
