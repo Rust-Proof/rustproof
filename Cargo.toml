@@ -10,6 +10,13 @@ authors = [
             "Bradley Rasmussen <rasmbj@pdx.edu>",
             "Drew Gohman <dgohman@pdx.edu>"
           ]
+build = "build.rs"
+
+[build-dependencies]
+lalrpop = "0.11.0"
+
+[dependencies]
+lalrpop-util = "0.11.0"
 
 [lib]
 name = "rustproof"
