@@ -151,7 +151,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
     fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
         //clear the stored attributes in the builder
         self.builder.clear();
-        
+
         let item_id = src.item_id();
         let def_id = tcx.map.local_def_id(item_id);
         let name = tcx.item_path_str(def_id);
@@ -164,6 +164,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             parser::parse_attribute(&mut self.builder, attr);
         }
 
+        // FIXME: better condition check
         if self.builder.pre_str != "" {
             println!("{}", parser::parse_condition(self.builder.pre_str.as_str()));
             self.builder.pre_expr = Some(parser::parse_condition(self.builder.pre_str.as_str()));
