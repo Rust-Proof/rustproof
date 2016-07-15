@@ -1,15 +1,15 @@
 use std::str::FromStr;
 use expression::Predicate;
 use expression::Term;
-use expression::NotData;
-use expression::AndData;
-use expression::OrData;
-use expression::ImpliesData;
+use expression::UnaryPredicateData;
+use expression::BinaryPredicateData;
 use expression::IntegerComparisonData;
 use expression::UnsignedBitVectorData;
 use expression::VariableMappingData;
 use expression::UnaryExpressionData;
 use expression::BinaryExpressionData;
+use expression::BooleanUnaryOperator;
+use expression::BooleanBinaryOperator;
 use expression::IntegerComparisonOperator;
 use expression::IntegerUnaryOperator;
 use expression::IntegerBinaryOperator;
@@ -17,14 +17,12 @@ use expression::IntegerBinaryOperator;
 grammar;
 
 pub P1: Predicate = {
-	<p1: P1> "&&" <p2: P2> => Predicate::And( AndData { p1: Box::new(p1), p2: Box::new(p2) } ),
-	<p1: P1> "||" <p2: P2> => Predicate::Or( OrData { p1: Box::new(p1), p2: Box::new(p2) } ),
-	<p1: P1> "->" <p2: P2> => Predicate::Implies( ImpliesData { p1: Box::new(p1), p2: Box::new(p2) } ),
+	<p1: P1> <op: BOOL_BOP> <p2: P2> => Predicate::BinaryExpression( BinaryPredicateData { op: op, p1: Box::new(p1), p2: Box::new(p2) } ),
 	P2,
 };
 
 pub P2: Predicate = {
-	"!!" <p: P2> => Predicate::Not( NotData { p: Box::new(p) } ),
+	<op: BOOL_UOP> <p: P2> => Predicate::UnaryExpression( UnaryPredicateData { op: op, p: Box::new(p) } ),
 	P3,
 };
 
@@ -64,6 +62,16 @@ pub INT_COMP: IntegerComparisonOperator = {
 	">=" => IntegerComparisonOperator::GreaterThanOrEqual,
 	"==" => IntegerComparisonOperator::Equal,
 	"!=" => IntegerComparisonOperator::NotEqual,
+};
+
+pub BOOL_UOP: BooleanUnaryOperator = {
+	"!!" => BooleanUnaryOperator::Not,
+};
+
+pub BOOL_BOP: BooleanBinaryOperator = {
+	"&&" => BooleanBinaryOperator::And,
+	"||" => BooleanBinaryOperator::Or,
+	"->" => BooleanBinaryOperator::Implies,
 };
 
 pub INT_UOP: IntegerUnaryOperator = {

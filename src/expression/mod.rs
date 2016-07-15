@@ -16,23 +16,19 @@
 use rustc_plugin::Registry;
 use std::fmt;
 
-pub struct AndData { pub p1: Box<Predicate>, pub p2: Box<Predicate> }
-pub struct OrData { pub p1: Box<Predicate>, pub p2: Box<Predicate> }
-pub struct NotData { pub p: Box<Predicate> }
-pub struct ImpliesData { pub p1: Box<Predicate>, pub p2: Box<Predicate> }
+pub struct BinaryPredicateData { pub op: BooleanBinaryOperator, pub p1: Box<Predicate>, pub p2: Box<Predicate> }
+pub struct UnaryPredicateData { pub op: BooleanUnaryOperator, pub p: Box<Predicate> }
 pub struct IntegerComparisonData { pub op: IntegerComparisonOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
 // Boolean Expression type
 pub enum Predicate {
-    // Boolean literals
-    BooleanLiteral(bool),
-    // Boolean operations
-    And(AndData),
-    Or(OrData),
-    Not(NotData),
-    Implies(ImpliesData),
+    // Boolean expressions
+    BinaryExpression(BinaryPredicateData),
+    UnaryExpression(UnaryPredicateData),
     // Integer comparison, which yields boolean
     IntegerComparison(IntegerComparisonData),
+    // Boolean literals
+    BooleanLiteral(bool),
 }
 
 impl fmt::Debug for Predicate {
@@ -49,11 +45,26 @@ pub struct SignedBitVectorData { pub size: u8, pub value: i64 }
 
 // A literal, variable, or expression involving either.
 pub enum Term {
+    // An integer variable; should be either one of a function's formal arguments, a special "return" variable, or something from an encapsulating scope.
     VariableMapping(VariableMappingData),
+    // Integer expressions
     BinaryExpression(BinaryExpressionData),
     UnaryExpression(UnaryExpressionData),
+    // Integer literals
     UnsignedBitVector(UnsignedBitVectorData),
     SignedBitVector(SignedBitVectorData)
+}
+
+#[derive(Clone)]
+pub enum BooleanBinaryOperator {
+    And,
+    Or,
+    Implies,
+}
+
+#[derive(Clone)]
+pub enum BooleanUnaryOperator {
+    Not,
 }
 
 #[derive(Clone)]
@@ -98,56 +109,28 @@ pub fn substitute_variable_in_predicate_with_term ( source_predicate: Predicate,
             // Return a copy.
             Predicate::BooleanLiteral ( b )
         },
-        Predicate::And(a) => {
-            // Recurisvely call the sub-predicates and return a new And.
-            Predicate::And ( AndData {
+        Predicate::BinaryExpression(b) => {
+            // Recurisvely call the sub-predicates and return a new BinaryExpression.
+            Predicate::BinaryExpression ( BinaryPredicateData {
+                op: b.op,
                 p1: Box::new(substitute_variable_in_predicate_with_term(
-                    *a.p1,
+                    *b.p1,
                     VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
                     return_term_copy(&replacement_term)
                 )),
                 p2: Box::new(substitute_variable_in_predicate_with_term(
-                    *a.p2,
+                    *b.p2,
                     VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
                     return_term_copy(&replacement_term)
                 ))
             } )
         },
-        Predicate::Or(o) => {
+        Predicate::UnaryExpression(u) => {
             // Recurisvely call the sub-predicates and return a new Or.
-            Predicate::Or ( OrData {
-                p1: Box::new(substitute_variable_in_predicate_with_term(
-                    *o.p1,
-                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
-                    return_term_copy(&replacement_term)
-                )),
-                p2: Box::new(substitute_variable_in_predicate_with_term(
-                    *o.p2,
-                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
-                    return_term_copy(&replacement_term)
-                ))
-            } )
-        },
-        Predicate::Not(n) => {
-            // Recurisvely call the sub-predicate and return a new Not.
-            Predicate::Not ( NotData {
+            Predicate::UnaryExpression ( UnaryPredicateData {
+                op: u.op,
                 p: Box::new(substitute_variable_in_predicate_with_term(
-                    *n.p,
-                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
-                    return_term_copy(&replacement_term)
-                ))
-            } )
-        },
-        Predicate::Implies(i) => {
-            // Recurisvely call the sub-predicates and return a new Implies.
-            Predicate::Implies ( ImpliesData {
-                p1: Box::new(substitute_variable_in_predicate_with_term(
-                    *i.p1,
-                    VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
-                    return_term_copy(&replacement_term)
-                )),
-                p2: Box::new(substitute_variable_in_predicate_with_term(
-                    *i.p2,
+                    *u.p,
                     VariableMappingData { name: target.name.clone(), var_type: target.var_type.clone() },
                     return_term_copy(&replacement_term)
                 ))
@@ -272,18 +255,27 @@ impl fmt::Display for Predicate {
             &Predicate::BooleanLiteral (ref b) => {
                 write!(f, "({})", b)
             },
-            &Predicate::And (ref a) => {
-                write!(f, "({} && {})", *a.p1, *a.p2)
+            &Predicate::BinaryExpression (ref b) => {
+                match b.op {
+                    BooleanBinaryOperator::And => {
+                        write!(f, "({} && {})", *b.p1, *b.p2)
+                    },
+                    BooleanBinaryOperator::Or => {
+                        write!(f, "({} || {})", *b.p1, *b.p2)
+                    },
+                    BooleanBinaryOperator::Implies => {
+                        write!(f, "({} -> {})", *b.p1, *b.p2)
+                    }
+                }
+                
             },
-            &Predicate::Or (ref o) => {
-                write!(f, "({} || {})", *o.p1, *o.p2)
-            },
-            &Predicate::Not (ref n) => {
-                write!(f, "(!! {})", *n.p)
-            },
-            &Predicate::Implies (ref i) => {
-                write!(f, "({} -> {})", *i.p1, *i.p2)
-            },
+            &Predicate::UnaryExpression (ref u) => {
+                match u.op {
+                    BooleanUnaryOperator::Not => {
+                        write!(f, "(!{})", *u.p)
+                    }
+                }
+            }
             &Predicate::IntegerComparison (ref i) => {
                 match i.op {
                     IntegerComparisonOperator::LessThan => {

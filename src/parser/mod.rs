@@ -25,13 +25,6 @@ use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use expression::Predicate;
-use expression::Term;
-use expression::AndData;
-use expression::OrData;
-use expression::ImpliesData;
-use expression::IntegerComparisonData;
-use expression::IntegerComparisonOperator;
-use expression::SignedBitVectorData;
 use std::str::FromStr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
 use rustc_data_structures::indexed_vec::Idx;
