@@ -27,8 +27,10 @@ pub enum Predicate {
     UnaryExpression(UnaryPredicateData),
     // Integer comparison, which yields boolean
     IntegerComparison(IntegerComparisonData),
+    // A boolean variable; should be either one of a function's formal arguments, a special "return" variable, or something from an encapsulating scope.
+    VariableMapping(VariableMappingData),
     // Boolean literals
-    BooleanLiteral(bool),
+    BooleanLiteral(bool)
 }
 
 impl fmt::Debug for Predicate {
@@ -45,11 +47,11 @@ pub struct SignedBitVectorData { pub size: u8, pub value: i64 }
 
 // A literal, variable, or expression involving either.
 pub enum Term {
-    // An integer variable; should be either one of a function's formal arguments, a special "return" variable, or something from an encapsulating scope.
-    VariableMapping(VariableMappingData),
     // Integer expressions
     BinaryExpression(BinaryExpressionData),
     UnaryExpression(UnaryExpressionData),
+    // An integer variable; should be either one of a function's formal arguments, a special "return" variable, or something from an encapsulating scope.
+    VariableMapping(VariableMappingData),
     // Integer literals
     UnsignedBitVector(UnsignedBitVectorData),
     SignedBitVector(SignedBitVectorData)
@@ -105,10 +107,6 @@ pub enum IntegerComparisonOperator {
 // Recurses through a Predicate and replaces any Variable Mapping with the given Term.
 pub fn substitute_variable_in_predicate_with_term ( source_predicate: Predicate, target: VariableMappingData, replacement_term: Term ) -> Predicate {
     match source_predicate {
-        Predicate::BooleanLiteral(b) => {
-            // Return a copy.
-            Predicate::BooleanLiteral ( b )
-        },
         Predicate::BinaryExpression(b) => {
             // Recurisvely call the sub-predicates and return a new BinaryExpression.
             Predicate::BinaryExpression ( BinaryPredicateData {
@@ -152,6 +150,18 @@ pub fn substitute_variable_in_predicate_with_term ( source_predicate: Predicate,
                 ))
             } )
         }
+        Predicate::VariableMapping(v) => {
+            // Shouldn't be able to replace a boolean variable with a term!
+            if v == target {
+                panic!("Boolean variable cannot be replaced with integer value/expression.");
+            } else {
+                Predicate::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
+            }
+        },
+        Predicate::BooleanLiteral(b) => {
+            // Return a copy.
+            Predicate::BooleanLiteral ( b )
+        },
     }
 }
 
@@ -252,6 +262,9 @@ impl fmt::Display for Predicate {
         // FIXME: this commented line below is the format to use
         // write!(f, "predicate")
         match self {
+            &Predicate::VariableMapping (ref v) => {
+                write!(f, "({} : {})", v.name, v.var_type)
+            }
             &Predicate::BooleanLiteral (ref b) => {
                 write!(f, "({})", b)
             },
@@ -309,7 +322,7 @@ impl fmt::Display for Term {
         // write!(f, "predicate")
         match self {
             &Term::VariableMapping(ref v) => {
-                write!(f, "({})", v.name)
+                write!(f, "({} : {})", v.name, v.var_type)
             },
             &Term::BinaryExpression(ref b) => {
                 match b.op {

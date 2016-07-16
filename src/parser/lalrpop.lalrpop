@@ -30,6 +30,8 @@ pub P3: Predicate = {
 	<t1: A> <op: INT_COMP> <t2: A> => Predicate::IntegerComparison( IntegerComparisonData { op: op, t1: Box::new(t1), t2: Box::new(t2) } ),
 	"true" => Predicate::BooleanLiteral(true),
 	"false" => Predicate::BooleanLiteral(false),
+	<v:r"_[a-zA-Z0-9_]+"> ":" "b" => Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "boolean".to_string() } ),
+	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "b" =>  Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "boolean".to_string() } ),
 	"(" <p: P1> ")" => p,
 };
 
@@ -50,8 +52,8 @@ pub T2: Term = {
 
 pub T3: Term = {
 	<l:r"[0-9]+"> => Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(l).unwrap() } ),
-	<v:r"_[a-zA-Z0-9_]+"> => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } ),
-	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } ),
+	<v:r"_[a-zA-Z0-9_]+"> ":" "i" => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "integer".to_string() } ),
+	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "i" => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "integer".to_string() } ),
 	"(" <t: T1> ")" => t,
 };
 
