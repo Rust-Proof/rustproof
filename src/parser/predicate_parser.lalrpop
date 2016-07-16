@@ -1,15 +1,15 @@
 use std::str::FromStr;
 use expression::Predicate;
 use expression::Term;
-use expression::NotData;
-use expression::AndData;
-use expression::OrData;
-use expression::ImpliesData;
+use expression::UnaryPredicateData;
+use expression::BinaryPredicateData;
 use expression::IntegerComparisonData;
 use expression::UnsignedBitVectorData;
 use expression::VariableMappingData;
 use expression::UnaryExpressionData;
 use expression::BinaryExpressionData;
+use expression::BooleanUnaryOperator;
+use expression::BooleanBinaryOperator;
 use expression::IntegerComparisonOperator;
 use expression::IntegerUnaryOperator;
 use expression::IntegerBinaryOperator;
@@ -17,14 +17,12 @@ use expression::IntegerBinaryOperator;
 grammar;
 
 pub P1: Predicate = {
-	<p1: P1> "&&" <p2: P2> => Predicate::And( AndData { p1: Box::new(p1), p2: Box::new(p2) } ),
-	<p1: P1> "||" <p2: P2> => Predicate::Or( OrData { p1: Box::new(p1), p2: Box::new(p2) } ),
-	<p1: P1> "->" <p2: P2> => Predicate::Implies( ImpliesData { p1: Box::new(p1), p2: Box::new(p2) } ),
+	<p1: P1> <op: BOOL_BOP> <p2: P2> => Predicate::BinaryExpression( BinaryPredicateData { op: op, p1: Box::new(p1), p2: Box::new(p2) } ),
 	P2,
 };
 
 pub P2: Predicate = {
-	"!!" <p: P2> => Predicate::Not( NotData { p: Box::new(p) } ),
+	<op: BOOL_UOP> <p: P2> => Predicate::UnaryExpression( UnaryPredicateData { op: op, p: Box::new(p) } ),
 	P3,
 };
 
@@ -32,6 +30,8 @@ pub P3: Predicate = {
 	<t1: A> <op: INT_COMP> <t2: A> => Predicate::IntegerComparison( IntegerComparisonData { op: op, t1: Box::new(t1), t2: Box::new(t2) } ),
 	"true" => Predicate::BooleanLiteral(true),
 	"false" => Predicate::BooleanLiteral(false),
+	<v:r"_[a-zA-Z0-9_]+"> ":" "b" => Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "boolean".to_string() } ),
+	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "b" =>  Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "boolean".to_string() } ),
 	"(" <p: P1> ")" => p,
 };
 
@@ -52,8 +52,8 @@ pub T2: Term = {
 
 pub T3: Term = {
 	<l:r"[0-9]+"> => Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(l).unwrap() } ),
-	<v:r"_[a-zA-Z0-9_]+"> => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } ),
-	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } ),
+	<v:r"_[a-zA-Z0-9_]+"> ":" "i" => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "integer".to_string() } ),
+	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "i" => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "integer".to_string() } ),
 	"(" <t: T1> ")" => t,
 };
 
@@ -64,6 +64,16 @@ pub INT_COMP: IntegerComparisonOperator = {
 	">=" => IntegerComparisonOperator::GreaterThanOrEqual,
 	"==" => IntegerComparisonOperator::Equal,
 	"!=" => IntegerComparisonOperator::NotEqual,
+};
+
+pub BOOL_UOP: BooleanUnaryOperator = {
+	"!!" => BooleanUnaryOperator::Not,
+};
+
+pub BOOL_BOP: BooleanBinaryOperator = {
+	"&&" => BooleanBinaryOperator::And,
+	"||" => BooleanBinaryOperator::Or,
+	"->" => BooleanBinaryOperator::Implies,
 };
 
 pub INT_UOP: IntegerUnaryOperator = {

@@ -13,7 +13,7 @@
 extern crate syntax;
 //extern crate rustc_plugin;
 
-mod lalrpop; // FIXME: Rename module
+mod predicate_parser; // FIXME: Rename module
 
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
@@ -26,13 +26,6 @@ use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use super::expression;
 use expression::Predicate;
-use expression::Term;
-use expression::AndData;
-use expression::OrData;
-use expression::ImpliesData;
-use expression::IntegerComparisonData;
-use expression::IntegerComparisonOperator;
-use expression::SignedBitVectorData;
 use std::str::FromStr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
 use rustc_data_structures::indexed_vec::Idx;
@@ -192,7 +185,7 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<P
 }
 
 pub fn parse_condition(condition: &str) -> Predicate {
-    match lalrpop::parse_P1(condition) {
+    match predicate_parser::parse_P1(condition) {
         Ok(p) => {
             return p;
         },
