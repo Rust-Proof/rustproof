@@ -13,7 +13,7 @@
 extern crate syntax;
 //extern crate rustc_plugin;
 
-mod lalrpop; // FIXME: Rename module
+mod predicate_parser; // FIXME: Rename module
 
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
@@ -172,7 +172,7 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> String {
 }
 
 pub fn parse_condition(condition: &str) -> Predicate {
-    match lalrpop::parse_P1(condition) {
+    match predicate_parser::parse_P1(condition) {
         Ok(p) => {
             return p;
         },
