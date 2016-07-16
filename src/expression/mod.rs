@@ -285,7 +285,7 @@ impl fmt::Display for Predicate {
             &Predicate::UnaryExpression (ref u) => {
                 match u.op {
                     BooleanUnaryOperator::Not => {
-                        write!(f, "(!{})", *u.p)
+                        write!(f, "(!!{})", *u.p)
                     }
                 }
             }
