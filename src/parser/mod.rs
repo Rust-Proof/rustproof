@@ -24,6 +24,7 @@ use syntax::parse::token::intern;
 use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
+use super::expression;
 use expression::Predicate;
 use expression::Term;
 use expression::AndData;
@@ -124,11 +125,14 @@ pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
 // computes the weakest precondition
 // FIXME: shouldnt return strings. Change to exression
 // FIXME: move to wp module
-fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> String {
+// FIXME: do we want to return a predicate?
+fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<Predicate> {
     println!("\n\nExamining bb{:?}\n{:#?}", index, data[index]);
 
     // variables for tracking terminator
+    // targets of terminator (exits)
     let mut block_targets = Vec::new();
+    // bb kind
     let mut block_kind = "";
 
     // parse terminator data
@@ -141,8 +145,8 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> String {
             block_kind = "Assert";
         },
         TerminatorKind::Return => {
-            // FIXME: shouldnt return string
-            return "return".to_string()
+            // return the post condition as expression to start WP gen
+            //return builder.post_expr.clone();
         },
         TerminatorKind::Goto{target} => {
             block_targets.push(target);
@@ -161,11 +165,13 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> String {
 
 
     // recurse to exit points of CFG and save return values
-    // FIXME: save return data
+    let ret1: Option<Predicate> = None;
     match block_kind {
-        "Assert" |
+        "Assert" => {
+            let ret1 = wp(block_targets[0].index(), data, builder);
+        },
         "Goto" => {
-            let _ = wp(block_targets[0].index(), data, builder);
+            let ret1 = wp(block_targets[0].index(), data, builder);
         },
         _ => {
             panic!("Unrecognized block kind");
@@ -173,9 +179,16 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> String {
     }
 
     // FIXME: add wp generation
-
-    // FIXME: remove
-    return "".to_string();
+    // examine statements in reverse order
+    let mut stmts = data[index].statements.clone();
+    stmts.reverse();
+    for stmt in stmts {
+        //process stmt into expression
+        println!("{:?}", stmt);
+    }
+    
+    // FIXME: not this prob
+    return ret1;
 }
 
 pub fn parse_condition(condition: &str) -> Predicate {
