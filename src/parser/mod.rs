@@ -22,7 +22,6 @@ use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::codemap::{Span, Spanned};
 use syntax::parse::token::intern;
 use syntax::ptr::P;
-use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use super::expression;
 use expression::Predicate;
@@ -42,7 +41,6 @@ pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
             builder.func_name = x.ident.to_string();
             //get span
             builder.func_span = Some(x.span);
-            //dev_tools::print_type_of(&x.node);
             match x.node {
                 ItemKind::Fn(ref a, ref b, ref c, ref d, ref e, ref block) => {
                     builder.func = Some(block.clone());
