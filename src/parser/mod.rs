@@ -15,19 +15,21 @@ extern crate syntax;
 
 mod predicate_parser; // FIXME: Rename module
 
-use rustc_plugin::Registry;
-use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
-use syntax::ext::base::{ExtCtxt, Annotatable};
-use syntax::ext::base::SyntaxExtension::MultiDecorator;
-use syntax::codemap::{Span, Spanned};
-use syntax::parse::token::intern;
-use syntax::ptr::P;
-use super::Attr;
-use super::expression;
-use expression::Predicate;
-use std::str::FromStr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
 use rustc_data_structures::indexed_vec::Idx;
+use rustc_plugin::Registry;
+use std::str::FromStr;
+use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
+use syntax::codemap::{Span, Spanned};
+use syntax::ext::base::{ExtCtxt, Annotatable};
+use syntax::ext::base::SyntaxExtension::MultiDecorator;
+use syntax::parse::token::intern;
+use syntax::ptr::P;
+
+use super::Attr;
+use super::expression;
+use super::dev_tools; // Debugging information, remove when project is "complete"
+use expression::Predicate;
 
 
 // FIXME: This needs to be updated; we are no longer using &Annotatable
@@ -41,6 +43,7 @@ pub fn parse_function(builder: &mut Attr, item: &Annotatable) {
             builder.func_name = x.ident.to_string();
             //get span
             builder.func_span = Some(x.span);
+            //dev_tools::print_type_of(&x.node);
             match x.node {
                 ItemKind::Fn(ref a, ref b, ref c, ref d, ref e, ref block) => {
                     builder.func = Some(block.clone());

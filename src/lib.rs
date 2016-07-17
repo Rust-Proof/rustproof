@@ -29,6 +29,7 @@
 // FIXME: useful for development, delete when project is "complete"
 #![allow(unused_variables)]
 #![allow(unused_imports)]
+#![feature(core_intrinsics)]
 
 // extern crate imports
 #[macro_use]
@@ -61,9 +62,9 @@ pub mod parser;
 pub mod reporting;
 pub mod weakest_precondition;
 pub mod z3_interface;
-// Conditionally include tests when cargo --test is called
+pub mod dev_tools; //FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
-mod tests;
+mod tests; //Conditionally include tests when cargo --test is called
 
 #[derive(Debug)]
 pub struct Attr {
