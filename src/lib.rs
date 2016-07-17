@@ -38,7 +38,6 @@ pub mod reporting;
 pub mod z3_interface;
 pub mod weakest_precondition;
 pub mod parser;
-pub mod dev_tools;
 pub mod expression;
 //pub mod data;
 
