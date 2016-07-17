@@ -22,5 +22,7 @@ fn main() {
 #[condition(pre="1 > 3", post="true && var : b")]
 fn foo(x: u32) -> u32 {
 	let y = 5u32;
-	x + y
+	for x in 0..10 {
+    println!("{}", x);
+	}
 }
