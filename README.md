@@ -1,18 +1,25 @@
 # Rustproof
-A Rust compiler plugin to verify correctness of functions.
 
-To run example code:  
-    `cargo build --example <example>`
+Rustproof is a compiler plugin for the Rust programming language. It is designed
+to generate verification conditions for their code. It will ensure that the program can be formally verified, thereby reducing the potential of bugs in the code and provide a level of guarantee about the behavior of the software.
 
-To ensure a clean build on the code:  
-    `cargo clean && cargo build --example <example>`
 
-# Code usage example
+# How to
 
 To use rustproof:  
 
+`#[condition(pre="", post="")]`
+
+Where the "pre" and "post" conditions are logical expressions.
+
+For example:
+
+`#[condition(pre="x>0", post="x>=5")]`
+
+A complete example of how to format:
+
     #[condition(pre="x > 0", post="x >= 5")]
-      fn add_five_or_three(x: i32) -> i32 {
+	fn add_five_or_three(x: i32)-> i32  {
         if x > 3 {  
             x + 5  
         }  
@@ -21,12 +28,8 @@ To use rustproof:
         }  
     }
 
-
 # Motivation
-
-
-# Todo
-
+The purpose of this compiler plugin is to prove program correctness under specific conditions. This will allow for the programmer to ensure greater control over possible bugs within their code.
 
 # Contributors
 [Matthew Slocum][acro]  
