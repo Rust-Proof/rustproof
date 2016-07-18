@@ -15,6 +15,8 @@ extern crate syntax;
 
 mod predicate_parser; // FIXME: Rename module
 
+use super::weakest_precondition;
+
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
 use syntax::ext::base::{ExtCtxt, Annotatable};
@@ -104,17 +106,16 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
 }
 
 
-// FIXME: Needs implementing
+// FIXME: Being replaced by wp()
 pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
-    //println!("\n\n\n{:#?}", builder);
+    /*
     for index in 0..data.len() {
-        //println!("bb{}", index);
-        //println!("\n{:#?}-------------", data[index]);
+
     }
-
-    wp(0, &data, builder);
+    */
+    weakest_precondition::wp(0, &data, builder);
 }
-
+/*
 // computes the weakest precondition
 // FIXME: shouldnt return strings. Change to exression
 // FIXME: move to wp module
@@ -179,11 +180,11 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<P
         //process stmt into expression
         println!("{:?}", stmt);
     }
-    
+
     // FIXME: not this prob
     return ret1;
 }
-
+*/
 pub fn parse_condition(condition: &str) -> Predicate {
     match predicate_parser::parse_P1(condition) {
         Ok(p) => {
