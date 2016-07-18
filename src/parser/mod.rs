@@ -13,6 +13,8 @@
 extern crate syntax;
 //extern crate rustc_plugin;
 
+mod predicate_parser; // FIXME: Rename module
+
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
 use syntax::ext::base::{ExtCtxt, Annotatable};
@@ -22,7 +24,11 @@ use syntax::parse::token::intern;
 use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
+use super::expression;
+use expression::Predicate;
+use std::str::FromStr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
+use rustc_data_structures::indexed_vec::Idx;
 
 
 // FIXME: This needs to be updated; we are no longer using &Annotatable
@@ -100,35 +106,91 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
 
 // FIXME: Needs implementing
 pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
-    println!("\n\n\n{:#?}", builder);
+    //println!("\n\n\n{:#?}", builder);
     for index in 0..data.len() {
-        println!("bb{}", index);
-        println!("{:#?}", data[index]);
+        //println!("bb{}", index);
+        //println!("\n{:#?}-------------", data[index]);
     }
 
-    //WORK IN PROGRESS
-    //wp(0, &data);
-
+    wp(0, &data, builder);
 }
 
-fn wp(index: usize, data: &Vec<&BasicBlockData>) -> Option<String> {
+// computes the weakest precondition
+// FIXME: shouldnt return strings. Change to exression
+// FIXME: move to wp module
+// FIXME: do we want to return a predicate?
+fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<Predicate> {
+    println!("\n\nExamining bb{:?}\n{:#?}", index, data[index]);
+
+    // variables for tracking terminator
+    // targets of terminator (exits)
+    let mut block_targets = Vec::new();
+    // bb kind
+    let mut block_kind = "";
+
+    // parse terminator data
     let terminator = data[index].terminator.clone().unwrap().kind;
-    //terminator.
-    //println!("{:#?}", terminator);
-    dev_tools::print_type_of(&terminator);
     match terminator {
-        TerminatorKind::Assert{cond, expected, msg, target, cleanup} => unimplemented!(),
+        TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
+            // FIXME: look into
+            //println!("{:#?}\n{:#?}\n{:#?}\n{:#?}\n{:#?}\n", cond, expected, msg, target, cleanup);
+            block_targets.push(target);
+            block_kind = "Assert";
+        },
+        TerminatorKind::Return => {
+            // return the post condition as expression to start WP gen
+            //return builder.post_expr.clone();
+        },
+        TerminatorKind::Goto{target} => {
+            block_targets.push(target);
+            block_kind = "Goto";
+        },
         TerminatorKind::Call{func, args, destination, cleanup} => unimplemented!(),
         TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
         TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
         TerminatorKind::Unreachable => unimplemented!(),
-        TerminatorKind::Return => unimplemented!(),
         TerminatorKind::Resume => unimplemented!(),
-        TerminatorKind::Goto{target} => unimplemented!(),
         TerminatorKind::If{cond, targets} => unimplemented!(),
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
+        //_ => {}
     }
-    return None;
 
+
+    // recurse to exit points of CFG and save return values
+    let ret1: Option<Predicate> = None;
+    match block_kind {
+        "Assert" => {
+            let ret1 = wp(block_targets[0].index(), data, builder);
+        },
+        "Goto" => {
+            let ret1 = wp(block_targets[0].index(), data, builder);
+        },
+        _ => {
+            panic!("Unrecognized block kind");
+        }
+    }
+
+    // FIXME: add wp generation
+    // examine statements in reverse order
+    let mut stmts = data[index].statements.clone();
+    stmts.reverse();
+    for stmt in stmts {
+        //process stmt into expression
+        println!("{:?}", stmt);
+    }
+    
+    // FIXME: not this prob
+    return ret1;
+}
+
+pub fn parse_condition(condition: &str) -> Predicate {
+    match predicate_parser::parse_P1(condition) {
+        Ok(p) => {
+            return p;
+        },
+        Err(e) => {
+            panic!("Error parsing condition \"{}\": {:?}", condition, e);
+        }
+    }
 }
