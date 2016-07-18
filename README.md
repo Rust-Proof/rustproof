@@ -28,6 +28,10 @@ A complete example of how to format:
         }  
     }
 
+An example output from rustproof:
+
+
+
 # Motivation
 The purpose of this compiler plugin is to prove program correctness under specific conditions. This will allow for the programmer to ensure greater control over possible bugs within their code.
 
