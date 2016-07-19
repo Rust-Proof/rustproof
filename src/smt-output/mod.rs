@@ -8,7 +8,16 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-// trash code [demo]
-pub fn demo() {
-    println!("z3 interface - reporting in");
+extern crate libsmt;
+
+//use libsmt::backends::smtlib2::*;
+//use libsmt::backends::backend::*;
+use libsmt::backends::z3;
+use libsmt::theories::{integer};
+use libsmt::logics::lia::LIA;
+
+use expression::Predicate;
+
+fn gen_smtlib2 (wp: Predicate) {
+
 }
