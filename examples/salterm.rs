@@ -1,5 +1,6 @@
 #![feature(plugin, custom_attribute)]
 #![plugin(rustproof)]
+#![allow(plugin_as_library)]
 
 extern crate rustproof;
 

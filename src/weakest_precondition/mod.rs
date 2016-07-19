@@ -12,3 +12,25 @@
 pub fn demo() {
     println!("weakest precondition - reporting in");
 }
+
+
+//FIXME: wp is a predicate but is just a place holder for now. Will need appropriate type in
+//       function arguments
+pub fn stmt_substitution(wp: predicate, stmt: StatementKind)  {
+    let var_to_sub = stmt.Lvalue;
+    let sub_with = stmt.Rvalue;
+    match var_to_sub {
+        StatementKind::Lvalue::Var => {unimplemented!();}
+        StatementKind::Lvalue::Temp => {unimplemented!();}
+        StatementKind::Lvalue::Arg => {unimplemented!();}
+        StatementKind::Lvalue::Static => {unimplemented!();}
+        StatementKind::Lvalue::ReturnPointer => {unimplemented!();}
+        StatementKind::Lvalue::Projection => {unimplemented!();}
+    }
+    match sub_with {
+        StatementKind::Rvalue::CheckedBinaryOp => {unimplemented!();}
+        StatementKind::Rvalue::BinaryOp => {unimplemented!();}
+        StatementKind::Rvalue::UnaryOp => {unimplemented!();}
+        _=> {unimplemented!();}
+    }
+}

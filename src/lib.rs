@@ -8,6 +8,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+// TODO Refactor this code to follow rust guidelines
+// https://github.com/rust-lang/rust/tree/master/src/doc/style
+
 // These can be their own .rs file OR
 // a named directory with mod.rs + other files
 // see: https://doc.rust-lang.org/book/crates-and-modules.html
@@ -17,47 +20,45 @@
 // NOTE: Things to talk to rust devs about:
 //     - Referencing lifetime stuff in struct that has impl
 //     - Slice access; see line 143
-//     - Unused attribute warnings since we aren't using register_syntax_extension internals.rust-lang.org / users.rust-lang.org
+//     - Unused attribute warnings since we aren't using register_syntax_extension
+//          internals.rust-lang.org / users.rust-lang.org
 //     - String to expression //libsyntax as parser / parse_exper_from_source_str
+//
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
-// FIXME: these should not be here!
+// FIXME: useful for development, delete when project is "complete"
 #![allow(unused_variables)]
 #![allow(unused_imports)]
-
-// FIXME: remove below. only for dev tools
 #![feature(core_intrinsics)]
 
+// extern crate imports
 #[macro_use]
 extern crate log;
 extern crate env_logger;
 extern crate rustc;
-extern crate syntax;
 extern crate rustc_plugin;
 extern crate rustc_data_structures;
+extern crate syntax;
 
-pub mod reporting;
-pub mod z3_interface;
-pub mod weakest_precondition;
-pub mod parser;
-pub mod dev_tools;
-pub mod expression;
-//pub mod data;
-
-#[cfg(test)]
-mod tests;
-
+// External use imports
 use rustc_data_structures::indexed_vec::Idx;
-
 use rustc_plugin::Registry;
+use rustc::mir::mir_map::MirMap;
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
+use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
+use rustc::mir::visit::Visitor;
+use rustc::ty::TyCtxt;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
+use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, Annotatable};
 use syntax::ext::base::SyntaxExtension::MultiDecorator;
-use syntax::codemap::Span;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
+
+// Local use imports
 use expression::Predicate;
 
+<<<<<<< HEAD
 use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
 use rustc::mir::mir_map::MirMap;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
@@ -66,6 +67,17 @@ use rustc::ty::TyCtxt;
 use std::env;
 use log::{LogRecord, LogLevelFilter};
 use env_logger::LogBuilder;
+=======
+// These are our modules
+pub mod expression;
+pub mod parser;
+pub mod reporting;
+pub mod weakest_precondition;
+pub mod z3_interface;
+pub mod dev_tools; //FIXME: For debugging information, delete when project is "complete"
+#[cfg(test)]
+mod tests; //Conditionally include tests when cargo --test is called
+>>>>>>> c470da0cce6a52618314ba0123cdc84db3aa4454
 
 #[derive(Debug)]
 pub struct Attr {
@@ -97,9 +109,14 @@ impl Attr {
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
+<<<<<<< HEAD
 	//This initializes the Reporting Module to Add the environment to the logger
 	reporting::init();
 	//reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
+=======
+    //reg.register_syntax_extension(intern("condition"),
+    //                              MultiDecorator(Box::new(expand_condition)));
+>>>>>>> c470da0cce6a52618314ba0123cdc84db3aa4454
     let visitor = MirVisitor {
         builder: Attr {
             func_name: "".to_string(),
@@ -121,7 +138,9 @@ pub fn registrar(reg: &mut Registry) {
 // FIXME: I don't really know what `push: &mut FnMut(Annotatable)` is, but I know its required.
 /// Checks an attribute for proper placement and starts the control flow of the application
 /*
-fn expand_condition(ctx: &mut ExtCtxt, span: Span, meta: &MetaItem, item: &Annotatable, push: &mut FnMut(Annotatable)) {
+fn expand_condition(ctx: &mut ExtCtxt, span: Span,
+                    meta: &MetaItem, item: &Annotatable,
+                    push: &mut FnMut(Annotatable)) {
     match item {
         &Annotatable::Item(ref it) => match it.node {
             // If the item is a function
