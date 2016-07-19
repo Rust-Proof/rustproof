@@ -167,7 +167,7 @@ fn wp(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<P
             let ret1 = wp(block_targets[0].index(), data, builder);
         },
         _ => {
-            panic!("Unrecognized block kind");
+            //panic!("Unrecognized block kind");
         }
     }
 
