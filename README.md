@@ -35,7 +35,7 @@ Add the following lines to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-rust-proof = "https://github.com/Rust-Proof/rustproof.git"
+rust-proof = { git = "https://github.com/Rust-Proof/rustproof.git"}
 ```
 
 
