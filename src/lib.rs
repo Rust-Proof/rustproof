@@ -58,7 +58,6 @@ use syntax::ptr::P;
 // Local use imports
 use expression::Predicate;
 
-<<<<<<< HEAD
 use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
 use rustc::mir::mir_map::MirMap;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
@@ -67,7 +66,7 @@ use rustc::ty::TyCtxt;
 use std::env;
 use log::{LogRecord, LogLevelFilter};
 use env_logger::LogBuilder;
-=======
+
 // These are our modules
 pub mod expression;
 pub mod parser;
@@ -77,7 +76,6 @@ pub mod z3_interface;
 pub mod dev_tools; //FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
 mod tests; //Conditionally include tests when cargo --test is called
->>>>>>> c470da0cce6a52618314ba0123cdc84db3aa4454
 
 #[derive(Debug)]
 pub struct Attr {
@@ -109,14 +107,11 @@ impl Attr {
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
-<<<<<<< HEAD
 	//This initializes the Reporting Module to Add the environment to the logger
 	reporting::init();
 	//reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
-=======
     //reg.register_syntax_extension(intern("condition"),
     //                              MultiDecorator(Box::new(expand_condition)));
->>>>>>> c470da0cce6a52618314ba0123cdc84db3aa4454
     let visitor = MirVisitor {
         builder: Attr {
             func_name: "".to_string(),
