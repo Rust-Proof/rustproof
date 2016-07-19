@@ -1,6 +1,6 @@
 # Rustproof
 
-[![Build Status](https://travis-ci.org/obriematt/rustproof.svg?branch=master)](https://travis-ci.org/obriematt/rustproof)
+[![Build Status](https://travis-ci.org/Rust-Proof/rustproof.svg?branch=master)](https://travis-ci.org/Rust-Proof/rustproof)
 
 
 Rustproof is a compiler plugin for the Rust programming language. It is designed
@@ -35,7 +35,7 @@ Add the following lines to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-rust-proof = { git = "https://github.com/Rust-Proof/rustproof.git"}
+rustproof = { git = "https://github.com/Rust-Proof/rustproof.git"}
 ```
 
 
