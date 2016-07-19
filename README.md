@@ -1,6 +1,6 @@
 # Rustproof
 
-[![Build Status]https://travis-ci.org/obriematt/rustproof.svg?branch=master](https://travis-ci.org/obriematt/rustproof)
+[![Build Status](https://travis-ci.org/obriematt/rustproof.svg?branch=master)](https://travis-ci.org/obriematt/rustproof)
 
 
 Rustproof is a compiler plugin for the Rust programming language. It is designed
