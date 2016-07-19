@@ -1,20 +1,9 @@
-sudo: false
 language: rust
+script: cargo test --lib
 rust:
+  # - stable
+  # - beta
   - nightly
-
-os:
-  - linux
-  - osx
-
-env:
-  - ARCH=x86_64
-  - ARCH=i686
-
-script:
-  - curl -sSL https://raw.githubusercontent.com/carllerche/travis-rust-matrix/master/test | bash
-
-addons:
-  apt:
-    packages:
-      - gcc-multilib
+matrix:
+  allow_failures:
+    - rust: nightly
