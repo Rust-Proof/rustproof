@@ -41,6 +41,8 @@ extern crate rustc_data_structures;
 extern crate syntax;
 
 // External use imports
+use env_logger::LogBuilder;
+use log::{LogRecord, LogLevelFilter};
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_plugin::Registry;
 use rustc::mir::mir_map::MirMap;
@@ -58,14 +60,6 @@ use syntax::ptr::P;
 // Local use imports
 use expression::Predicate;
 
-use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
-use rustc::mir::mir_map::MirMap;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
-use rustc::mir::visit::Visitor;
-use rustc::ty::TyCtxt;
-use std::env;
-use log::{LogRecord, LogLevelFilter};
-use env_logger::LogBuilder;
 
 // These are our modules
 pub mod expression;
