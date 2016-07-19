@@ -10,12 +10,8 @@ authors = [
             "Bradley Rasmussen <rasmbj@pdx.edu>",
             "Drew Gohman <dgohman@pdx.edu>"
           ]
-<<<<<<< HEAD
 
 build = "build.rs"
-=======
-#build = "build.rs"
->>>>>>> c470da0cce6a52618314ba0123cdc84db3aa4454
 
 [build-dependencies]
 lalrpop = "0.11.0"
