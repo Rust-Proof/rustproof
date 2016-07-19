@@ -15,7 +15,8 @@ use std::process::{Command, Stdio};
 use std::process::ExitStatus;
 use std::thread::spawn;
 
-
+// skeleton for running rustproof as a test
+/*
 #[test]
 fn demo() {
     //Creates a new thread to run plugin-examples
@@ -73,3 +74,4 @@ fn demo() {
 
 
 }
+*/
