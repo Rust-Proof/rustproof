@@ -1,5 +1,8 @@
 # Rustproof
 
+[![Build Status](https://travis-ci.org/obriematt/rustproof.svg?branch=master)](https://travis-ci.org/obriematt/rustproof)
+
+
 Rustproof is a compiler plugin for the Rust programming language. It is designed
 to generate verification conditions for their code. It will ensure that the program can be formally verified, thereby reducing the potential of bugs in the code and provide a level of guarantee about the behavior of the software.
 
@@ -28,8 +31,12 @@ A complete example of how to format:
         }  
     }
 
-An example output from rustproof:
+Add the following lines to your `Cargo.toml` file:
 
+```toml
+[dependencies]
+rust-proof = "https://github.com/Rust-Proof/rustproof"
+```
 
 
 # Motivation
