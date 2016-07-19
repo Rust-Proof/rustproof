@@ -21,7 +21,7 @@ use super::Attr;
 use super::expression;
 use expression::Predicate;
 use std::str::FromStr;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, StatementKind, Lvalue, Rvalue};
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue};
 use rustc_data_structures::indexed_vec::Idx;
 use super::parser;
 
@@ -42,7 +42,8 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
         TerminatorKind::Return => {
             // return the post condition as expression to start WP gen
             wp = builder.post_expr.clone();
-            println!("\n\n{:?}\n\n", wp);
+            println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
+            return wp;
         },
         TerminatorKind::Goto{target} => {
             wp = gen(target.index(), data, builder);
@@ -65,11 +66,10 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
     stmts.reverse();
     for stmt in stmts {
         //process stmt into expression
-        // gen_stmt(wp, stmt);
-        println!("{:?}", stmt);
+        wp = gen_stmt(wp.unwrap(), stmt);
     }
 
-    println!("wp = {:?}", wp);
+    println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
 
     return wp;
 }
@@ -80,11 +80,12 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
 
 //FIXME: wp is a predicate but is just a place holder for now. Will need appropriate type in
 //       function arguments
-pub fn gen_stmt(wp: Predicate, stmt: StatementKind)  {
+pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
+    println!("processing statement\t{:?}\t\tinto predicate\t{:?}", stmt, wp);
 
     let mut lvalue: Option<Lvalue> = None;
     let mut rvalue: Option<Rvalue> = None;
-    match stmt {
+    match stmt.kind {
         StatementKind::Assign(ref lval, ref rval) => {
             lvalue = Some(lval.clone());
             rvalue = Some(rval.clone());
@@ -106,4 +107,6 @@ pub fn gen_stmt(wp: Predicate, stmt: StatementKind)  {
         Rvalue::UnaryOp(ref unop, ref val) => {unimplemented!();}
         _=> {panic!("Only CheckedBinaryOp, BinaryOp, and UnaryOp currently supported");}
     }
+
+
 }
