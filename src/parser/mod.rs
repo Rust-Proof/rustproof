@@ -17,20 +17,21 @@ mod predicate_parser; // FIXME: Rename module
 
 use super::weakest_precondition;
 
-use rustc_plugin::Registry;
-use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
-use syntax::ext::base::{ExtCtxt, Annotatable};
-use syntax::ext::base::SyntaxExtension::MultiDecorator;
-use syntax::codemap::{Span, Spanned};
-use syntax::parse::token::intern;
-use syntax::ptr::P;
-use super::dev_tools; // FIXME: remove for production
-use super::Attr;
-use super::expression;
-use expression::Predicate;
-use std::str::FromStr;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
 use rustc_data_structures::indexed_vec::Idx;
+use rustc_plugin::Registry;
+use std::str::FromStr;
+use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
+use syntax::codemap::{Span, Spanned};
+use syntax::ext::base::{ExtCtxt, Annotatable};
+use syntax::ext::base::SyntaxExtension::MultiDecorator;
+use syntax::parse::token::intern;
+use syntax::ptr::P;
+
+use super::Attr;
+use super::expression;
+use super::dev_tools; // Debugging information, remove when project is "complete"
+use expression::Predicate;
 
 
 // FIXME: This needs to be updated; we are no longer using &Annotatable
@@ -115,7 +116,6 @@ pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
     */
     let mut wp = weakest_precondition::gen(0, &data, builder);
 }
-
 
 
 pub fn parse_condition(condition: &str) -> Predicate {

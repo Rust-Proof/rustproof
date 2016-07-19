@@ -65,7 +65,7 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
     stmts.reverse();
     for stmt in stmts {
         //process stmt into expression
-        // stmt_substitution(wp, stmt);
+        // gen_stmt(wp, stmt);
         println!("{:?}", stmt);
     }
 
@@ -80,7 +80,7 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
 
 //FIXME: wp is a predicate but is just a place holder for now. Will need appropriate type in
 //       function arguments
-pub fn stmt_substitution(wp: Predicate, stmt: StatementKind)  {
+pub fn gen_stmt(wp: Predicate, stmt: StatementKind)  {
 
     let mut lvalue: Option<Lvalue> = None;
     let mut rvalue: Option<Rvalue> = None;
