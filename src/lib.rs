@@ -33,6 +33,8 @@
 
 // extern crate imports
 #[macro_use]
+extern crate log;
+extern crate env_logger;
 extern crate rustc;
 extern crate rustc_plugin;
 extern crate rustc_data_structures;
@@ -55,6 +57,15 @@ use syntax::ptr::P;
 
 // Local use imports
 use expression::Predicate;
+
+use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
+use rustc::mir::mir_map::MirMap;
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
+use rustc::mir::visit::Visitor;
+use rustc::ty::TyCtxt;
+use std::env;
+use log::{LogRecord, LogLevelFilter};
+use env_logger::LogBuilder;
 
 // These are our modules
 pub mod expression;
@@ -96,6 +107,9 @@ impl Attr {
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
+	//This initializes the Reporting Module to Add the environment to the logger
+	reporting::init();
+	//reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
     //reg.register_syntax_extension(intern("condition"),
     //                              MultiDecorator(Box::new(expand_condition)));
     let visitor = MirVisitor {
@@ -165,6 +179,8 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let attrs = tcx.map.attrs(item_id);
 
         self.builder.func_name = name;
+
+
 
         // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
         for attr in attrs {
