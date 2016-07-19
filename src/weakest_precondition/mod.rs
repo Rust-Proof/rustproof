@@ -21,20 +21,20 @@ use super::Attr;
 use super::expression;
 use expression::Predicate;
 use std::str::FromStr;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue};
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, ArgDecl, TempDecl, VarDecl};
 use rustc_data_structures::indexed_vec::Idx;
 use super::parser;
 
 // computes the weakest precondition
-pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<Predicate> {
-    println!("\n\nExamining bb{:?}\n{:#?}", index, data[index]);
+pub fn gen(index: usize, data:&(Vec<ArgDecl>, Vec<BasicBlockData>, Vec<TempDecl>, Vec<VarDecl>), builder: &mut Attr) -> Option<Predicate> {
+    println!("\n\nExamining bb{:?}\n{:#?}", index, data.1[index]);
 
     //let mut block_targets = Vec::new();
     //let mut block_kind = "";
     let mut wp: Option<Predicate> = None;
 
     // parse terminator data
-    let terminator = data[index].terminator.clone().unwrap().kind;
+    let terminator = data.1[index].terminator.clone().unwrap().kind;
     match terminator {
         TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
             wp = gen(target.index(), data, builder);
@@ -62,7 +62,7 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
 
     // FIXME: add wp generation
     // examine statements in reverse order
-    let mut stmts = data[index].statements.clone();
+    let mut stmts = data.1[index].statements.clone();
     stmts.reverse();
     for stmt in stmts {
         //process stmt into expression

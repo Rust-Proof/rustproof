@@ -46,7 +46,7 @@ use log::{LogRecord, LogLevelFilter};
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_plugin::Registry;
 use rustc::mir::mir_map::MirMap;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData};
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, Arg, Temp, Var, ArgDecl, TempDecl, VarDecl};
 use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
 use rustc::mir::visit::Visitor;
 use rustc::ty::TyCtxt;
@@ -196,11 +196,36 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
     // NOTE: Had trouble using visit_basic_block_data since I couldn't pass around the mir blocks.
     // This function instead implements visit_basic_block_data within it.
     fn visit_mir(&mut self, mir: &Mir<'tcx>) {
+
+        let mut arg_data = Vec::new();
         let mut block_data = Vec::new();
+        let mut temp_data = Vec::new();
+        let mut var_data = Vec::new();
+
+        //grab basic block data from MIR
         for index in 0..mir.basic_blocks().len() {
             let block = BasicBlock::new(index);
             block_data.push(&mir[block]);
         }
-        parser::parse_mir(&mut self.builder, block_data);
+        //grab arg_decls from MIR
+        for index in 0..mir.arg_decls.len() {
+            let arg = Arg::new(index);
+            arg_data.push(&mir.arg_decls[arg]);
+        }
+        //grab temp_decls from MIR
+        for index in 0..mir.temp_decls.len() {
+            let temp = Temp::new(index);
+            temp_data.push(&mir.temp_decls[temp]);
+        }
+        //grab temp_decls from MIR
+        for index in 0..mir.var_decls.len() {
+            let var = Var::new(index);
+            var_data.push(&mir.var_decls[var]);
+        }
+        //now set them into the data tuple
+        let data = (arg_data, block_data, temp_data, var_data);
+
+        parser::parse_mir(&mut self.builder,
+                          data);
     }
 }
