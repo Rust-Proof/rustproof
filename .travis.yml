@@ -1,4 +1,5 @@
 language: rust
+script: cargo test --lib
 rust:
   # - stable
   # - beta
