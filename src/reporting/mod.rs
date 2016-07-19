@@ -26,19 +26,15 @@ pub fn init() {
 		builder.parse(&env::var("RUST_LOG").unwrap());
 	}
 
-	builder.init().unwrap(); 
+	builder.init().unwrap();
 
 //	error!("error message");
 //	warn!("This is a warning message");
 //	info!("info message");
 
-	println!("Next test");
+	//println!("Next test");
 }
 
-//code [demo]
-pub fn demo() {
-    println!("reporting - reporting in");
-}
 
 /// Reports successful rustproof behavior to the compiler
 /// # Arguments
