@@ -31,15 +31,11 @@ A complete example of how to format:
         }  
     }
 
-An example output from rustproof:
-
-## Dependencies
-
 Add the following lines to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-rust-proof = "0.1.0"
+rust-proof = "https://github.com/Rust-Proof/rustproof"
 ```
 
 
