@@ -107,16 +107,9 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
 
     let term : Term = match rvalue.unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
-            match binop {
+            let op: IntegerBinaryOperator = match binop {
                 &BinOp::Add => {
-                    let lvalue: Term = gen_operand(&lval);
-                    let rvalue: Term = gen_operand(&rval);
-                    Term::BinaryExpression( BinaryExpressionData {
-                        op: IntegerBinaryOperator::Addition,
-                        t1: Box::new(lvalue),
-                        t2: Box::new(rvalue)
-                     } )
-
+                    IntegerBinaryOperator::Addition
                 },
                 &BinOp::Sub => { unimplemented!(); },
                 &BinOp::Mul => { unimplemented!(); },
@@ -128,15 +121,21 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
                 &BinOp::Shl => { unimplemented!(); },
                 &BinOp::Shr => { unimplemented!(); },
                 _ => {panic!("Unsupported Binary operation!");}
-            }
+            };
+
+            let lvalue: Term = gen_operand(&lval);
+            let rvalue: Term = gen_operand(&rval);
+
+            Term::BinaryExpression( BinaryExpressionData {
+                op: op,
+                t1: Box::new(lvalue),
+                t2: Box::new(rvalue)
+             } )
         },
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {unimplemented!();},
         Rvalue::UnaryOp(ref unop, ref val) => {unimplemented!();},
-        Rvalue::Use(ref op) => {
-            Term::VariableMapping( VariableMappingData {
-                name: "var".to_string(),
-                var_type: "".to_string()
-            } )
+        Rvalue::Use(ref operand) => {
+            gen_operand(operand)
         },
         _ => {panic!("Unsupported RValue type!");}
     };
@@ -149,14 +148,39 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
 // For returning a new Term crafted from an operand value.
 pub fn gen_operand(operand: &Operand) -> Term {
     match operand {
-        &Operand::Consume (ref l) => { unimplemented!(); },
+        &Operand::Consume (ref l) => {
+            //FIXME: Use finished LValue parsing code when it's written
+            match l {
+                &Lvalue::Var(v) => { unimplemented!(); },
+                &Lvalue::Temp(t) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "temp".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
+                &Lvalue::Arg(a) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "arg".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
+                &Lvalue::Static(d) => { unimplemented!(); },
+                &Lvalue::ReturnPointer => { unimplemented!(); },
+                &Lvalue::Projection(ref b) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "temp.something".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
+            }
+        },
         &Operand::Constant (ref c) => {
             match c.literal {
                 Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
                 Literal::Value {ref value} => {
                     match value {
-                        &ConstVal::Integral(ref constInt) => {
-                            Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: constInt.to_u64_unchecked() } )
+                        &ConstVal::Integral(ref const_int) => {
+                            Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: const_int.to_u64_unchecked() } )
                         },
                         _ => { unimplemented!(); },
                     }

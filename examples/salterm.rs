@@ -20,7 +20,7 @@ fn main() {
 	println!("r: {}", r);
 }
 
-#[condition(pre="1 > 3", post="true && var : b")]
+#[condition(pre="x : i < 10 && x : i > 0", post="return : i > 5")]
 fn foo(x: u32) -> u32 {
 	1 + 2
 }
