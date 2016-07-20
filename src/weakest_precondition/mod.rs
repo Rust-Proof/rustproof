@@ -8,6 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+extern crate rustc_const_math;
 
 use rustc_plugin::Registry;
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
@@ -19,9 +20,11 @@ use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use super::expression;
-use expression::Predicate;
+use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData};
 use std::str::FromStr;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, ArgDecl, TempDecl, VarDecl};
+
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl};
+use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 use super::parser;
 
@@ -92,21 +95,151 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
         }
     }
 
+    /*
     match lvalue.unwrap() {
         Lvalue::Var(ref var) => {unimplemented!();}
         Lvalue::Temp(ref temp) => {unimplemented!();}
         Lvalue::Arg(ref arg) => {unimplemented!();}
         Lvalue::Static(ref def_id) => {unimplemented!();}
-        Lvalue::ReturnPointer => {unimplemented!();}
+        Lvalue::ReturnPointer => {unimplemented!();},
         Lvalue::Projection(_) => {panic!("wtf is a projection");}
+    };
+    */
+
+    let term : Term = match rvalue.unwrap() {
+        Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
+            let op: IntegerBinaryOperator = match binop {
+                &BinOp::Add => {
+                    IntegerBinaryOperator::Addition
+                },
+                &BinOp::Sub => {
+                    IntegerBinaryOperator::Subtraction
+                },
+                &BinOp::Mul => {
+                    IntegerBinaryOperator::Multiplication
+                },
+                &BinOp::Shl => {
+                    IntegerBinaryOperator::BitwiseLeftShift
+                },
+                &BinOp::Shr => {
+                    IntegerBinaryOperator::BitwiseRightShift
+                },
+                _ => {panic!("Unsupported checked binary operation!");}
+            };
+
+            let lvalue: Term = gen_operand(&lval);
+            let rvalue: Term = gen_operand(&rval);
+
+            Term::BinaryExpression( BinaryExpressionData {
+                op: op,
+                t1: Box::new(lvalue),
+                t2: Box::new(rvalue)
+             } )
+        },
+        Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
+            let op: IntegerBinaryOperator = match binop {
+                &BinOp::Div => {
+                    IntegerBinaryOperator::Division
+                },
+                &BinOp::Rem => {
+                    IntegerBinaryOperator::Modulo
+                },
+                &BinOp::BitOr => {
+                    IntegerBinaryOperator::BitwiseOr
+                },
+                &BinOp::BitAnd => {
+                    IntegerBinaryOperator::BitwiseAnd
+                },
+                &BinOp::BitXor => {
+                    IntegerBinaryOperator::BitwiseXor
+                },
+                _ => {panic!("Unsupported unchecked binary operation!");}
+            };
+
+            let lvalue: Term = gen_operand(&lval);
+            let rvalue: Term = gen_operand(&rval);
+
+            Term::BinaryExpression( BinaryExpressionData {
+                op: op,
+                t1: Box::new(lvalue),
+                t2: Box::new(rvalue)
+             } )
+        },
+        Rvalue::UnaryOp(ref unop, ref val) => {
+            let op: IntegerUnaryOperator = match unop {
+                &UnOp::Not => {
+                    IntegerUnaryOperator::BitwiseNot
+                },
+                &UnOp::Neg => {
+                    IntegerUnaryOperator::Negation
+                }
+            };
+
+            let value: Term = gen_operand(&val);
+
+            Term::UnaryExpression( UnaryExpressionData {
+                op: op,
+                t: Box::new(value)
+            } )
+        },
+        Rvalue::Use(ref operand) => {
+            gen_operand(operand)
+        },
+        _ => {panic!("Unsupported RValue type!");}
+    };
+
+    println!("wp term: {}", term);
+
+    Some(wp)
+}
+
+// For returning a new Term crafted from an operand value.
+pub fn gen_operand(operand: &Operand) -> Term {
+    match operand {
+        &Operand::Consume (ref l) => {
+            //FIXME: Use finished LValue parsing code when it's written
+            match l {
+                &Lvalue::Var(v) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "var".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
+                &Lvalue::Temp(t) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "temp".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
+                &Lvalue::Arg(a) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "arg".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
+                &Lvalue::Static(d) => { unimplemented!(); },
+                &Lvalue::ReturnPointer => { unimplemented!(); },
+                &Lvalue::Projection(ref b) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "temp.something".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
+            }
+        },
+        &Operand::Constant (ref c) => {
+            match c.literal {
+                Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
+                Literal::Value {ref value} => {
+                    match value {
+                        &ConstVal::Integral(ref const_int) => {
+                            Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: const_int.to_u64_unchecked() } )
+                        },
+                        _ => { unimplemented!(); },
+                    }
+                },
+                Literal::Promoted {ref index} => { unimplemented!(); },
+            }
+        },
     }
-
-    match rvalue.unwrap() {
-        Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {unimplemented!();}
-        Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {unimplemented!();}
-        Rvalue::UnaryOp(ref unop, ref val) => {unimplemented!();}
-        _=> {panic!("Only CheckedBinaryOp, BinaryOp, and UnaryOp currently supported");}
-    }
-
-
 }
