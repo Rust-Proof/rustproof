@@ -20,9 +20,9 @@ use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use super::expression;
-use expression::{Predicate, Term, BinaryExpressionData, IntegerBinaryOperator, UnsignedBitVectorData, VariableMappingData};
+use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData};
 use std::str::FromStr;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, Operand, Literal};
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal};
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 use super::parser;
@@ -111,16 +111,19 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
                 &BinOp::Add => {
                     IntegerBinaryOperator::Addition
                 },
-                &BinOp::Sub => { unimplemented!(); },
-                &BinOp::Mul => { unimplemented!(); },
-                &BinOp::Div => { unimplemented!(); },
-                &BinOp::Rem => { unimplemented!(); },
-                &BinOp::BitXor => { unimplemented!(); },
-                &BinOp::BitAnd => { unimplemented!(); },
-                &BinOp::BitOr => { unimplemented!(); },
-                &BinOp::Shl => { unimplemented!(); },
-                &BinOp::Shr => { unimplemented!(); },
-                _ => {panic!("Unsupported Binary operation!");}
+                &BinOp::Sub => {
+                    IntegerBinaryOperator::Subtraction
+                },
+                &BinOp::Mul => {
+                    IntegerBinaryOperator::Multiplication
+                },
+                &BinOp::Shl => {
+                    IntegerBinaryOperator::BitwiseLeftShift
+                },
+                &BinOp::Shr => {
+                    IntegerBinaryOperator::BitwiseRightShift
+                },
+                _ => {panic!("Unsupported checked binary operation!");}
             };
 
             let lvalue: Term = gen_operand(&lval);
@@ -132,8 +135,52 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
                 t2: Box::new(rvalue)
              } )
         },
-        Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {unimplemented!();},
-        Rvalue::UnaryOp(ref unop, ref val) => {unimplemented!();},
+        Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
+            let op: IntegerBinaryOperator = match binop {
+                &BinOp::Div => {
+                    IntegerBinaryOperator::Division
+                },
+                &BinOp::Rem => {
+                    IntegerBinaryOperator::Modulo
+                },
+                &BinOp::BitOr => {
+                    IntegerBinaryOperator::BitwiseOr
+                },
+                &BinOp::BitAnd => {
+                    IntegerBinaryOperator::BitwiseAnd
+                },
+                &BinOp::BitXor => {
+                    IntegerBinaryOperator::BitwiseXor
+                },
+                _ => {panic!("Unsupported unchecked binary operation!");}
+            };
+
+            let lvalue: Term = gen_operand(&lval);
+            let rvalue: Term = gen_operand(&rval);
+
+            Term::BinaryExpression( BinaryExpressionData {
+                op: op,
+                t1: Box::new(lvalue),
+                t2: Box::new(rvalue)
+             } )
+        },
+        Rvalue::UnaryOp(ref unop, ref val) => {
+            let op: IntegerUnaryOperator = match unop {
+                &UnOp::Not => {
+                    IntegerUnaryOperator::BitwiseNot
+                },
+                &UnOp::Neg => {
+                    IntegerUnaryOperator::Negation
+                }
+            };
+
+            let value: Term = gen_operand(&val);
+
+            Term::UnaryExpression( UnaryExpressionData {
+                op: op,
+                t: Box::new(value)
+            } )
+        },
         Rvalue::Use(ref operand) => {
             gen_operand(operand)
         },
@@ -151,7 +198,12 @@ pub fn gen_operand(operand: &Operand) -> Term {
         &Operand::Consume (ref l) => {
             //FIXME: Use finished LValue parsing code when it's written
             match l {
-                &Lvalue::Var(v) => { unimplemented!(); },
+                &Lvalue::Var(v) => {
+                    Term::VariableMapping( VariableMappingData {
+                        name: "var".to_string(),
+                        var_type: "".to_string()
+                    } )
+                },
                 &Lvalue::Temp(t) => {
                     Term::VariableMapping( VariableMappingData {
                         name: "temp".to_string(),
