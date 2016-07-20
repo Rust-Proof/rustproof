@@ -210,22 +210,24 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         //grab arg_decls from MIR
         for index in 0..mir.arg_decls.len() {
             let arg = Arg::new(index);
+            //arg_data is a vector of ArgDecl
             arg_data.push(&mir.arg_decls[arg]);
         }
         //grab temp_decls from MIR
         for index in 0..mir.temp_decls.len() {
             let temp = Temp::new(index);
+            //temp_data is a vector of TempDecl
             temp_data.push(&mir.temp_decls[temp]);
         }
         //grab temp_decls from MIR
         for index in 0..mir.var_decls.len() {
             let var = Var::new(index);
+            //var_data is a vector of VarDecl
             var_data.push(&mir.var_decls[var]);
         }
         //now set them into the data tuple
         let data = (arg_data, block_data, temp_data, var_data);
 
-        parser::parse_mir(&mut self.builder,
-                          data);
+        parser::parse_mir(&mut self.builder, data);
     }
 }

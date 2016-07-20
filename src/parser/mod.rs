@@ -111,7 +111,7 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
 pub fn parse_mir(builder: &mut Attr,
     //(arg_data, block_data, temp_data, var_data)
     data:
-    &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) {
+    (Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) {
     /*
     for index in 0..data.len() {
 

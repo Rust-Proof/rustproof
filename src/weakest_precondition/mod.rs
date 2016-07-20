@@ -29,7 +29,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use super::parser;
 
 // computes the weakest precondition
-pub fn gen(index: usize, data:&(Vec<ArgDecl>, Vec<BasicBlockData>, Vec<TempDecl>, Vec<VarDecl>), builder: &mut Attr) -> Option<Predicate> {
+pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &mut Attr) -> Option<Predicate> {
     println!("\n\nExamining bb{:?}\n{:#?}", index, data.1[index]);
 
     //let mut block_targets = Vec::new();
@@ -69,7 +69,7 @@ pub fn gen(index: usize, data:&(Vec<ArgDecl>, Vec<BasicBlockData>, Vec<TempDecl>
     stmts.reverse();
     for stmt in stmts {
         //process stmt into expression
-        wp = gen_stmt(wp.unwrap(), stmt);
+        wp = gen_stmt(wp.unwrap(), stmt, data);
     }
 
     println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
@@ -83,7 +83,7 @@ pub fn gen(index: usize, data:&(Vec<ArgDecl>, Vec<BasicBlockData>, Vec<TempDecl>
 
 //FIXME: wp is a predicate but is just a place holder for now. Will need appropriate type in
 //       function arguments
-pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
+pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
     println!("processing statement\t{:?}\t\tinto predicate\t{:?}", stmt, wp);
 
     let mut lvalue: Option<Lvalue> = None;
@@ -105,7 +105,20 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
         Lvalue::Projection(_) => {panic!("wtf is a projection");}
     };
     */
+    let lterm : Term = match lvalue.unwrap() {
+        //for each match, you need to loop through the appropriate value and find the match
+        //then create a new VariableMappingData to hold the name, type of Lvalue
+        //data.0 is arg_data
+        //data.2 is temp_data
+        //data.3 is var_data
+        Lvalue::Arg(ref Arg) => unimplemented!(),
+        Lvalue::Temp(ref Temp) => unimplemented!(),
+        Lvalue::Var(ref Var) => unimplemented!(),
+        Lvalue::ReturnPointer => unimplemented!(),
+        _=> {panic!("what have you done?!");}
+    };
 
+    //match the rvalue to the correct Rvalue and set term as that new Rvalue
     let term : Term = match rvalue.unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
             let op: IntegerBinaryOperator = match binop {
