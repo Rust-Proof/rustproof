@@ -20,6 +20,7 @@ use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use super::expression;
+use expression::substitute_variable_in_predicate_with_term;
 use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData};
 use std::str::FromStr;
 
@@ -94,29 +95,8 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
             rvalue = Some(rval.clone());
         }
     }
+    let var = gen_lvalue(lvalue.unwrap());
 
-    /*
-    match lvalue.unwrap() {
-        Lvalue::Var(ref var) => {unimplemented!();}
-        Lvalue::Temp(ref temp) => {unimplemented!();}
-        Lvalue::Arg(ref arg) => {unimplemented!();}
-        Lvalue::Static(ref def_id) => {unimplemented!();}
-        Lvalue::ReturnPointer => {unimplemented!();},
-        Lvalue::Projection(_) => {panic!("wtf is a projection");}
-    };
-    */
-    let lterm : Term = match lvalue.unwrap() {
-        //for each match, you need to loop through the appropriate value and find the match
-        //then create a new VariableMappingData to hold the name, type of Lvalue
-        //data.0 is arg_data
-        //data.2 is temp_data
-        //data.3 is var_data
-        Lvalue::Arg(ref Arg) => unimplemented!(),
-        Lvalue::Temp(ref Temp) => unimplemented!(),
-        Lvalue::Var(ref Var) => unimplemented!(),
-        Lvalue::ReturnPointer => unimplemented!(),
-        _=> {panic!("what have you done?!");}
-    };
 
     //match the rvalue to the correct Rvalue and set term as that new Rvalue
     let term : Term = match rvalue.unwrap() {
@@ -203,7 +183,32 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
 
     println!("wp term: {}", term);
 
-    Some(wp)
+    Some(substitute_variable_in_predicate_with_term( wp, var, term ))
+
+}
+//FIXME: needs to pass in data as well for arg_data
+pub fn gen_lvalue(lvalue : Lvalue) -> VariableMappingData {
+    match lvalue {
+        //for each match, you need to loop through the appropriate value and find the match
+        //then create a new VariableMappingData to hold the name, type of Lvalue
+        //data.0 is arg_data
+        //data.2 is temp_data
+        //data.3 is var_data
+        Lvalue::Arg(ref arg) => unimplemented!(),
+        Lvalue::Temp(ref temp) => {
+            //FIXME:this is ugly fix it
+            let index = temp.index().clone();
+            let sindex = index.to_string();
+            //This line needs to stay:
+            let slice_index = sindex.as_str();
+            let name = "temp".to_string() + slice_index;
+            VariableMappingData{ name: name, var_type: "".to_string()}
+        },
+        Lvalue::Var(ref var) => unimplemented!(),
+        Lvalue::ReturnPointer => VariableMappingData {name: "return".to_string(), var_type : "".to_string()},
+        _=> {panic!("what have you done?!");}
+
+    }
 }
 
 // For returning a new Term crafted from an operand value.
