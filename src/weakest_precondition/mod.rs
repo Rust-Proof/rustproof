@@ -20,23 +20,25 @@ use syntax::ptr::P;
 use super::dev_tools; // FIXME: remove for production
 use super::Attr;
 use super::expression;
+use expression::substitute_variable_in_predicate_with_term;
 use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData};
 use std::str::FromStr;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal};
+
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl};
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 use super::parser;
 
 // computes the weakest precondition
-pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<Predicate> {
-    println!("\n\nExamining bb{:?}\n{:#?}", index, data[index]);
+pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &mut Attr) -> Option<Predicate> {
+    println!("\n\nExamining bb{:?}\n{:#?}", index, data.1[index]);
 
     //let mut block_targets = Vec::new();
     //let mut block_kind = "";
     let mut wp: Option<Predicate> = None;
 
     // parse terminator data
-    let terminator = data[index].terminator.clone().unwrap().kind;
+    let terminator = data.1[index].terminator.clone().unwrap().kind;
     match terminator {
         TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
             wp = gen(target.index(), data, builder);
@@ -64,11 +66,11 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
 
     // FIXME: add wp generation
     // examine statements in reverse order
-    let mut stmts = data[index].statements.clone();
+    let mut stmts = data.1[index].statements.clone();
     stmts.reverse();
     for stmt in stmts {
         //process stmt into expression
-        wp = gen_stmt(wp.unwrap(), stmt);
+        wp = gen_stmt(wp.unwrap(), stmt, data);
     }
 
     println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
@@ -82,7 +84,7 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
 
 //FIXME: wp is a predicate but is just a place holder for now. Will need appropriate type in
 //       function arguments
-pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
+pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
     println!("processing statement\t{:?}\t\tinto predicate\t{:?}", stmt, wp);
 
     let mut lvalue: Option<Lvalue> = None;
@@ -93,18 +95,10 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
             rvalue = Some(rval.clone());
         }
     }
+    let var = gen_lvalue(lvalue.unwrap());
 
-    /*
-    match lvalue.unwrap() {
-        Lvalue::Var(ref var) => {unimplemented!();}
-        Lvalue::Temp(ref temp) => {unimplemented!();}
-        Lvalue::Arg(ref arg) => {unimplemented!();}
-        Lvalue::Static(ref def_id) => {unimplemented!();}
-        Lvalue::ReturnPointer => {unimplemented!();},
-        Lvalue::Projection(_) => {panic!("wtf is a projection");}
-    };
-    */
 
+    //match the rvalue to the correct Rvalue and set term as that new Rvalue
     let term : Term = match rvalue.unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
             let op: IntegerBinaryOperator = match binop {
@@ -189,7 +183,32 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement) -> Option<Predicate>  {
 
     println!("wp term: {}", term);
 
-    Some(wp)
+    Some(substitute_variable_in_predicate_with_term( wp, var, term ))
+
+}
+//FIXME: needs to pass in data as well for arg_data
+pub fn gen_lvalue(lvalue : Lvalue) -> VariableMappingData {
+    match lvalue {
+        //for each match, you need to loop through the appropriate value and find the match
+        //then create a new VariableMappingData to hold the name, type of Lvalue
+        //data.0 is arg_data
+        //data.2 is temp_data
+        //data.3 is var_data
+        Lvalue::Arg(ref arg) => unimplemented!(),
+        Lvalue::Temp(ref temp) => {
+            //FIXME:this is ugly fix it
+            let index = temp.index().clone();
+            let sindex = index.to_string();
+            //This line needs to stay:
+            let slice_index = sindex.as_str();
+            let name = "temp".to_string() + slice_index;
+            VariableMappingData{ name: name, var_type: "".to_string()}
+        },
+        Lvalue::Var(ref var) => unimplemented!(),
+        Lvalue::ReturnPointer => VariableMappingData {name: "return".to_string(), var_type : "".to_string()},
+        _=> {panic!("what have you done?!");}
+
+    }
 }
 
 // For returning a new Term crafted from an operand value.
