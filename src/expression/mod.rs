@@ -110,7 +110,7 @@ pub struct VariableMappingData { pub name: String, pub var_type: String}
 // Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
 impl PartialEq for VariableMappingData {
     fn eq(&self, _rhs: &VariableMappingData) -> bool {
-        if (self.name == _rhs.name) && (self.var_type == _rhs.var_type) {
+        if (self.name == _rhs.name)  { //&& (self.var_type == _rhs.var_type)
             true
         } else {
             false
@@ -370,11 +370,11 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
         },
         Term::UnsignedBitVector(u) => {
             // Return a copy.
-            return_term_copy(&replacement_term)
+            Term::UnsignedBitVector( UnsignedBitVectorData { size: u.size.clone(), value: u.value.clone() } )
         },
         Term::SignedBitVector(s) => {
             // Return a copy
-            return_term_copy(&replacement_term)
+            Term::SignedBitVector( SignedBitVectorData { size: s.size.clone(), value: s.value.clone() } )
         }
     }
 }

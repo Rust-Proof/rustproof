@@ -198,7 +198,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             let index = arg.index().clone();
             let name = data.0[index].debug_name.to_string();
             let ty = data.0[index].ty.clone().to_string();
-            println!("\n\n\n\n{}\n\n\n\n", ty);
+            //println!("\n\n\n\n{}\n\n\n\n", ty);
             VariableMappingData { name: name, var_type: ty }},
 
         Lvalue::Temp(ref temp) => {
@@ -208,13 +208,14 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             //This line needs to stay:
             let slice_index = sindex.as_str();
             let name = "temp".to_string() + slice_index;
-            VariableMappingData{ name: name, var_type: "".to_string()}
+            let ty = data.2[index].ty.clone().to_string();
+            VariableMappingData{ name: name, var_type: ty}
         },
         Lvalue::Var(ref var) => {
             let index = var.index().clone();
             let name = data.3[index].name.to_string();
             let ty = data.3[index].ty.clone().to_string();
-            println!("\n\n\n\n{}\n\n\n\n", ty);
+            //println!("\n\n\n\n{}\n\n\n\n", ty);
             VariableMappingData { name: name, var_type: ty }
         },
         Lvalue::ReturnPointer => VariableMappingData {name: "return".to_string(), var_type : "".to_string()},
