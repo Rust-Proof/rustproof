@@ -124,6 +124,7 @@ impl PartialEq for VariableMappingData {
 // Ensures it is clear that VariableMappingData has full equality.
 impl Eq for VariableMappingData {}
 
+
 #[derive(Clone)]
 pub struct BinaryExpressionData { pub op: IntegerBinaryOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
