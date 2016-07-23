@@ -121,6 +121,12 @@ impl PartialEq for VariableMappingData {
 // Ensures it is clear that VariableMappingData has full equality.
 impl Eq for VariableMappingData {}
 
+impl fmt::Display for VariableMappingData {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({} : {})", self.name, self.var_type)
+    }
+}
+
 #[derive(Clone)]
 pub struct BinaryExpressionData { pub op: IntegerBinaryOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
@@ -334,9 +340,13 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
     match source_term {
         Term::VariableMapping(v) => {
             // Replace the VariableMapping with replacement_term if it matches target, otherwise return a copy.
+            println!("found term: {}", v);
+            println!("looking for term: {}", target);
             if v == target {
+                println!("terms are identical!");
                 return_term_copy(&replacement_term)
             } else {
+                println!("terms are not identical!");
                 Term::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
             }
         },
@@ -369,11 +379,21 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
         },
         Term::UnsignedBitVector(u) => {
             // Return a copy.
-            return_term_copy(&replacement_term)
+            Term::UnsignedBitVector(
+                UnsignedBitVectorData {
+                    size: u.size,
+                    value: u.value
+                }
+            )
         },
         Term::SignedBitVector(s) => {
             // Return a copy
-            return_term_copy(&replacement_term)
+            Term::SignedBitVector(
+                SignedBitVectorData {
+                    size: s.size,
+                    value: s.value
+                }
+            )
         }
     }
 }

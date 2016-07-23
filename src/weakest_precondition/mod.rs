@@ -95,12 +95,16 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
             rvalue = Some(rval.clone());
         }
     }
-    let var = gen_lvalue(lvalue.unwrap());
+    let mut var = gen_lvalue(lvalue.unwrap(), data);
 
 
     //match the rvalue to the correct Rvalue and set term as that new Rvalue
     let term : Term = match rvalue.unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
+            //FIXME: This is a kludge, please fix!
+            //Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
+            var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
+
             let op: IntegerBinaryOperator = match binop {
                 &BinOp::Add => {
                     IntegerBinaryOperator::Addition
@@ -120,8 +124,8 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
                 _ => {panic!("Unsupported checked binary operation!");}
             };
 
-            let lvalue: Term = gen_operand(&lval);
-            let rvalue: Term = gen_operand(&rval);
+            let lvalue: Term = gen_operand(&lval, data);
+            let rvalue: Term = gen_operand(&rval, data);
 
             Term::BinaryExpression( BinaryExpressionData {
                 op: op,
@@ -149,8 +153,8 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
                 _ => {panic!("Unsupported unchecked binary operation!");}
             };
 
-            let lvalue: Term = gen_operand(&lval);
-            let rvalue: Term = gen_operand(&rval);
+            let lvalue: Term = gen_operand(&lval, data);
+            let rvalue: Term = gen_operand(&rval, data);
 
             Term::BinaryExpression( BinaryExpressionData {
                 op: op,
@@ -168,7 +172,7 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
                 }
             };
 
-            let value: Term = gen_operand(&val);
+            let value: Term = gen_operand(&val, data);
 
             Term::UnaryExpression( UnaryExpressionData {
                 op: op,
@@ -176,74 +180,46 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
             } )
         },
         Rvalue::Use(ref operand) => {
-            gen_operand(operand)
+            gen_operand(operand, data)
         },
         _ => {panic!("Unsupported RValue type!");}
     };
 
-    println!("wp term: {}", term);
-
     Some(substitute_variable_in_predicate_with_term( wp, var, term ))
-
 }
 //FIXME: needs to pass in data as well for arg_data
-pub fn gen_lvalue(lvalue : Lvalue) -> VariableMappingData {
+pub fn gen_lvalue(lvalue : Lvalue, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> VariableMappingData {
     match lvalue {
         //for each match, you need to loop through the appropriate value and find the match
         //then create a new VariableMappingData to hold the name, type of Lvalue
         //data.0 is arg_data
         //data.2 is temp_data
         //data.3 is var_data
-        Lvalue::Arg(ref arg) => unimplemented!(),
-        Lvalue::Temp(ref temp) => {
-            //FIXME:this is ugly fix it
-            let index = temp.index().clone();
-            let sindex = index.to_string();
-            //This line needs to stay:
-            let slice_index = sindex.as_str();
-            let name = "temp".to_string() + slice_index;
-            VariableMappingData{ name: name, var_type: "".to_string()}
+        Lvalue::Arg(ref arg) => {
+            let index = arg.index();
+            let name = data.0[index].debug_name.as_str();
+            VariableMappingData{ name: name.to_string(), var_type: "".to_string() }
         },
-        Lvalue::Var(ref var) => unimplemented!(),
+        Lvalue::Temp(ref temp) => {
+            VariableMappingData{ name: "temp".to_string() + temp.index().to_string().as_str(), var_type: "".to_string() }
+        },
+        Lvalue::Var(ref var) => {
+            VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: "".to_string() }
+        },
         Lvalue::ReturnPointer => VariableMappingData {name: "return".to_string(), var_type : "".to_string()},
-        _=> {panic!("what have you done?!");}
-
+        Lvalue::Projection(ref pro) => {
+            //FIXME: This is not shippable code! Only works for one example!
+            VariableMappingData{ name: "temp1.0".to_string(), var_type: "".to_string() }
+        },
+        _=> {unimplemented!();}
     }
 }
 
 // For returning a new Term crafted from an operand value.
-pub fn gen_operand(operand: &Operand) -> Term {
+pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Term {
     match operand {
         &Operand::Consume (ref l) => {
-            //FIXME: Use finished LValue parsing code when it's written
-            match l {
-                &Lvalue::Var(v) => {
-                    Term::VariableMapping( VariableMappingData {
-                        name: "var".to_string(),
-                        var_type: "".to_string()
-                    } )
-                },
-                &Lvalue::Temp(t) => {
-                    Term::VariableMapping( VariableMappingData {
-                        name: "temp".to_string(),
-                        var_type: "".to_string()
-                    } )
-                },
-                &Lvalue::Arg(a) => {
-                    Term::VariableMapping( VariableMappingData {
-                        name: "arg".to_string(),
-                        var_type: "".to_string()
-                    } )
-                },
-                &Lvalue::Static(d) => { unimplemented!(); },
-                &Lvalue::ReturnPointer => { unimplemented!(); },
-                &Lvalue::Projection(ref b) => {
-                    Term::VariableMapping( VariableMappingData {
-                        name: "temp.something".to_string(),
-                        var_type: "".to_string()
-                    } )
-                },
-            }
+            Term::VariableMapping( gen_lvalue(l.clone(), data) )
         },
         &Operand::Constant (ref c) => {
             match c.literal {
