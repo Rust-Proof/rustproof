@@ -95,8 +95,8 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
             rvalue = Some(rval.clone());
         }
     }
-    let mut var = gen_lvalue(lvalue.unwrap(), data);
 
+    let mut var = gen_lvalue(lvalue.unwrap(), data);
 
     //match the rvalue to the correct Rvalue and set term as that new Rvalue
     let term : Term = match rvalue.unwrap() {
@@ -187,8 +187,8 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
 
     Some(substitute_variable_in_predicate_with_term( wp, var, term ))
 }
-//FIXME: needs to pass in data as well for arg_data
-pub fn gen_lvalue(lvalue : Lvalue, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> VariableMappingData {
+
+pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> VariableMappingData {
     match lvalue {
         //for each match, you need to loop through the appropriate value and find the match
         //then create a new VariableMappingData to hold the name, type of Lvalue
@@ -196,15 +196,13 @@ pub fn gen_lvalue(lvalue : Lvalue, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, 
         //data.2 is temp_data
         //data.3 is var_data
         Lvalue::Arg(ref arg) => {
-            let index = arg.index();
-            let name = data.0[index].debug_name.as_str();
-            VariableMappingData{ name: name.to_string(), var_type: "".to_string() }
+            VariableMappingData{ name: data.0[arg.index()].debug_name.as_str().to_string(), var_type: data.0[arg.index()].ty.clone().to_string() }
         },
         Lvalue::Temp(ref temp) => {
-            VariableMappingData{ name: "temp".to_string() + temp.index().to_string().as_str(), var_type: "".to_string() }
+            VariableMappingData{ name: "temp".to_string() + temp.index().to_string().as_str(), var_type: data.2[temp.index()].ty.clone().to_string() }
         },
         Lvalue::Var(ref var) => {
-            VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: "".to_string() }
+            VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
         },
         Lvalue::ReturnPointer => VariableMappingData {name: "return".to_string(), var_type : "".to_string()},
         Lvalue::Projection(ref pro) => {

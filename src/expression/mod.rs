@@ -63,7 +63,7 @@ impl fmt::Display for Predicate {
                         write!(f, "({} -> {})", *b.p1, *b.p2)
                     }
                 }
-                
+
             },
             &Predicate::UnaryExpression (ref u) => {
                 match u.op {
@@ -104,13 +104,14 @@ impl fmt::Debug for Predicate {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VariableMappingData { pub name: String, pub var_type: String}
 
+// FIXME: Type checking removed, should be returned later!
 // Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
 impl PartialEq for VariableMappingData {
     fn eq(&self, _rhs: &VariableMappingData) -> bool {
-        if (self.name == _rhs.name) && (self.var_type == _rhs.var_type) {
+        if self.name == _rhs.name  { //&& (self.var_type == _rhs.var_type)
             true
         } else {
             false
