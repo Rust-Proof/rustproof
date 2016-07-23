@@ -95,7 +95,7 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
             rvalue = Some(rval.clone());
         }
     }
-    let var = gen_lvalue(lvalue.unwrap());
+    let var = gen_lvalue(lvalue.unwrap(), data);
 
 
     //match the rvalue to the correct Rvalue and set term as that new Rvalue
@@ -186,15 +186,21 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
     Some(substitute_variable_in_predicate_with_term( wp, var, term ))
 
 }
-//FIXME: needs to pass in data as well for arg_data
-pub fn gen_lvalue(lvalue : Lvalue) -> VariableMappingData {
+
+pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> VariableMappingData {
     match lvalue {
         //for each match, you need to loop through the appropriate value and find the match
         //then create a new VariableMappingData to hold the name, type of Lvalue
         //data.0 is arg_data
         //data.2 is temp_data
         //data.3 is var_data
-        Lvalue::Arg(ref arg) => unimplemented!(),
+        Lvalue::Arg(ref arg) => {
+            let index = arg.index().clone();
+            let name = data.0[index].debug_name.to_string();
+            let ty = data.0[index].ty.clone().to_string();
+            println!("\n\n\n\n{}\n\n\n\n", ty);
+            VariableMappingData { name: name, var_type: ty }},
+
         Lvalue::Temp(ref temp) => {
             //FIXME:this is ugly fix it
             let index = temp.index().clone();
@@ -204,12 +210,20 @@ pub fn gen_lvalue(lvalue : Lvalue) -> VariableMappingData {
             let name = "temp".to_string() + slice_index;
             VariableMappingData{ name: name, var_type: "".to_string()}
         },
-        Lvalue::Var(ref var) => unimplemented!(),
+        Lvalue::Var(ref var) => {
+            let index = var.index().clone();
+            let name = data.3[index].name.to_string();
+            let ty = data.3[index].ty.clone().to_string();
+            println!("\n\n\n\n{}\n\n\n\n", ty);
+            VariableMappingData { name: name, var_type: ty }
+        },
         Lvalue::ReturnPointer => VariableMappingData {name: "return".to_string(), var_type : "".to_string()},
         _=> {panic!("what have you done?!");}
 
     }
 }
+
+
 
 // For returning a new Term crafted from an operand value.
 pub fn gen_operand(operand: &Operand) -> Term {
