@@ -341,13 +341,9 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
     match source_term {
         Term::VariableMapping(v) => {
             // Replace the VariableMapping with replacement_term if it matches target, otherwise return a copy.
-            println!("found term: {}", v);
-            println!("looking for term: {}", target);
             if v == target {
-                println!("terms are identical!");
                 return_term_copy(&replacement_term)
             } else {
-                println!("terms are not identical!");
                 Term::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
             }
         },
