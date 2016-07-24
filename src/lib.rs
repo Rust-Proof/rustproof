@@ -61,7 +61,7 @@ use syntax::parse::token::intern;
 use syntax::ptr::P;
 
 // Local imports
-use expression::Predicate;
+use expression::{Predicate, BooleanBinaryOperator, BinaryPredicateData};
 
 // These are our modules
 pub mod expression;
@@ -239,7 +239,15 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         // Generate the weakest precondition
         self.builder.weakest_precondition = weakest_precondition::gen(0, &data, &self.builder);
 
-        // Create the verification condition
+        // Create the verification condition, P -> WP
+        let verification_condition: Predicate = Predicate::BinaryExpression( BinaryPredicateData{
+            op: BooleanBinaryOperator::Implies,
+            p1: Box::new(self.builder.pre_expr.as_ref().unwrap().clone()),
+            p2: Box::new(self.builder.weakest_precondition.as_ref().unwrap().clone())
+        } );
+
+        // FIXME: Remove debug print statement
+        println!("vc: {}", verification_condition);
 
         // Output to smt_lib format
     }
