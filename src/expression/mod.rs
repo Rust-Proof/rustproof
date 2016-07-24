@@ -16,17 +16,17 @@
 use rustc_plugin::Registry;
 use std::fmt;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct BinaryPredicateData { pub op: BooleanBinaryOperator, pub p1: Box<Predicate>, pub p2: Box<Predicate> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct UnaryPredicateData { pub op: BooleanUnaryOperator, pub p: Box<Predicate> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct IntegerComparisonData { pub op: IntegerComparisonOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
 // Boolean Expression type
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Predicate {
     // Boolean expressions
     BinaryExpression(BinaryPredicateData),
@@ -107,10 +107,11 @@ impl fmt::Debug for Predicate {
 #[derive(Clone, Debug)]
 pub struct VariableMappingData { pub name: String, pub var_type: String}
 
+// FIXME: Type checking removed, should be returned later!
 // Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
 impl PartialEq for VariableMappingData {
     fn eq(&self, _rhs: &VariableMappingData) -> bool {
-        if (self.name == _rhs.name)  { //&& (self.var_type == _rhs.var_type)
+        if self.name == _rhs.name  { //&& (self.var_type == _rhs.var_type)
             true
         } else {
             false
@@ -121,21 +122,26 @@ impl PartialEq for VariableMappingData {
 // Ensures it is clear that VariableMappingData has full equality.
 impl Eq for VariableMappingData {}
 
+impl fmt::Display for VariableMappingData {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({} : {})", self.name, self.var_type)
+    }
+}
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct BinaryExpressionData { pub op: IntegerBinaryOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct UnaryExpressionData { pub op: IntegerUnaryOperator, pub t: Box<Term> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct UnsignedBitVectorData { pub size: u8, pub value: u64 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct SignedBitVectorData { pub size: u8, pub value: i64 }
 
 // A literal, variable, or expression involving either.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Term {
     // Integer expressions
     BinaryExpression(BinaryExpressionData),
@@ -222,19 +228,19 @@ impl fmt::Debug for Term {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum BooleanBinaryOperator {
     And,
     Or,
     Implies,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum BooleanUnaryOperator {
     Not,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum IntegerBinaryOperator {
     // Normal operators
     Addition,
@@ -253,13 +259,13 @@ pub enum IntegerBinaryOperator {
     ArrayUpdate
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum IntegerUnaryOperator {
     Negation,
     BitwiseNot
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum IntegerComparisonOperator {
     LessThan,
     LessThanOrEqual,
@@ -370,11 +376,21 @@ pub fn substitute_variable_in_term_with_term ( source_term: Term, target: Variab
         },
         Term::UnsignedBitVector(u) => {
             // Return a copy.
-            Term::UnsignedBitVector( UnsignedBitVectorData { size: u.size.clone(), value: u.value.clone() } )
+            Term::UnsignedBitVector(
+                UnsignedBitVectorData {
+                    size: u.size,
+                    value: u.value
+                }
+            )
         },
         Term::SignedBitVector(s) => {
             // Return a copy
-            Term::SignedBitVector( SignedBitVectorData { size: s.size.clone(), value: s.value.clone() } )
+            Term::SignedBitVector(
+                SignedBitVectorData {
+                    size: s.size,
+                    value: s.value
+                }
+            )
         }
     }
 }

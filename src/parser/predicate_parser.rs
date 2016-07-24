@@ -40245,7 +40245,7 @@ pub fn __action19<
     (_, _, _): (usize, &'input str, usize),
 ) -> Predicate
 {
-    Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "boolean".to_string() } )
+    Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } )
 }
 
 pub fn __action20<
@@ -40257,7 +40257,7 @@ pub fn __action20<
     (_, _, _): (usize, &'input str, usize),
 ) -> Predicate
 {
-    Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "boolean".to_string() } )
+    Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } )
 }
 
 pub fn __action21<
@@ -40357,7 +40357,7 @@ pub fn __action29<
     (_, _, _): (usize, &'input str, usize),
 ) -> Term
 {
-    Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "integer".to_string() } )
+    Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } )
 }
 
 pub fn __action30<
@@ -40369,7 +40369,7 @@ pub fn __action30<
     (_, _, _): (usize, &'input str, usize),
 ) -> Term
 {
-    Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "integer".to_string() } )
+    Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "".to_string() } )
 }
 
 pub fn __action31<
