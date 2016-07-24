@@ -35,7 +35,7 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
-                                builder.pre_str = i_string.to_string();
+                                builder.pre_string = i_string.to_string();
                             }
                             _ => {}
                         }
@@ -51,7 +51,7 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
-                                builder.post_str = i_string.to_string();
+                                builder.post_string = i_string.to_string();
                             }
                             _ => {}
                         }

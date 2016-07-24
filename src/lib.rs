@@ -79,8 +79,8 @@ pub struct Attr {
     pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
     pub pre_span: Option<Span>,
     pub post_span: Option<Span>,
-    pub pre_str: String,
-    pub post_str: String,
+    pub pre_string: String,
+    pub post_string: String,
     pub pre_expr: Option<Predicate>,
     pub post_expr: Option<Predicate>,
     pub weakest_precondition: Option<Predicate>,
@@ -93,8 +93,8 @@ impl Attr {
         self.func = None;
         self.pre_span = None;
         self.post_span = None;
-        self.pre_str = "".to_string();
-        self.post_str = "".to_string();
+        self.pre_string = "".to_string();
+        self.post_string = "".to_string();
         self.pre_expr = None;
         self.post_expr = None;
         self.weakest_precondition = None;
@@ -114,8 +114,8 @@ pub fn registrar(reg: &mut Registry) {
             func_name: "".to_string(),
             func_span: None,
             func: None,
-            pre_str: "".to_string(),
-            post_str: "".to_string(),
+            pre_string: "".to_string(),
+            post_string: "".to_string(),
             pre_span: None,
             post_span: None,
             pre_expr: None,
@@ -184,12 +184,12 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         }
 
         // FIXME: Better condition check
-        if self.builder.pre_str != "" {
+        if self.builder.pre_string != "" {
             // Parse the pre- and postcondition arguments
-            println!("{}", parser::parse_condition(self.builder.pre_str.as_str()));
-            self.builder.pre_expr = Some(parser::parse_condition(self.builder.pre_str.as_str()));
-            println!("{}", parser::parse_condition(self.builder.post_str.as_str()));
-            self.builder.post_expr = Some(parser::parse_condition(self.builder.post_str.as_str()));
+            println!("{}", parser::parse_condition(self.builder.pre_string.as_str()));
+            self.builder.pre_expr = Some(parser::parse_condition(self.builder.pre_string.as_str()));
+            println!("{}", parser::parse_condition(self.builder.post_string.as_str()));
+            self.builder.post_expr = Some(parser::parse_condition(self.builder.post_string.as_str()));
 
             // Begin examining the MIR code
             MirVisitor::visit_mir(self, mir);
