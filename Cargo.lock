@@ -7,6 +7,7 @@ dependencies = [
  "lalrpop-util 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsmt 0.1.0 (git+https://github.com/sushant94/libsmt.rs.git)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "petgraph 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -165,6 +166,14 @@ dependencies = [
 [[package]]
 name = "petgraph"
 version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "fixedbitset 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "petgraph"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "fixedbitset 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
