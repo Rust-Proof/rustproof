@@ -16,17 +16,17 @@
 use rustc_plugin::Registry;
 use std::fmt;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct BinaryPredicateData { pub op: BooleanBinaryOperator, pub p1: Box<Predicate>, pub p2: Box<Predicate> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct UnaryPredicateData { pub op: BooleanUnaryOperator, pub p: Box<Predicate> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct IntegerComparisonData { pub op: IntegerComparisonOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
 // Boolean Expression type
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Predicate {
     // Boolean expressions
     BinaryExpression(BinaryPredicateData),
@@ -128,20 +128,20 @@ impl fmt::Display for VariableMappingData {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct BinaryExpressionData { pub op: IntegerBinaryOperator, pub t1: Box<Term>, pub t2: Box<Term> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct UnaryExpressionData { pub op: IntegerUnaryOperator, pub t: Box<Term> }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct UnsignedBitVectorData { pub size: u8, pub value: u64 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct SignedBitVectorData { pub size: u8, pub value: i64 }
 
 // A literal, variable, or expression involving either.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Term {
     // Integer expressions
     BinaryExpression(BinaryExpressionData),
@@ -228,19 +228,19 @@ impl fmt::Debug for Term {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum BooleanBinaryOperator {
     And,
     Or,
     Implies,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum BooleanUnaryOperator {
     Not,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum IntegerBinaryOperator {
     // Normal operators
     Addition,
@@ -259,13 +259,13 @@ pub enum IntegerBinaryOperator {
     ArrayUpdate
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum IntegerUnaryOperator {
     Negation,
     BitwiseNot
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum IntegerComparisonOperator {
     LessThan,
     LessThanOrEqual,
