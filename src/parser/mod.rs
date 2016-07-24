@@ -17,7 +17,7 @@ mod predicate_parser; // FIXME: Rename module
 
 use super::weakest_precondition;
 
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind};
+use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, ArgDecl, VarDecl, TempDecl};
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_plugin::Registry;
 use std::str::FromStr;
@@ -108,7 +108,10 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
 
 
 // FIXME: Being replaced by wp()
-pub fn parse_mir(builder: &mut Attr, data: Vec<&BasicBlockData>) {
+pub fn parse_mir(builder: &mut Attr,
+    //(arg_data, block_data, temp_data, var_data)
+    data:
+    (Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) {
     /*
     for index in 0..data.len() {
 
