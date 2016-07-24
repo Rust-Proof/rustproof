@@ -30,7 +30,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use super::parser;
 
 // computes the weakest precondition
-pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &mut Attr) -> Option<Predicate> {
+pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Predicate> {
     println!("\n\nExamining bb{:?}\n{:#?}", index, data.1[index]);
 
     //let mut block_targets = Vec::new();
