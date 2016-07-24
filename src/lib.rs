@@ -82,7 +82,7 @@ pub struct Attr {
     pub post_str: String,
     pub pre_expr: Option<Predicate>,
     pub post_expr: Option<Predicate>,
-    pub wp: Option<Predicate>,
+    pub weakest_precondition: Option<Predicate>,
 }
 
 impl Attr {
@@ -96,7 +96,7 @@ impl Attr {
         self.post_str = "".to_string();
         self.pre_expr = None;
         self.post_expr = None;
-        self.wp = None;
+        self.weakest_precondition = None;
     }
 }
 
@@ -119,7 +119,7 @@ pub fn registrar(reg: &mut Registry) {
             post_span: None,
             pre_expr: None,
             post_expr: None,
-            wp: None,
+            weakest_precondition: None,
         },
     };
     reg.register_mir_pass(Box::new(visitor));
@@ -231,6 +231,11 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         //now set them into the data tuple
         let data = (arg_data, block_data, temp_data, var_data);
 
-        parser::parse_mir(&mut self.builder, data);
+        // Generate the weakest precondition
+        self.builder.weakest_precondition = weakest_precondition::gen(0, &data, &self.builder);
+
+        // Create the verification condition
+
+        // Output to smt_lib format
     }
 }
