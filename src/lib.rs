@@ -32,6 +32,7 @@
 #![feature(core_intrinsics)]
 
 // extern crate imports
+extern crate libsmt;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
@@ -60,13 +61,12 @@ use syntax::ptr::P;
 // Local use imports
 use expression::Predicate;
 
-
 // These are our modules
 pub mod expression;
 pub mod parser;
 pub mod reporting;
+pub mod smt_output;
 pub mod weakest_precondition;
-pub mod z3_interface;
 pub mod dev_tools; //FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
 mod tests; //Conditionally include tests when cargo --test is called
@@ -82,6 +82,7 @@ pub struct Attr {
     pub post_str: String,
     pub pre_expr: Option<Predicate>,
     pub post_expr: Option<Predicate>,
+    pub wp: Option<Predicate>,
 }
 
 impl Attr {
@@ -95,6 +96,7 @@ impl Attr {
         self.post_str = "".to_string();
         self.pre_expr = None;
         self.post_expr = None;
+        self.wp = None;
     }
 }
 
@@ -117,6 +119,7 @@ pub fn registrar(reg: &mut Registry) {
             post_span: None,
             pre_expr: None,
             post_expr: None,
+            wp: None,
         },
     };
     reg.register_mir_pass(Box::new(visitor));
@@ -174,8 +177,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
         self.builder.func_name = name;
 
-
-
         // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
         for attr in attrs {
             parser::parse_attribute(&mut self.builder, attr);
@@ -189,6 +190,8 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             self.builder.post_expr = Some(parser::parse_condition(self.builder.post_str.as_str()));
             MirVisitor::visit_mir(self, mir);
         }
+
+        gen_smtlib(self.builder.wp);
     }
 }
 
