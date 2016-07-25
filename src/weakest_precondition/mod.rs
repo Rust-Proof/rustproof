@@ -31,7 +31,6 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
             // Retrieve the weakest precondition from the following block
             wp = gen(target.index(), data, builder);
-            //println!("{:?}", cond);
         },
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
