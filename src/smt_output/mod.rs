@@ -38,7 +38,7 @@ use libsmt;
 use libsmt::backends::smtlib2::*;
 use libsmt::backends::backend::*;
 use libsmt::backends::z3;
-use libsmt::theories::{bitvec, core};
+use libsmt::theories::{array_ex, bitvec, core};
 use libsmt::logics::qf_abv::*;
 use libsmt::logics::qf_abv;
 use libsmt::logics::lia::*;
@@ -79,8 +79,8 @@ pub trait Pred2SMT {
 }
 
 impl<L: Logic> Pred2SMT for SMTLib2<L>
-    where <L as Logic>::Sorts: From<bitvec::Sorts> + From<core::Sorts>,
-          <L as Logic>::Fns: From<bitvec::OpCodes> + From<core::OpCodes>
+    where <L as Logic>::Sorts: From<array_ex::Sorts<QF_ABV_Sorts,QF_ABV_Sorts>> + From<bitvec::Sorts> + From<core::Sorts>,
+          <L as Logic>::Fns: From<array_ex::OpCodes<QF_ABV_Sorts,QF_ABV_Sorts,QF_ABV_Fn>> + From<bitvec::OpCodes> + From<core::OpCodes>
 {
     type Idx = NodeIndex;
     type Logic = L;
@@ -229,16 +229,20 @@ impl<L: Logic> Pred2SMT for SMTLib2<L>
                                              &[self.term2smtlib(b.t1.as_ref()),
                                                self.term2smtlib(b.t2.as_ref())]);
                     },
-//                      IntegerBinaryOperator::ArrayLookup => {
-//                          let array = self.term2smtlib(b.t1.as_ref());
-//                          let index = self.term2smtlib(b.t2.as_ref());
-//                              
-//                      },
-//                      IntegerBinaryOperator::ArrayUpdate => {
-                        //write!(f, "({} [{}])", *b.t1, *b.t2)
-//                          return 
-//                          // NOT SURE HOW TO HANDLE THIS YET
-//                      },
+                    IntegerBinaryOperator::ArrayLookup => {
+                        // FIXME: This arm is unimplemented!
+                        // FIXME: But it must exist and it must return an index
+                        return self.new_const(core::OpCodes::True);
+//                          return self.assert(array_ex::OpCodes::Select,
+//                                             &[.., ..]);
+                    },
+                    IntegerBinaryOperator::ArrayUpdate => {
+                        // FIXME: This arm is unimplemented!
+                        // FIXME: But it must exist and it must return an index
+                        return self.new_const(core::OpCodes::True);
+//                          return self.assert(array_ex::OpCodes::Store,
+//                                             &[.., ..]);
+                    },
                 }
             },
             &Term::UnaryExpression (ref u) => {
@@ -257,46 +261,8 @@ impl<L: Logic> Pred2SMT for SMTLib2<L>
                 return bv_const!(self, u.value, 64);
             },
             &Term::SignedBitVector (ref s) => {
-                return bv_const!(self, s.value, 64);
+                return bv_const!(self, s.value as u64, 64);
             }
         }
     }
 }
-
-
-
-//  pub trait Test {
-//      type Logic: Logic;
-//  
-//      fn test_self (&mut self);
-//      //fn test_ext (&mut SMTLib2<L>);
-//  }
-//  
-//  
-//  impl<L: Logic> Test for SMTLib2<L>
-//          //COMPILES! And panics...
-//          where <L as Logic>::Sorts: From<core::Sorts>
-//          //where <L as Logic>::Sorts: From<QF_ABV_Sorts>,
-//          //      <L as Logic>::Fns: From<QF_ABV_Fn>
-//  {
-//      type Logic = L;
-//  
-//      fn test_self (&mut self) {
-//  
-//          // Compiles! and panics...
-//          self.new_var(Some("x"), core::Sorts::Bool);
-//          //
-//          // no associated item named `Bool` found for type `libsmt::logics::qf_abv::QF_ABV_Sorts`
-//          //self.new_var(Some("x"), QF_ABV_Sorts::Bool);
-//          // found value `libsmt::logics::qf_abv::QF_ABV_Sorts::Core` used as a type [E0248]
-//          //self.new_var(Some("x"), QF_ABV_Sorts::Core::Bool);
-//          // `QF_ABV_Sorts::Sorts` does not name a structure [E0422]
-//          //self.new_var(Some("x"), QF_ABV_Sorts::Sorts{Core: Bool});
-//          //self.new_var(Some("x"), L::Sorts::Bool);
-//          //
-//          // no associated item named `Bool` found for type `<L as libsmt::backends::backend::Logic>::Sorts`
-//          // self.new_var(Some("x"), L::Sorts::Bool);
-//  
-//  
-//      }
-//  }
