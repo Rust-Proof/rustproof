@@ -40,21 +40,17 @@ use libsmt::backends::backend::*;
 use libsmt::backends::z3;
 use libsmt::theories::{bitvec, core};
 use libsmt::logics::qf_abv::*;
-use petgraph::graph::{Graph, NodeIndex};
+use libsmt::logics::qf_abv;
+use libsmt::logics::lia::*;
+use libsmt::logics::lia;
+use petgraph::graph::NodeIndex;
 
 use expression::*;
-
-//  pub trait Pred2SMT {
-//      type Idx: Debug + Clone;
-//      type Logic: Logic;
-//  
-//      fn pred2smtlib (&mut self, &Predicate) -> Self::Idx;
-//      fn term2smtlib (&mut self, &Term) -> Self::Idx;
-//  }
 
 pub fn gen_smtlib (vc: Predicate) {
     let mut z3: z3::Z3 = Default::default();
 
+    //let mut solver = SMTLib2::new(Some(QF_ABV));
     let mut solver = SMTLib2::new(Some(QF_ABV));
     solver.set_logic(&mut z3);
 
@@ -72,180 +68,235 @@ pub fn gen_smtlib (vc: Predicate) {
     }
 }
 
-// The following needs to be done recursively...
-// For all terms: Define the symbolic variables in predicate
-//                Define the integer constants used
-// Define the assert conditions
+pub trait Pred2SMT {
+    type Idx: Debug + Clone;
+    type Logic: Logic;
 
-fn pred2smtlib (solver: &SMTLib2<Logic>, vc: &Predicate) -> NodeIndex {
-    match vc {
-        &Predicate::VariableMapping (ref v) => {
-            match v.var_type.as_ref() {
-                "bool" => return solver.new_var(Some(&v.name), core::Sorts::Bool),
-                _ => return solver.new_var(Some(&v.name), core::Sorts::Bool),
+    fn pred2smtlib (&mut self, &Predicate) -> Self::Idx;
+    //fn pred2smtlib (&mut self, &Predicate) -> NodeIndex;
+    fn term2smtlib (&mut self, &Term) -> Self::Idx;
+    //fn term2smtlib (&mut self, &Term) -> NodeIndex;
+}
+
+impl<L: Logic> Pred2SMT for SMTLib2<L>
+    where <L as Logic>::Sorts: From<bitvec::Sorts> + From<core::Sorts>,
+          <L as Logic>::Fns: From<bitvec::OpCodes> + From<core::OpCodes>
+{
+    type Idx = NodeIndex;
+    type Logic = L;
+
+    fn pred2smtlib (&mut self, vc: &Predicate) -> Self::Idx {
+        match vc {
+            &Predicate::VariableMapping (ref v) => {
+                match v.var_type.as_ref() {
+                    "bool" => return self.new_var(Some(&v.name), core::Sorts::Bool),
+                    _ => return self.new_var(Some(&v.name), core::Sorts::Bool),
+                }
+            },
+            &Predicate::BooleanLiteral (ref b) => {
+                if *b == true {
+                    return self.new_const(core::OpCodes::True);
+                } else {
+                    return self.new_const(core::OpCodes::False);
+                }
+            },
+            &Predicate::BinaryExpression (ref b) => {
+                match b.op {
+                    BooleanBinaryOperator::And => {
+                        return self.assert(core::OpCodes::And,
+                                             &[self.pred2smtlib(b.p1.as_ref()),
+                                               self.pred2smtlib(b.p2.as_ref())]);
+                    },
+                    BooleanBinaryOperator::Or => {
+                        return self.assert(core::OpCodes::Or,
+                                             &[self.pred2smtlib(b.p1.as_ref()),
+                                               self.pred2smtlib(b.p2.as_ref())]);
+                    },
+                    BooleanBinaryOperator::Implies => {
+                        return self.assert(core::OpCodes::Imply,
+                                             &[self.pred2smtlib(b.p1.as_ref()),
+                                               self.pred2smtlib(b.p2.as_ref())]);
+                    },
+                }
+            },
+            &Predicate::UnaryExpression (ref u) => {
+                match u.op {
+                    BooleanUnaryOperator::Not => {
+                        return self.assert(core::OpCodes::Not,
+                                             &[self.pred2smtlib(u.p.as_ref())]);
+                    },
+                }
+            },
+            &Predicate::IntegerComparison (ref i) => {
+                match i.op {
+                    IntegerComparisonOperator::LessThan => {
+                        return self.assert(bitvec::OpCodes::BvSLt,
+                                             &[self.term2smtlib(i.t1.as_ref()),
+                                               self.term2smtlib(i.t2.as_ref())]);
+                    },
+                    IntegerComparisonOperator::LessThanOrEqual => {
+                        return self.assert(bitvec::OpCodes::BvSLe,
+                                             &[self.term2smtlib(i.t1.as_ref()),
+                                               self.term2smtlib(i.t2.as_ref())]);
+                    },
+                    IntegerComparisonOperator::GreaterThan => {
+                        return self.assert(bitvec::OpCodes::BvSGt,
+                                             &[self.term2smtlib(i.t1.as_ref()),
+                                               self.term2smtlib(i.t2.as_ref())]);
+                    },
+                    IntegerComparisonOperator::GreaterThanOrEqual => {
+                        return self.assert(bitvec::OpCodes::BvSGe,
+                                             &[self.term2smtlib(i.t1.as_ref()),
+                                               self.term2smtlib(i.t2.as_ref())]);
+                    },
+                    IntegerComparisonOperator::Equal => {
+                        return self.assert(bitvec::OpCodes::BvComp,
+                                             &[self.term2smtlib(i.t1.as_ref()),
+                                               self.term2smtlib(i.t2.as_ref())]);
+                    },
+                    IntegerComparisonOperator::NotEqual => {
+                        return self.assert(core::OpCodes::Not,
+                                             &[self.assert(bitvec::OpCodes::BvComp,
+                                                             &[self.term2smtlib(i.t1.as_ref()),
+                                                               self.term2smtlib(i.t2.as_ref())])]);
+                    },
+                }
             }
-        },
-        &Predicate::BooleanLiteral (ref b) => {
-            if b == true {
-                return solver.new_const(core::OpCodes::True);
-            } else {
-                return solver.new_const(core::OpCodes::False);
-            }
-        },
-        &Predicate::BinaryExpression (ref b) => {
-            match b.op {
-                BooleanBinaryOperator::And => {
-                    return solver.assert(core::OpCodes::And,
-                                         &[solver.pred2smtlib(*b.p1),
-                                           solver.pred2smtlib(*b.p2)]);
-                },
-                BooleanBinaryOperator::Or => {
-                    return solver.assert(core::OpCodes::Or,
-                                         &[solver.pred2smtlib(*b.p1),
-                                           solver.pred2smtlib(*b.p2)]);
-                },
-                BooleanBinaryOperator::Implies => {
-                    return solver.assert(core::OpCodes::Imply,
-                                         &[solver.pred2smtlib(*b.p1),
-                                           solver.pred2smtlib(*b.p2)]);
-                },
-            }
-        },
-        &Predicate::UnaryExpression (ref u) => {
-            match u.op {
-                BooleanUnaryOperator::Not => {
-                    return solver.assert(core::OpCodes::Not,
-                                         &[solver.pred2smtlib(*u.p)]);
-                },
-            }
-        },
-        &Predicate::IntegerComparison (ref i) => {
-            match i.op {
-                IntegerComparisonOperator::LessThan => {
-                    return solver.assert(bitvec::OpCodes::BvSLt,
-                                         &[solver.term2smtlib(*i.t1),
-                                           solver.term2smtlib(*i.t2)]);
-                },
-                IntegerComparisonOperator::LessThanOrEqual => {
-                    return solver.assert(bitvec::OpCodes::BvSLe,
-                                         &[solver.term2smtlib(*i.t1),
-                                           solver.term2smtlib(*i.t2)]);
-                },
-                IntegerComparisonOperator::GreaterThan => {
-                    return solver.assert(bitvec::OpCodes::BvSGt,
-                                         &[solver.term2smtlib(*i.t1),
-                                           solver.term2smtlib(*i.t2)]);
-                },
-                IntegerComparisonOperator::GreaterThanOrEqual => {
-                    return solver.assert(bitvec::OpCodes::BvSGe,
-                                         &[solver.term2smtlib(*i.t1),
-                                           solver.term2smtlib(*i.t2)]);
-                },
-                IntegerComparisonOperator::Equal => {
-                    return solver.assert(bitvec::OpCodes::BvComp,
-                                         &[solver.term2smtlib(*i.t1),
-                                           solver.term2smtlib(*i.t2)]);
-                },
-                IntegerComparisonOperator::NotEqual => {
-                    return solver.assert(core::OpCodes::Not,
-                                         &[solver.assert(bitvec::OpCodes::Cmp,
-                                                         &[solver.term2smtlib(*i.t1),
-                                                           solver.term2smtlib(*i.t2)])]);
-                },
+        }
+    }
+    
+    fn term2smtlib (&mut self, term: &Term) -> Self::Idx {
+        match term {
+            &Term::VariableMapping (ref v) => {
+                match v.var_type.as_ref() {
+                    "int" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
+                    "i32" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
+                    "i64" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
+                    "u32" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
+                    "u64" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
+                    _ => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
+                }
+            },
+            &Term::BinaryExpression (ref b) => {
+                match b.op {
+                    IntegerBinaryOperator::Addition => {
+                        return self.assert(bitvec::OpCodes::BvAdd,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::Subtraction => {
+                        return self.assert(bitvec::OpCodes::BvSub,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::Multiplication => {
+                        return self.assert(bitvec::OpCodes::BvMul,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::Division => {
+                        return self.assert(bitvec::OpCodes::BvSDiv,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::Modulo => {
+                        return self.assert(bitvec::OpCodes::BvSMod,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::BitwiseOr => {
+                        return self.assert(bitvec::OpCodes::BvOr,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::BitwiseAnd => {
+                        return self.assert(bitvec::OpCodes::BvAnd,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::BitwiseXor => {
+                        return self.assert(bitvec::OpCodes::BvXor,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::BitwiseLeftShift => {
+                        return self.assert(bitvec::OpCodes::BvShl,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+                    IntegerBinaryOperator::BitwiseRightShift => { // AShr or LShr?
+                        return self.assert(bitvec::OpCodes::BvLShr,
+                                             &[self.term2smtlib(b.t1.as_ref()),
+                                               self.term2smtlib(b.t2.as_ref())]);
+                    },
+//                      IntegerBinaryOperator::ArrayLookup => {
+//                          let array = self.term2smtlib(b.t1.as_ref());
+//                          let index = self.term2smtlib(b.t2.as_ref());
+//                              
+//                      },
+//                      IntegerBinaryOperator::ArrayUpdate => {
+                        //write!(f, "({} [{}])", *b.t1, *b.t2)
+//                          return 
+//                          // NOT SURE HOW TO HANDLE THIS YET
+//                      },
+                }
+            },
+            &Term::UnaryExpression (ref u) => {
+                match u.op {
+                    IntegerUnaryOperator::Negation => {
+                        return self.assert(bitvec::OpCodes::BvNeg,
+                                             &[self.term2smtlib(u.t.as_ref())]);
+                    },
+                    IntegerUnaryOperator::BitwiseNot => {
+                        return self.assert(bitvec::OpCodes::BvNot,
+                                             &[self.term2smtlib(u.t.as_ref())]);
+                    },
+                }
+            },
+            &Term::UnsignedBitVector (ref u) => {
+                return bv_const!(self, u.value, 64);
+            },
+            &Term::SignedBitVector (ref s) => {
+                return bv_const!(self, s.value, 64);
             }
         }
     }
 }
 
-fn term2smtlib<L: Logic> (solver: &SMTLib2<L>, term: &Term) -> NodeIndex {
-    match term {
-        &Term::VariableMapping (ref v) => {
-            match v.var_type.as_ref() {
-                "int" => return solver.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                "i32" => return solver.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                "i64" => return solver.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                "u32" => return solver.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                "u64" => return solver.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                _ => return solver.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-            }
-        },
-        &Term::BinaryExpression (ref b) => {
-            match b.op {
-                IntegerBinaryOperator::Addition => {
-                    return solver.assert(bitvec::OpCodes::BvAdd,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::Subtraction => {
-                    return solver.assert(bitvec::OpCodes::BvSub,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::Multiplication => {
-                    return solver.assert(bitvec::OpCodes::BvMul,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::Division => {
-                    return solver.assert(bitvec::OpCodes::BvSDiv,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::Modulo => {
-                    return solver.assert(bitvec::OpCodes::BvSMod,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::BitwiseOr => {
-                    return solver.assert(bitvec::OpCodes::BvOr,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::BitwiseAnd => {
-                    return solver.assert(bitvec::OpCodes::BvAnd,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::BitwiseXor => {
-                    return solver.assert(bitvec::OpCodes::BvXor,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::BitwiseLeftShift => {
-                    return solver.assert(bitvec::OpCodes::BvShl,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::BitwiseRightShift => { // AShr or LShr?
-                    return solver.assert(bitvec::OpCodes::BvLShr,
-                                         &[solver.term2smtlib(*b.t1),
-                                           solver.term2smtlib(*b.t2)]);
-                },
-                IntegerBinaryOperator::ArrayLookup => {
-                    // NOT SURE HOW TO HANDLE THIS YET
-                },
-                IntegerBinaryOperator::ArrayUpdate => {
-                    // NOT SURE HOW TO HANDLE THIS YET
-                },
-            }
-        },
-        &Term::UnaryExpression (ref u) => {
-            match u.op {
-                IntegerUnaryOperator::Negation => {
-                    return solver.assert(bitvec::OpCodes::BvNeg,
-                                         &[solver.term2smtlib(*u.t)]);
-                },
-                IntegerUnaryOperator::BitwiseNot => {
-                    return solver.assert(bitvec::OpCodes::BvNot,
-                                         &[solver.term2smtlib(*u.t)]);
-                },
-            }
-        },
-        &Term::UnsignedBitVector (ref u) => {
-            return bv_const!(solver, u.value, 64);
-        },
-        &Term::SignedBitVector (ref s) => {
-            return bv_const!(solver, s.value, 64);
-        }
-    }
-}
+
+
+//  pub trait Test {
+//      type Logic: Logic;
+//  
+//      fn test_self (&mut self);
+//      //fn test_ext (&mut SMTLib2<L>);
+//  }
+//  
+//  
+//  impl<L: Logic> Test for SMTLib2<L>
+//          //COMPILES! And panics...
+//          where <L as Logic>::Sorts: From<core::Sorts>
+//          //where <L as Logic>::Sorts: From<QF_ABV_Sorts>,
+//          //      <L as Logic>::Fns: From<QF_ABV_Fn>
+//  {
+//      type Logic = L;
+//  
+//      fn test_self (&mut self) {
+//  
+//          // Compiles! and panics...
+//          self.new_var(Some("x"), core::Sorts::Bool);
+//          //
+//          // no associated item named `Bool` found for type `libsmt::logics::qf_abv::QF_ABV_Sorts`
+//          //self.new_var(Some("x"), QF_ABV_Sorts::Bool);
+//          // found value `libsmt::logics::qf_abv::QF_ABV_Sorts::Core` used as a type [E0248]
+//          //self.new_var(Some("x"), QF_ABV_Sorts::Core::Bool);
+//          // `QF_ABV_Sorts::Sorts` does not name a structure [E0422]
+//          //self.new_var(Some("x"), QF_ABV_Sorts::Sorts{Core: Bool});
+//          //self.new_var(Some("x"), L::Sorts::Bool);
+//          //
+//          // no associated item named `Bool` found for type `<L as libsmt::backends::backend::Logic>::Sorts`
+//          // self.new_var(Some("x"), L::Sorts::Bool);
+//  
+//  
+//      }
+//  }
