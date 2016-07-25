@@ -174,7 +174,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
         self.builder.func_name = name;
 
-
+		reporting::warning("new test".to_string());
 
         // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
         for attr in attrs {
