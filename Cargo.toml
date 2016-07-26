@@ -11,7 +11,7 @@ authors = [
             "Drew Gohman <dgohman@pdx.edu>"
           ]
 
-#build = "build.rs"
+build = "build.rs"
 
 [build-dependencies]
 lalrpop = "0.11.0"

@@ -25,6 +25,8 @@ use petgraph::graph::NodeIndex;
 
 use expression::*;
 
+// Now that we have a verification condition, we need to verify that it is always true.
+// Simply satisfying P->WP isn't enough. We need to verify that !(P->WP) is *unsatisfiable*
 pub fn gen_smtlib (vc: &Predicate) {
     // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
@@ -39,13 +41,18 @@ pub fn gen_smtlib (vc: &Predicate) {
     println!("Verification Condition is: ``{}''", vc);
 
     // Traverse the Predicate graph and build the solver
-    let _ = solver.pred2smtlib(&vc);
+    let vcon = solver.pred2smtlib(&vc);
+    let _ = solver.assert(core::OpCodes::Not, &[vcon]);
 
     // Check the satisfiability of the solver
     if let Ok(result) = solver.solve(&mut z3) {
-        println!("Satisfiable");
+        // If the assertion is satisfiable, then the VC is not valid (not always true)
+        // FIXME This should probably warn
+        println!("Verification Condition is not valid.");
     } else {
-        println!("Unsatisfiable");
+        // If the assertion is unsatisfiable, then the VC is valid (always true)
+        // FIXME Do we want to output if things are good?
+        println!("Verification Condition is valid!");
     }
 }
 
@@ -53,22 +60,17 @@ pub trait Pred2SMT {
     type Idx: Debug + Clone;
     type Logic: Logic;
 
-    //fn gen_smtlib(&Predicate);
     fn pred2smtlib (&mut self, &Predicate) -> Self::Idx;
-    //fn pred2smtlib (&mut self, &Predicate) -> NodeIndex;
     fn term2smtlib (&mut self, &Term) -> Self::Idx;
-    //fn term2smtlib (&mut self, &Term) -> NodeIndex;
 }
 
 // bajr is keeping this here for posterity... and misplaced pride
 //  impl<L: Logic> Pred2SMT for SMTLib2<L>
 //      where <L as Logic>::Sorts: From<array_ex::Sorts<QF_ABV_Sorts,QF_ABV_Sorts>> + From<bitvec::Sorts> + From<core::Sorts>,
 //            <L as Logic>::Fns: From<array_ex::OpCodes<QF_ABV_Sorts,QF_ABV_Sorts,QF_ABV_Fn>> + From<bitvec::OpCodes> + From<core::OpCodes>
-impl Pred2SMT for SMTLib2<QF_ABV>
-{
+impl Pred2SMT for SMTLib2<QF_ABV> {
     type Idx = NodeIndex;
     type Logic = QF_ABV;
-
 
     fn pred2smtlib (&mut self, vc: &Predicate) -> Self::Idx {
         match vc {
@@ -149,11 +151,12 @@ impl Pred2SMT for SMTLib2<QF_ABV>
             }
         }
     }
-    
+
     fn term2smtlib (&mut self, term: &Term) -> Self::Idx {
         match term {
             &Term::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
+                    // FIXME All these variables are size 64 bitvectors, should they be different?
                     "int" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
                     "i32" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
                     "i64" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
@@ -215,14 +218,14 @@ impl Pred2SMT for SMTLib2<QF_ABV>
                         return self.assert(bitvec::OpCodes::BvLShr, &[l,r]);
                     },
                     IntegerBinaryOperator::ArrayLookup => {
-                        // FIXME: This arm is unimplemented!
-                        // FIXME: But it must exist and it must return an index
+                        // FIXME This arm is unimplemented!
+                        // FIXME But it must exist and it must return an index
                         return self.new_const(core::OpCodes::True);
 //                          return self.assert(array_ex::OpCodes::Select, &[.., ..]);
                     },
                     IntegerBinaryOperator::ArrayUpdate => {
-                        // FIXME: This arm is unimplemented!
-                        // FIXME: But it must exist and it must return an index
+                        // FIXME This arm is unimplemented!
+                        // FIXME But it must exist and it must return an index
                         return self.new_const(core::OpCodes::True);
 //                          return self.assert(array_ex::OpCodes::Store, &[.., ..]);
                     },
