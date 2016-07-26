@@ -22,5 +22,6 @@ fn main() {
 
 #[condition(pre="x: int < 10 && x: int > 0", post="return: int > 5")]
 fn foo(x: i32) -> i32 {
-	1i32 + 3i32
+	let y: i32 = 7i32;
+	1i32 + y
 }

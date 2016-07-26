@@ -89,45 +89,44 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
     // The term on the right-hand side of the assignment
     let term : Term = match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
-            // FIXME: This is a kludge, please fix!
+            // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
             var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
 
             let op: IntegerBinaryOperator = match binop {
                 &BinOp::Add => {
-                    // FIXME: review this with group
-                    // get the type of the arguments (assumed to be the same)
+                    // FIXME: More types may be required
+                    // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = match rval.clone() {
                         Operand::Constant(ref c) => { c.ty },
-                        _ => { panic!("how did you get here?")}
+                        _ => { panic!("unimplemented checkedAdd right-hand operand enum value")}
                     };
-                    // create a new weakest precondition representing the origional and the assert
-                    let new_wp: Predicate = Predicate::BinaryExpression( BinaryPredicateData{
+                    // Append a clause to the weakest precondition representing the overflow assertion
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
                         op: BooleanBinaryOperator::And,
                         p1: Box::new(wp),
                         p2: Box::new(Predicate::IntegerComparison( IntegerComparisonData{
                             op: IntegerComparisonOperator::LessThan,
-                            // variable we are checking overflow on
+                            // Variable we are checking overflow on
                             t1: Box::new(Term::VariableMapping( VariableMappingData {
                                 name: var.clone().name,
                                 var_type: var.clone().var_type,
                             })),
-                            // compute overflow condition
+                            // 
                             t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
-                                // size relative to size of type
+                                // The bit-vector size of the given type
                                 size: match ty.to_string().as_str() {
                                     "i32" => { 32 }
-                                    _ => { panic!("unimplemented checkeddAdd argument") }
+                                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                                 },
-                                // value relative to max value of type
+                                // The maximum value for the given type
                                 value: match ty.to_string().as_str() {
                                     "i32" => { i32::max_value() as i64 }
-                                    _ => { panic!("unimplemented checkeddAdd argument") }
+                                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                                 },
                             }))
                         }))
                     } );
-                    wp = new_wp;
                     IntegerBinaryOperator::Addition
                 },
                 &BinOp::Sub => {
@@ -235,19 +234,23 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
             // FIXME: Lots of intermediaries, should be condensed
-            //Trying to get the name of the variable being projected
-            println!("projection" );
-            let variable: Lvalue = pro.as_ref().base.clone();
-            let lvalue_name = match variable {
+            // Get the name of the variable being projected
+            // FIXME: Remove debug print statement
+            println!("projection");
+            let lvalue_name = match pro.as_ref().base {
+                // Argument
                 Lvalue::Arg(ref arg) => {
+                    // Return the name of the argument
                     data.0[arg.index()].debug_name.as_str().to_string()
                 },
+                // Temporary variable
                 Lvalue::Temp(ref temp) => {
+                    // Return "temp<index>"
                     "temp".to_string() + temp.index().to_string().as_str()
                 },
                 // Local variable
                 Lvalue::Var(ref var) => {
-                    // Find the name and type in the declaration
+                    // Return the name oof the variable
                     data.3[var.index()].name.to_string()
                 },
                 Lvalue::ReturnPointer => {
@@ -256,6 +259,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 Lvalue::Static(ref stat) => {
                     unimplemented!();
                 }
+                // Multiply-nested projection
                 Lvalue::Projection(ref proj) => {
                     unimplemented!();
                 }
@@ -263,13 +267,12 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
 
             // FIXME: Lots of intermediaries, should be condensed
             // Get the index
-            let mut index:String = "".to_string();
-            match pro.as_ref().elem.clone() {
+            let index: String = match pro.as_ref().elem.clone() {
                 ProjectionElem::Index(ref o) => {
                     unimplemented!();
                 },
                 ProjectionElem::Field(ref field, ref ty) => {
-                    index = (field.index() as i32).to_string();
+                    (field.index() as i32).to_string()
                 }
                 _ => { unimplemented!(); }
             };
