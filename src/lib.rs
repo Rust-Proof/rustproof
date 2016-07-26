@@ -41,6 +41,7 @@ extern crate rustc;
 extern crate rustc_plugin;
 extern crate rustc_data_structures;
 extern crate syntax;
+extern crate term;
 
 // External imports
 use env_logger::LogBuilder;
