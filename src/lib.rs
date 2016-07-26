@@ -34,13 +34,15 @@
 #![feature(core_intrinsics)]
 
 // External crate imports
-#[macro_use]
-extern crate log;
 extern crate env_logger;
+#[macro_use] extern crate libsmt;
+#[macro_use] extern crate log;
+extern crate petgraph;
 extern crate rustc;
 extern crate rustc_plugin;
 extern crate rustc_data_structures;
 extern crate syntax;
+extern crate term;
 
 // External imports
 use env_logger::LogBuilder;
@@ -61,13 +63,16 @@ use syntax::ptr::P;
 
 // Local imports
 use expression::{Predicate, BooleanBinaryOperator, BinaryPredicateData};
+use parser::*;
+use smt_output::*;
+use weakest_precondition::*;
 
 // These are our modules
 pub mod expression;
 pub mod parser;
 pub mod reporting;
+pub mod smt_output;
 pub mod weakest_precondition;
-pub mod z3_interface;
 pub mod dev_tools; // FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
 mod tests; // Conditionally include tests when cargo --test is called
@@ -180,7 +185,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
         // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
         for attr in attrs {
-            parser::parse_attribute(&mut self.builder, attr);
+            parse_attribute(&mut self.builder, attr);
         }
 
         // FIXME: Better condition check
@@ -194,6 +199,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             // Begin examining the MIR code
             MirVisitor::visit_mir(self, mir);
         }
+
     }
 }
 
@@ -234,7 +240,7 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         let data = (arg_data, block_data, temp_data, var_data);
 
         // Generate the weakest precondition
-        self.builder.weakest_precondition = weakest_precondition::gen(0, &data, &self.builder);
+        self.builder.weakest_precondition = gen(0, &data, &self.builder);
 
         // Create the verification condition, P -> WP
         let verification_condition: Predicate = Predicate::BinaryExpression( BinaryPredicateData{
@@ -247,5 +253,7 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         println!("vc: {}", verification_condition);
 
         // Output to smt_lib format
+        //Pred2SMT::gen_smtlib(&verification_condition.clone());
+        gen_smtlib(&verification_condition.clone());
     }
 }
