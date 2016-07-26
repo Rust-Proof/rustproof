@@ -48,19 +48,22 @@ use petgraph::graph::NodeIndex;
 use expression::*;
 
 pub fn gen_smtlib (vc: Predicate) {
+    // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
 
-    //let mut solver = SMTLib2::new(Some(QF_ABV));
+    // Declare a logic to use
     let mut solver = SMTLib2::new(Some(QF_ABV));
-    solver.set_logic(&mut z3);
 
-    //_ = solver.pred2smtlib(&vc);
+    // Apply logic to Z3 instance
+    solver.set_logic(&mut z3);
 
     // DEBUG
     println!("Verification Condition is: ``{}''", vc);
 
-    let x = solver.new_var(Some("x"), core::Sorts::Bool);
+    // Traverse the Predicate graph and build the solver
+    //let _ = solver.pred2smtlib(&vc);
 
+    // Check the satisfiability of the solver
     if let Ok(result) = solver.solve(&mut z3) {
         println!("Satisfiable");
     } else {
