@@ -8,43 +8,38 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+extern crate rustc_const_math;
 
-use rustc_plugin::Registry;
-use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind, LitKind, Attribute_};
-use syntax::ext::base::{ExtCtxt, Annotatable};
-use syntax::ext::base::SyntaxExtension::MultiDecorator;
-use syntax::codemap::{Span, Spanned};
-use syntax::parse::token::intern;
-use syntax::ptr::P;
-use super::dev_tools; // FIXME: remove for production
 use super::Attr;
-use super::expression;
-use expression::Predicate;
-use std::str::FromStr;
-use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, TerminatorKind, StatementKind, Lvalue, Rvalue};
+use expression::substitute_variable_in_predicate_with_term;
+use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData};
+use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl};
+use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
-use super::parser;
 
-// computes the weakest precondition
-pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Option<Predicate> {
-    println!("\n\nExamining bb{:?}\n{:#?}", index, data[index]);
+// Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
+pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Predicate> {
+    println!("\n\nExamining bb{:?}\n{:#?}", index, data.1[index]);
 
     //let mut block_targets = Vec::new();
     //let mut block_kind = "";
     let mut wp: Option<Predicate> = None;
 
-    // parse terminator data
-    let terminator = data[index].terminator.clone().unwrap().kind;
+    // Parse terminator data
+    let terminator = data.1[index].terminator.clone().unwrap().kind;
     match terminator {
         TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
+            // Retrieve the weakest precondition from the following block
             wp = gen(target.index(), data, builder);
         },
         TerminatorKind::Return => {
-            // return the post condition as expression to start WP gen
+            // Return the post condition to the preceeding block
             wp = builder.post_expr.clone();
-            println!("\n\n{:?}\n\n", wp);
+            println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
+            return wp;
         },
         TerminatorKind::Goto{target} => {
+            // Retrieve the weakest precondition from the following block
             wp = gen(target.index(), data, builder);
         },
         TerminatorKind::Call{func, args, destination, cleanup} => unimplemented!(),
@@ -57,53 +52,184 @@ pub fn gen(index: usize, data: &Vec<&BasicBlockData>, builder: &mut Attr) -> Opt
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
     }
 
-
-
-    // FIXME: add wp generation
-    // examine statements in reverse order
-    let mut stmts = data[index].statements.clone();
+    // Examine statements in reverse order
+    let mut stmts = data.1[index].statements.clone();
     stmts.reverse();
     for stmt in stmts {
-        //process stmt into expression
-        // gen_stmt(wp, stmt);
-        println!("{:?}", stmt);
+        // Modify the weakest precondition based on the statement
+        wp = gen_stmt(wp.unwrap(), stmt, data);
     }
 
-    println!("wp = {:?}", wp);
+    // FIXME: Remove debug print statement
+    println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
 
+    // Return the weakest precondition to the preceeding block, or to control
     return wp;
 }
 
-
-
-
-
-//FIXME: wp is a predicate but is just a place holder for now. Will need appropriate type in
-//       function arguments
-pub fn gen_stmt(wp: Predicate, stmt: StatementKind)  {
+// Returns a (possibly) modified weakest precondition based on the content of a statement
+pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
+    // FIXME: Remove debug print statement
+    println!("processing statement\t{:?}\t\tinto predicate\t{:?}", stmt, wp);
 
     let mut lvalue: Option<Lvalue> = None;
     let mut rvalue: Option<Rvalue> = None;
-    match stmt {
+
+    // Store the values of the statement
+    match stmt.kind {
         StatementKind::Assign(ref lval, ref rval) => {
             lvalue = Some(lval.clone());
             rvalue = Some(rval.clone());
         }
     }
 
-    match lvalue.unwrap() {
-        Lvalue::Var(ref var) => {unimplemented!();}
-        Lvalue::Temp(ref temp) => {unimplemented!();}
-        Lvalue::Arg(ref arg) => {unimplemented!();}
-        Lvalue::Static(ref def_id) => {unimplemented!();}
-        Lvalue::ReturnPointer => {unimplemented!();}
-        Lvalue::Projection(_) => {panic!("wtf is a projection");}
-    }
+    // The variable or temp on the left-hand side of the assignment
+    let mut var = gen_lvalue(lvalue.unwrap(), data);
 
-    match rvalue.unwrap() {
-        Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {unimplemented!();}
-        Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {unimplemented!();}
-        Rvalue::UnaryOp(ref unop, ref val) => {unimplemented!();}
-        _=> {panic!("Only CheckedBinaryOp, BinaryOp, and UnaryOp currently supported");}
+    // The term on the right-hand side of the assignment
+    let term : Term = match rvalue.unwrap() {
+        Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
+            // FIXME: This is a kludge, please fix!
+            // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
+            var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
+
+            let op: IntegerBinaryOperator = match binop {
+                &BinOp::Add => {
+                    IntegerBinaryOperator::Addition
+                },
+                &BinOp::Sub => {
+                    IntegerBinaryOperator::Subtraction
+                },
+                &BinOp::Mul => {
+                    IntegerBinaryOperator::Multiplication
+                },
+                &BinOp::Shl => {
+                    IntegerBinaryOperator::BitwiseLeftShift
+                },
+                &BinOp::Shr => {
+                    IntegerBinaryOperator::BitwiseRightShift
+                },
+                _ => {panic!("Unsupported checked binary operation!");}
+            };
+
+            let lvalue: Term = gen_operand(&lval, data);
+            let rvalue: Term = gen_operand(&rval, data);
+
+            Term::BinaryExpression( BinaryExpressionData {
+                op: op,
+                t1: Box::new(lvalue),
+                t2: Box::new(rvalue)
+             } )
+        },
+        Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
+            let op: IntegerBinaryOperator = match binop {
+                &BinOp::Div => {
+                    IntegerBinaryOperator::Division
+                },
+                &BinOp::Rem => {
+                    IntegerBinaryOperator::Modulo
+                },
+                &BinOp::BitOr => {
+                    IntegerBinaryOperator::BitwiseOr
+                },
+                &BinOp::BitAnd => {
+                    IntegerBinaryOperator::BitwiseAnd
+                },
+                &BinOp::BitXor => {
+                    IntegerBinaryOperator::BitwiseXor
+                },
+                _ => {panic!("Unsupported unchecked binary operation!");}
+            };
+
+            let lvalue: Term = gen_operand(&lval, data);
+            let rvalue: Term = gen_operand(&rval, data);
+
+            Term::BinaryExpression( BinaryExpressionData {
+                op: op,
+                t1: Box::new(lvalue),
+                t2: Box::new(rvalue)
+             } )
+        },
+        Rvalue::UnaryOp(ref unop, ref val) => {
+            let op: IntegerUnaryOperator = match unop {
+                &UnOp::Not => {
+                    IntegerUnaryOperator::BitwiseNot
+                },
+                &UnOp::Neg => {
+                    IntegerUnaryOperator::Negation
+                }
+            };
+
+            let value: Term = gen_operand(&val, data);
+
+            Term::UnaryExpression( UnaryExpressionData {
+                op: op,
+                t: Box::new(value)
+            } )
+        },
+        Rvalue::Use(ref operand) => {
+            gen_operand(operand, data)
+        },
+        _ => {panic!("Unsupported RValue type!");}
+    };
+
+    // Replace any appearance of var in the weakest precondition with the term
+    Some(substitute_variable_in_predicate_with_term( wp, var, term ))
+}
+
+// Generates an appropriate variable mapping based on whatever variable, temp, or field is found
+pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> VariableMappingData {
+    match lvalue {
+        // Function argument
+        Lvalue::Arg(ref arg) => {
+            // Find the name and type in the declaration
+            VariableMappingData{ name: data.0[arg.index()].debug_name.as_str().to_string(), var_type: data.0[arg.index()].ty.clone().to_string() }
+        },
+        // Temporary variable
+        Lvalue::Temp(ref temp) => {
+            // Find the index and type in the declaration
+            VariableMappingData{ name: "temp".to_string() + temp.index().to_string().as_str(), var_type: data.2[temp.index()].ty.clone().to_string() }
+        },
+        // Local variable
+        Lvalue::Var(ref var) => {
+            // Find the name and type in the declaration
+            VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
+        },
+        // The returned value
+        Lvalue::ReturnPointer => {
+            VariableMappingData{ name: "return".to_string(), var_type : "".to_string() }
+        },
+        // (Most likely) a field of a tuple from a checked operation
+        Lvalue::Projection(ref pro) => {
+            // FIXME: This is not shippable code! Only works for one example!
+            // Find the name of the tuple, and the index and type of the field
+            VariableMappingData{ name: "temp1.0".to_string(), var_type: "".to_string() }
+        },
+        _=> {unimplemented!();}
+    }
+}
+
+// Generates an appropriate Term based on whatever is found as an operand, either a literal or some kind of variable/temp/field
+pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Term {
+    match operand {
+        // A variable/temp/field
+        &Operand::Consume (ref l) => {
+            Term::VariableMapping( gen_lvalue(l.clone(), data) )
+        },
+        // A literal value
+        &Operand::Constant (ref c) => {
+            match c.literal {
+                Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
+                Literal::Value {ref value} => {
+                    match value {
+                        &ConstVal::Integral(ref const_int) => {
+                            Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: const_int.to_u64_unchecked() } )
+                        },
+                        _ => { unimplemented!(); },
+                    }
+                },
+                Literal::Promoted {ref index} => { unimplemented!(); },
+            }
+        },
     }
 }

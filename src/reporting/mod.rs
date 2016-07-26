@@ -9,13 +9,16 @@
 // except according to those terms.
 
 use std::env;
+use std::process;
 use log::{LogRecord, LogLevelFilter};
 use env_logger::LogBuilder;
+use term;
+
 
 //Sets up the Reporting Modulle
 pub fn init() {
 	let format = |record: &LogRecord| {
-		format!("{} - {}", record.level(), record.args())
+		format!("{}", record.args())
 	};
 
 	let mut builder = LogBuilder::new();
@@ -26,58 +29,85 @@ pub fn init() {
 		builder.parse(&env::var("RUST_LOG").unwrap());
 	}
 
-	builder.init().unwrap(); 
+	builder.init().unwrap();
 
-//	error!("error message");
-//	warn!("This is a warning message");
-//	info!("info message");
+	//error("error message");
+	//info("info message");
 
-	println!("Next test");
+	//println!("Next test");
 }
 
-//code [demo]
-pub fn demo() {
-    println!("reporting - reporting in");
-}
 
-/// Reports successful rustproof behavior to the compiler
-/// # Arguments
-/// * 'msg' - The message to report
-pub fn success() {
-    unimplemented!();
-}
 
 /// Reports noteworthy rustproof behavior to the compiler
 /// # Arguments
 /// * 'msg' - The message to report
-pub fn warning(val: String) {
+pub fn warn(val: &'static str) {
+	let mut terminal = term::stdout().unwrap();
+	terminal.fg(term::color::YELLOW).unwrap();
+	terminal.attr(term::Attr::Bold).unwrap();
+	
+	write!(terminal, "WARNING: ").unwrap();
+	terminal.reset().unwrap();
+	terminal.flush();
 	warn!("{}", val);
 }
 
 /// Reports errors to the compiler
 /// # Arguments
 /// * 'msg' - The message to report
-pub fn error(val: String) {
-    error!("{}", val);
+pub fn error(val: &'static str) {
+	let mut terminal = term::stdout().unwrap();
+	terminal.fg(term::color::RED).unwrap();
+	terminal.attr(term::Attr::Bold).unwrap();
+	
+	write!(terminal, "ERROR: ").unwrap();
+	terminal.reset().unwrap();
+	terminal.flush();
+	error!("{}", val);
+	process::exit(1);
 }
 
 /// Reports errors to the compiler
 /// # Arguments
 /// * 'msg' - The message to report
-pub fn debug(val: String) {
-    debug!("{}", val);
+pub fn debug(val: &'static str) {
+	let mut terminal = term::stdout().unwrap();
+	terminal.fg(term::color::RED).unwrap();
+	terminal.attr(term::Attr::Bold).unwrap();
+	
+	write!(terminal, "DEBUG: ").unwrap();
+	terminal.reset().unwrap();
+	terminal.flush();
+	debug!("{}", val);
+}
+
+
+
+/// Reports errors to the compiler
+/// # Arguments
+/// * 'msg' - The message to report
+pub fn info(val: &'static str) {
+	let mut terminal = term::stdout().unwrap();
+	terminal.fg(term::color::WHITE).unwrap();
+	terminal.attr(term::Attr::Bold).unwrap();
+	
+	write!(terminal, "INFO: ").unwrap();
+	terminal.reset().unwrap();
+	terminal.flush();
+	info!("{}", val);
 }
 
 /// Reports errors to the compiler
 /// # Arguments
 /// * 'msg' - The message to report
-pub fn info(val: String) {
-    info!("{}", val);
-}
-
-/// Reports errors to the compiler
-/// # Arguments
-/// * 'msg' - The message to report
-pub fn trace(val: String) {
-    trace!("{}", val);
+pub fn trace(val: &'static str) {
+	let mut terminal = term::stdout().unwrap();
+	terminal.fg(term::color::GREEN).unwrap();
+	terminal.attr(term::Attr::Bold).unwrap();
+	
+	write!(terminal, "TRACE: ").unwrap();
+	terminal.reset().unwrap();
+	terminal.flush();
+	trace!("{}", val);
 }

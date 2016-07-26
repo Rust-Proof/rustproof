@@ -7,9 +7,3 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-
-#[test]
-fn demo() {
-    use super::super::z3_interface;
-    z3_interface::demo();
-}
