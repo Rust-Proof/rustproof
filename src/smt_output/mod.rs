@@ -99,11 +99,22 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         let r = self.pred2smtlib(b.p2.as_ref());
                         return self.assert(core::OpCodes::Or, &[l,r]);
                     },
-                    BooleanBinaryOperator::Implies => {
+                    BooleanBinaryOperator::Xor => {
+                        let l = self.pred2smtlib(b.p1.as_ref());
+                        let r = self.pred2smtlib(b.p2.as_ref());
+                        return self.assert(core::OpCodes::Xor, &[l,r]);
+                    },
+                    BooleanBinaryOperator::Implication => {
                         let l = self.pred2smtlib(b.p1.as_ref());
                         let r = self.pred2smtlib(b.p2.as_ref());
                         return self.assert(core::OpCodes::Imply, &[l,r]);
                     },
+
+                    BooleanBinaryOperator::BiImplication => {
+                        let l = self.pred2smtlib(b.p1.as_ref());
+                        let r = self.pred2smtlib(b.p2.as_ref());
+                        return self.assert(core::OpCodes::Cmp, &[l,r]);
+                    }
                 }
             },
             &Predicate::UnaryExpression (ref u) => {
