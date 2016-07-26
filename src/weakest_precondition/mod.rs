@@ -255,15 +255,13 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                     data.3[var.index()].name.to_string()
                 },
                 Lvalue::ReturnPointer => {
-                    "".to_string()
+                    unimplemented!();
                 }
                 Lvalue::Static(ref stat) => {
-                    println!("{:?}", stat);
-                    "".to_string()
+                    unimplemented!();
                 }
                 Lvalue::Projection(ref proj) => {
-                    println!("{:?}", proj);
-                    "".to_string()
+                    unimplemented!();
                 }
             };
 
