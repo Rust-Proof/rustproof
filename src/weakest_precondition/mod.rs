@@ -234,14 +234,10 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
-            // FIXME: This is not shippable code! Only works for one example!
-            // Find the name of the tuple, and the index and type of the field
-
             // FIXME: Lots of intermediaries, should be condensed
             //Trying to get the name of the variable being projected
             println!("projection" );
             let variable: Lvalue = pro.as_ref().base.clone();
-            dev_tools::print_type_of(&variable);
             let lvalue_name = match variable {
                 Lvalue::Arg(ref arg) => {
                     data.0[arg.index()].debug_name.as_str().to_string()
@@ -266,15 +262,11 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             };
 
             // FIXME: Lots of intermediaries, should be condensed
-            // Trying to get the index
-            let proj_index: ProjectionElem<Operand> = pro.as_ref().elem.clone();
-            dev_tools::print_type_of(&proj_index);
-            //let index_operand: Operand =
+            // Get the index
             let mut index:String = "".to_string();
-            match proj_index {
+            match pro.as_ref().elem.clone() {
                 ProjectionElem::Index(ref o) => {
                     unimplemented!();
-                    //println!("{:?}", o.clone());
                 },
                 ProjectionElem::Field(ref field, ref ty) => {
                     index = (field.index() as i32).to_string();
@@ -282,12 +274,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 _ => { unimplemented!(); }
             };
 
-
-
-            //println!("{:?}", index_operand);
             //Get the index int from index_operand, then stick it in the VariableMappingData
-
-            //let index = ".0";
             VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: "".to_string() }
         },
         _=> {unimplemented!();}
