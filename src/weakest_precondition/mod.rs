@@ -13,7 +13,7 @@ use super::dev_tools;
 use super::Attr;
 use expression::substitute_variable_in_predicate_with_term;
 use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData, BooleanBinaryOperator, IntegerComparisonOperator, IntegerComparisonData, SignedBitVectorData, BinaryPredicateData};
-use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl};
+use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl, ProjectionElem};
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 
@@ -233,14 +233,48 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             VariableMappingData{ name: "return".to_string(), var_type : "".to_string() }
         },
         // (Most likely) a field of a tuple from a checked operation
-        Lvalue::Projection(ref pro) => {
+        Lvalue::Projection(pro) => {
             // FIXME: This is not shippable code! Only works for one example!
             // Find the name of the tuple, and the index and type of the field
-            VariableMappingData{ name: "temp1.0".to_string(), var_type: "".to_string() }
+
+            // FIXME: Lots of intermediaries, should be condensed
+            //Trying to get the name of the variable being projected
+            let variable: Lvalue = pro.as_ref().base.clone();
+            let lvalue_name = match variable {
+                Lvalue::Arg(ref arg) => {
+                    data.0[arg.index()].debug_name.as_str().to_string()
+                },
+                Lvalue::Temp(ref temp) => {
+                    "temp".to_string() + temp.index().to_string().as_str()
+                },
+                        // Local variable
+                Lvalue::Var(ref var) => {
+                // Find the name and type in the declaration
+                    data.3[var.index()].name.to_string()
+                },
+                _ => { unimplemented!(); }
+            };
+
+            // FIXME: Lots of intermediaries, should be condensed
+            // Trying to get the index
+            let proj_index: ProjectionElem<Operand> = pro.as_ref().elem.clone();
+            let index_operand: Operand = match proj_index {
+                ProjectionElem::Index(ref o) => {
+                    o.clone()
+                },
+                _ => { unimplemented!(); }
+            };
+
+            //Get the index int from index_operand, then stick it in the VariableMappingData
+
+            let index = ".0";
+            VariableMappingData{ name: lvalue_name + index, var_type: "".to_string() }
         },
         _=> {unimplemented!();}
     }
 }
+
+
 
 // Generates an appropriate Term based on whatever is found as an operand, either a literal or some kind of variable/temp/field
 pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Term {

@@ -9,7 +9,7 @@ use rustproof::expression::BinaryPredicateData;
 use rustproof::expression::BooleanBinaryOperator;
 
 fn main() {
-	let x = 7u32;
+	let x = 7i32;
 	let z = foo(x);
 	println!("foo({}) = {}", x, z);
 	let p = Predicate::BinaryExpression( BinaryPredicateData { op: BooleanBinaryOperator::And, p1: Box::new(Predicate::BooleanLiteral(true)), p2: Box::new(Predicate::BooleanLiteral(false)) } );
@@ -21,16 +21,6 @@ fn main() {
 }
 
 #[condition(pre="x: int < 10 && x: int > 0", post="return: int > 5")]
-fn foo(x: u32) -> u32 {
-	1 + 2;
-	1 - 2;
-	1 * 2;
-	1 ^ 2;
-	1 & 2;
-	1 | 2;
-	1 << 2;
-	1 >> 2;
-	-(1);
-	!1;
-	x
+fn foo(x: i32) -> i32 {
+	1i32 + 3i32
 }
