@@ -273,10 +273,10 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             let mut index:String = "".to_string();
             match proj_index {
                 ProjectionElem::Index(ref o) => {
-                    println!("{:?}", o.clone());
+                    unimplemented!();
+                    //println!("{:?}", o.clone());
                 },
                 ProjectionElem::Field(ref field, ref ty) => {
-                    println!("{:?} {:?}", field.index(), ty);
                     index = (field.index() as i32).to_string();
                 }
                 _ => { unimplemented!(); }
