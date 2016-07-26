@@ -13,7 +13,7 @@ use super::dev_tools;
 use super::Attr;
 use expression::substitute_variable_in_predicate_with_term;
 use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData, BooleanBinaryOperator, IntegerComparisonOperator, IntegerComparisonData, SignedBitVectorData, BinaryPredicateData};
-use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl};
+use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl, ProjectionElem};
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 
@@ -47,7 +47,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
         TerminatorKind::Unreachable => unimplemented!(),
         TerminatorKind::Resume => unimplemented!(),
-        TerminatorKind::If{cond, targets} => unimplemented!(),
+        TerminatorKind::If{cond, targets} => { unimplemented!() },
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
     }
@@ -233,10 +233,49 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             VariableMappingData{ name: "return".to_string(), var_type : "".to_string() }
         },
         // (Most likely) a field of a tuple from a checked operation
-        Lvalue::Projection(ref pro) => {
-            // FIXME: This is not shippable code! Only works for one example!
-            // Find the name of the tuple, and the index and type of the field
-            VariableMappingData{ name: "temp1.0".to_string(), var_type: "".to_string() }
+        Lvalue::Projection(pro) => {
+            // FIXME: Lots of intermediaries, should be condensed
+            //Trying to get the name of the variable being projected
+            println!("projection" );
+            let variable: Lvalue = pro.as_ref().base.clone();
+            let lvalue_name = match variable {
+                Lvalue::Arg(ref arg) => {
+                    data.0[arg.index()].debug_name.as_str().to_string()
+                },
+                Lvalue::Temp(ref temp) => {
+                    "temp".to_string() + temp.index().to_string().as_str()
+                },
+                // Local variable
+                Lvalue::Var(ref var) => {
+                    // Find the name and type in the declaration
+                    data.3[var.index()].name.to_string()
+                },
+                Lvalue::ReturnPointer => {
+                    unimplemented!();
+                }
+                Lvalue::Static(ref stat) => {
+                    unimplemented!();
+                }
+                Lvalue::Projection(ref proj) => {
+                    unimplemented!();
+                }
+            };
+
+            // FIXME: Lots of intermediaries, should be condensed
+            // Get the index
+            let mut index:String = "".to_string();
+            match pro.as_ref().elem.clone() {
+                ProjectionElem::Index(ref o) => {
+                    unimplemented!();
+                },
+                ProjectionElem::Field(ref field, ref ty) => {
+                    index = (field.index() as i32).to_string();
+                }
+                _ => { unimplemented!(); }
+            };
+
+            //Get the index int from index_operand, then stick it in the VariableMappingData
+            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: "".to_string() }
         },
         _=> {unimplemented!();}
     }
