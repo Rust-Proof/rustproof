@@ -47,7 +47,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
         TerminatorKind::Unreachable => unimplemented!(),
         TerminatorKind::Resume => unimplemented!(),
-        TerminatorKind::If{cond, targets} => unimplemented!(),
+        TerminatorKind::If{cond, targets} => { unimplemented!() },
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
     }
@@ -234,11 +234,9 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
-            // FIXME: This is not shippable code! Only works for one example!
-            // Find the name of the tuple, and the index and type of the field
-
             // FIXME: Lots of intermediaries, should be condensed
             //Trying to get the name of the variable being projected
+            println!("projection" );
             let variable: Lvalue = pro.as_ref().base.clone();
             let lvalue_name = match variable {
                 Lvalue::Arg(ref arg) => {
@@ -247,34 +245,41 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 Lvalue::Temp(ref temp) => {
                     "temp".to_string() + temp.index().to_string().as_str()
                 },
-                        // Local variable
+                // Local variable
                 Lvalue::Var(ref var) => {
-                // Find the name and type in the declaration
+                    // Find the name and type in the declaration
                     data.3[var.index()].name.to_string()
                 },
-                _ => { unimplemented!(); }
+                Lvalue::ReturnPointer => {
+                    unimplemented!();
+                }
+                Lvalue::Static(ref stat) => {
+                    unimplemented!();
+                }
+                Lvalue::Projection(ref proj) => {
+                    unimplemented!();
+                }
             };
 
             // FIXME: Lots of intermediaries, should be condensed
-            // Trying to get the index
-            let proj_index: ProjectionElem<Operand> = pro.as_ref().elem.clone();
-            let index_operand: Operand = match proj_index {
+            // Get the index
+            let mut index:String = "".to_string();
+            match pro.as_ref().elem.clone() {
                 ProjectionElem::Index(ref o) => {
-                    o.clone()
+                    unimplemented!();
                 },
+                ProjectionElem::Field(ref field, ref ty) => {
+                    index = (field.index() as i32).to_string();
+                }
                 _ => { unimplemented!(); }
             };
 
             //Get the index int from index_operand, then stick it in the VariableMappingData
-
-            let index = ".0";
-            VariableMappingData{ name: lvalue_name + index, var_type: "".to_string() }
+            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: "".to_string() }
         },
         _=> {unimplemented!();}
     }
 }
-
-
 
 // Generates an appropriate Term based on whatever is found as an operand, either a literal or some kind of variable/temp/field
 pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Term {
