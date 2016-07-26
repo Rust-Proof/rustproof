@@ -9,10 +9,10 @@
 // except according to those terms.
 
 extern crate rustc_const_math;
-
+use super::dev_tools;
 use super::Attr;
 use expression::substitute_variable_in_predicate_with_term;
-use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData};
+use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData, BooleanBinaryOperator, IntegerComparisonOperator, IntegerComparisonData, SignedBitVectorData, BinaryPredicateData};
 use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl};
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
@@ -68,7 +68,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
 }
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
-pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
+pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
     // FIXME: Remove debug print statement
     println!("processing statement\t{:?}\t\tinto predicate\t{:?}", stmt, wp);
 
@@ -87,7 +87,7 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
     let mut var = gen_lvalue(lvalue.unwrap(), data);
 
     // The term on the right-hand side of the assignment
-    let term : Term = match rvalue.unwrap() {
+    let term : Term = match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
             // FIXME: This is a kludge, please fix!
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
@@ -95,6 +95,39 @@ pub fn gen_stmt(wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&Basi
 
             let op: IntegerBinaryOperator = match binop {
                 &BinOp::Add => {
+                    // FIXME: review this with group
+                    // get the type of the arguments (assumed to be the same)
+                    let ty = match rval.clone() {
+                        Operand::Constant(ref c) => { c.ty },
+                        _ => { panic!("how did you get here?")}
+                    };
+                    // create a new weakest precondition representing the origional and the assert
+                    let new_wp: Predicate = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(Predicate::IntegerComparison( IntegerComparisonData{
+                            op: IntegerComparisonOperator::LessThan,
+                            // variable we are checking overflow on
+                            t1: Box::new(Term::VariableMapping( VariableMappingData {
+                                name: var.clone().name,
+                                var_type: var.clone().var_type,
+                            })),
+                            // compute overflow condition
+                            t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
+                                // size relative to size of type
+                                size: match ty.to_string().as_str() {
+                                    "i32" => { 32 }
+                                    _ => { panic!("unimplemented checkeddAdd argument") }
+                                },
+                                // value relative to max value of type
+                                value: match ty.to_string().as_str() {
+                                    "i32" => { i32::max_value() as i64 }
+                                    _ => { panic!("unimplemented checkeddAdd argument") }
+                                },
+                            }))
+                        }))
+                    } );
+                    wp = new_wp;
                     IntegerBinaryOperator::Addition
                 },
                 &BinOp::Sub => {
