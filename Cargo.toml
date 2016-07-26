@@ -22,6 +22,7 @@ lalrpop-util = "0.11.0"
 libsmt = { git = "https://github.com/sushant94/libsmt.rs.git" }
 log = "0.3.6"
 petgraph = "*"
+term = "0.4.4"
 
 [lib]
 name = "rustproof"
