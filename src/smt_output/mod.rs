@@ -8,28 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//  ( set-logic LIA )
-//  ( declare-fun x () Int )
-//  ( declare-fun y () Int )
-//  ( declare-fun z () Int ) ; This is an example
-//  ( declare-fun u () Int )
-//  ( declare-fun v () Int )
-//  ( assert ( and ( or ( <= (+ x 3) (* 2 y ) ) ( >= (+ x 4) z )) ) )
-//  ( declare-fun u () Bool )
-//  ( declare-fun v () Bool )
-//  ( assert ( = u v ) )
-//  ( assert ( not ( = x y ) ) )
-//  ( check-sat )
-//  ( get-model )
-
-// ( ( ((x+3) <= (2*u)) OR ((v+4) >= y) OR (((x + y) + z) >= 2)
-//   ) AND (
-//     7 == ( (
-//          if ((x <= 2) AND (2 <= ((x + 3) + -1))) then 3 else 0
-//       ) + (
-//          if ((u <=2) AND (2 <= ((u + 3) + -1))) then 4 else 0
-// ) ) ) )
-
 use std::convert::From;
 use std::fmt;
 use std::fmt::Debug;
@@ -47,7 +25,7 @@ use petgraph::graph::NodeIndex;
 
 use expression::*;
 
-pub fn gen_smtlib (vc: Predicate) {
+pub fn gen_smtlib (vc: &Predicate) {
     // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
 
@@ -61,7 +39,7 @@ pub fn gen_smtlib (vc: Predicate) {
     println!("Verification Condition is: ``{}''", vc);
 
     // Traverse the Predicate graph and build the solver
-    //let _ = solver.pred2smtlib(&vc);
+    let _ = solver.pred2smtlib(&vc);
 
     // Check the satisfiability of the solver
     if let Ok(result) = solver.solve(&mut z3) {
@@ -75,18 +53,22 @@ pub trait Pred2SMT {
     type Idx: Debug + Clone;
     type Logic: Logic;
 
+    //fn gen_smtlib(&Predicate);
     fn pred2smtlib (&mut self, &Predicate) -> Self::Idx;
     //fn pred2smtlib (&mut self, &Predicate) -> NodeIndex;
     fn term2smtlib (&mut self, &Term) -> Self::Idx;
     //fn term2smtlib (&mut self, &Term) -> NodeIndex;
 }
 
-impl<L: Logic> Pred2SMT for SMTLib2<L>
-    where <L as Logic>::Sorts: From<array_ex::Sorts<QF_ABV_Sorts,QF_ABV_Sorts>> + From<bitvec::Sorts> + From<core::Sorts>,
-          <L as Logic>::Fns: From<array_ex::OpCodes<QF_ABV_Sorts,QF_ABV_Sorts,QF_ABV_Fn>> + From<bitvec::OpCodes> + From<core::OpCodes>
+// bajr is keeping this here for posterity... and misplaced pride
+//  impl<L: Logic> Pred2SMT for SMTLib2<L>
+//      where <L as Logic>::Sorts: From<array_ex::Sorts<QF_ABV_Sorts,QF_ABV_Sorts>> + From<bitvec::Sorts> + From<core::Sorts>,
+//            <L as Logic>::Fns: From<array_ex::OpCodes<QF_ABV_Sorts,QF_ABV_Sorts,QF_ABV_Fn>> + From<bitvec::OpCodes> + From<core::OpCodes>
+impl Pred2SMT for SMTLib2<QF_ABV>
 {
     type Idx = NodeIndex;
-    type Logic = L;
+    type Logic = QF_ABV;
+
 
     fn pred2smtlib (&mut self, vc: &Predicate) -> Self::Idx {
         match vc {
@@ -155,12 +137,12 @@ impl<L: Logic> Pred2SMT for SMTLib2<L>
                     IntegerComparisonOperator::Equal => {
                         let l = self.term2smtlib(i.t1.as_ref());
                         let r = self.term2smtlib(i.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvComp, &[l,r]);
+                        return self.assert(core::OpCodes::Cmp, &[l,r]);
                     },
                     IntegerComparisonOperator::NotEqual => {
                         let l = self.term2smtlib(i.t1.as_ref());
                         let r = self.term2smtlib(i.t2.as_ref());
-                        let eq = self.assert(bitvec::OpCodes::BvComp, &[l,r]);
+                        let eq = self.assert(core::OpCodes::Cmp, &[l,r]);
                         return self.assert(core::OpCodes::Not, &[eq]);
                     },
                 }

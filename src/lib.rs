@@ -252,6 +252,7 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         println!("vc: {}", verification_condition);
 
         // Output to smt_lib format
-        gen_smtlib(verification_condition.clone());
+        //Pred2SMT::gen_smtlib(&verification_condition.clone());
+        gen_smtlib(&verification_condition.clone());
     }
 }
