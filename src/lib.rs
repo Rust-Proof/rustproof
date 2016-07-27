@@ -244,7 +244,7 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
 
         // Create the verification condition, P -> WP
         let verification_condition: Predicate = Predicate::BinaryExpression( BinaryPredicateData{
-            op: BooleanBinaryOperator::Implies,
+            op: BooleanBinaryOperator::Implication,
             p1: Box::new(self.builder.pre_expr.as_ref().unwrap().clone()),
             p2: Box::new(self.builder.weakest_precondition.as_ref().unwrap().clone())
         } );
