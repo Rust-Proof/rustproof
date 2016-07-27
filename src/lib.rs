@@ -32,6 +32,7 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 #![feature(core_intrinsics)]
+#![feature(macro_rules)]
 
 // debug flag
 const DEBUG: bool = true;
@@ -73,12 +74,20 @@ use weakest_precondition::*;
 // These are our modules
 pub mod expression;
 pub mod parser;
-pub mod reporting;
 pub mod smt_output;
 pub mod weakest_precondition;
 pub mod dev_tools; // FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
 mod tests; // Conditionally include tests when cargo --test is called
+
+#[macro_use] pub mod reporting;
+
+/*
+#[plugin_registrar]
+pub fn plugin_registrar(reg: &mut Registry) {
+    reg.register_macro("printlns", printlns);
+}
+*/
 
 #[derive(Debug)]
 pub struct Attr {
@@ -113,6 +122,7 @@ impl Attr {
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
 	// This initializes the Reporting Module to Add the environment to the logger
+    printlns!("This is a new test");
 	reporting::init();
 	//reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
     //reg.register_syntax_extension(intern("condition"),

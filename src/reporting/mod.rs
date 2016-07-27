@@ -15,6 +15,12 @@ use env_logger::LogBuilder;
 use term;
 
 
+#[macro_use]
+macro_rules! printlns {
+    ($fmt:expr) => (print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+}
+
 //Sets up the Reporting Modulle
 pub fn init() {
 	let format = |record: &LogRecord| {
@@ -30,6 +36,8 @@ pub fn init() {
 	}
 
 	builder.init().unwrap();
+
+    printlns!("This is a reporting test");
 
 	//error("error message");
 	//info("info message");
