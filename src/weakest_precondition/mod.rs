@@ -235,7 +235,6 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         Lvalue::Arg(ref arg) => {
             // Find the name and type in the declaration
             VariableMappingData{ name: data.0[arg.index()].debug_name.as_str().to_string(), var_type: data.0[arg.index()].ty.clone().to_string() }
-            //VariableMappingData{ name: data.0[arg.index()].debug_name.as_str().to_string(), var_type: data.0[arg.index()].ty.clone().to_string() }
         },
         // Temporary variable
         Lvalue::Temp(ref temp) => {
