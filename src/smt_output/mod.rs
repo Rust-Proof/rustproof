@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use super::DEBUG;
+
 use std::convert::From;
 use std::fmt;
 use std::fmt::Debug;
@@ -38,7 +40,7 @@ pub fn gen_smtlib (vc: &Predicate) {
     solver.set_logic(&mut z3);
 
     // DEBUG
-    println!("Verification Condition is: ``{}''", vc);
+    //println!("Verification Condition is: ``{}''", vc);
 
     // Traverse the Predicate graph and build the solver
     let vcon = solver.pred2smtlib(&vc);
@@ -48,11 +50,11 @@ pub fn gen_smtlib (vc: &Predicate) {
     if let Ok(result) = solver.solve(&mut z3) {
         // If the assertion is satisfiable, then the VC is not valid (not always true)
         // FIXME This should probably warn
-        println!("Verification Condition is not valid.");
+        println!("\nVerification Condition is not valid.");
     } else {
         // If the assertion is unsatisfiable, then the VC is valid (always true)
         // FIXME Do we want to output if things are good?
-        println!("Verification Condition is valid!");
+        println!("\nVerification Condition is valid!");
     }
 }
 

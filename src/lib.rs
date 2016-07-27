@@ -33,6 +33,9 @@
 #![allow(unused_assignments)]
 #![feature(core_intrinsics)]
 
+// debug flag
+const DEBUG: bool = true;
+
 // External crate imports
 extern crate env_logger;
 #[macro_use] extern crate libsmt;
@@ -191,9 +194,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         // FIXME: Better condition check
         if self.builder.pre_string != "" {
             // Parse the pre- and postcondition arguments
-            println!("{}", parser::parse_condition(self.builder.pre_string.as_str()));
             self.builder.pre_expr = Some(parser::parse_condition(self.builder.pre_string.as_str()));
-            println!("{}", parser::parse_condition(self.builder.post_string.as_str()));
             self.builder.post_expr = Some(parser::parse_condition(self.builder.post_string.as_str()));
 
             // Begin examining the MIR code
@@ -250,7 +251,7 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         } );
 
         // FIXME: Remove debug print statement
-        println!("vc: {}", verification_condition);
+        if DEBUG { println!("vc: {}\n", verification_condition); }
 
         // Output to smt_lib format
         //Pred2SMT::gen_smtlib(&verification_condition.clone());

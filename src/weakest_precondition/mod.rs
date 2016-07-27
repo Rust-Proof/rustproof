@@ -11,6 +11,7 @@
 extern crate rustc_const_math;
 use super::dev_tools;
 use super::Attr;
+use super::DEBUG;
 use expression::substitute_variable_in_predicate_with_term;
 use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData, BooleanBinaryOperator, IntegerComparisonOperator, IntegerComparisonData, SignedBitVectorData, BinaryPredicateData};
 use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl, ProjectionElem};
@@ -19,7 +20,7 @@ use rustc_data_structures::indexed_vec::Idx;
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
 pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Predicate> {
-    println!("\n\nExamining bb{:?}\n{:#?}", index, data.1[index]);
+    if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.1[index]); }
 
     //let mut block_targets = Vec::new();
     //let mut block_kind = "";
@@ -35,7 +36,6 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
             wp = builder.post_expr.clone();
-            println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
             return wp;
         },
         TerminatorKind::Goto{target} => {
@@ -55,13 +55,14 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
     // Examine statements in reverse order
     let mut stmts = data.1[index].statements.clone();
     stmts.reverse();
+    if DEBUG { println!("bb{:?}", index);}
     for stmt in stmts {
         // Modify the weakest precondition based on the statement
         wp = gen_stmt(wp.unwrap(), stmt, data);
     }
 
     // FIXME: Remove debug print statement
-    println!("\nwp returned as\t{:?}\n", wp.clone().unwrap());
+    if DEBUG { println!("wp returned as\t{:?}\n", wp.clone().unwrap()); }
 
     // Return the weakest precondition to the preceeding block, or to control
     return wp;
@@ -70,7 +71,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
 // Returns a (possibly) modified weakest precondition based on the content of a statement
 pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
     // FIXME: Remove debug print statement
-    println!("processing statement\t{:?}\t\tinto predicate\t{:?}", stmt, wp);
+    if DEBUG { println!("processing statement\t{:?}\ninto predicate\t\t{:?}", stmt, wp); }
 
     let mut lvalue: Option<Lvalue> = None;
     let mut rvalue: Option<Rvalue> = None;
@@ -128,7 +129,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                                 name: var.clone().name,
                                 var_type: var.clone().var_type,
                             })),
-                            // 
+                            //
                             t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
                                 // The bit-vector size of the given type
                                 size: match ty.to_string().as_str() {
@@ -222,7 +223,9 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
     };
 
     // Replace any appearance of var in the weakest precondition with the term
-    Some(substitute_variable_in_predicate_with_term( wp, var, term ))
+    let ret = Some(substitute_variable_in_predicate_with_term( wp, var, term ));
+    if DEBUG { println!("new predicate\t\t{:?}\n---------------------", ret.clone().unwrap());}
+    return ret;
 }
 
 // Generates an appropriate variable mapping based on whatever variable, temp, or field is found
@@ -252,7 +255,6 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             // FIXME: Lots of intermediaries, should be condensed
             // Get the name of the variable being projected
             // FIXME: Remove debug print statement
-            println!("projection");
             let lvalue_name = match pro.as_ref().base {
                 // Argument
                 Lvalue::Arg(ref arg) => {
