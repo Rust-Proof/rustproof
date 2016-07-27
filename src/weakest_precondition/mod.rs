@@ -239,12 +239,12 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         // Temporary variable
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
-            VariableMappingData{ name: "temp".to_string() + temp.index().to_string().as_str(), var_type: data.2[temp.index()].ty.clone().to_string() }
+            VariableMappingData{ name: "tmp".to_string() + temp.index().to_string().as_str(), var_type: data.2[temp.index()].ty.clone().to_string() }
         },
         // Local variable
         Lvalue::Var(ref var) => {
             // Find the name and type in the declaration
-            VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
+            VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: data.3[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {
@@ -264,7 +264,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 // Temporary variable
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
-                    "temp".to_string() + temp.index().to_string().as_str()
+                    "tmp".to_string() + temp.index().to_string().as_str()
                 },
                 // Local variable
                 Lvalue::Var(ref var) => {
