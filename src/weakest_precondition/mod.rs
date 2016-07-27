@@ -99,7 +99,23 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = match rval.clone() {
                         Operand::Constant(ref c) => { c.ty },
-                        _ => { panic!("unimplemented checkedAdd right-hand operand enum value")}
+                        Operand::Consume(ref l) => {
+                            match l {
+                                // Function argument
+                                &Lvalue::Arg(ref arg) => {
+                                    data.0[arg.index()].ty
+                                },
+                                // Temporary variable
+                                &Lvalue::Temp(ref temp) => {
+                                    data.2[temp.index()].ty
+                                },
+                                // Local variable
+                                &Lvalue::Var(ref var) => {
+                                    data.3[var.index()].ty
+                                },
+                                _ => { unimplemented!(); }
+                            }
+                        }
                     };
                     // Append a clause to the weakest precondition representing the overflow assertion
                     wp = Predicate::BinaryExpression( BinaryPredicateData{
