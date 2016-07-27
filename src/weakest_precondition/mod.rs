@@ -12,9 +12,8 @@ extern crate rustc_const_math;
 use super::dev_tools;
 use super::Attr;
 use super::DEBUG;
-use expression::substitute_variable_in_predicate_with_term;
-use expression::{Predicate, Term, BinaryExpressionData, UnaryExpressionData, IntegerBinaryOperator, IntegerUnaryOperator, UnsignedBitVectorData, VariableMappingData, BooleanBinaryOperator, IntegerComparisonOperator, IntegerComparisonData, SignedBitVectorData, BinaryPredicateData};
-use rustc::mir::repr::{BasicBlockData, TerminatorKind, Statement, StatementKind, Lvalue, Rvalue, BinOp, UnOp, Operand, Literal, ArgDecl, TempDecl, VarDecl, ProjectionElem};
+use expression::*;
+use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 
@@ -47,7 +46,41 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
         TerminatorKind::Unreachable => unimplemented!(),
         TerminatorKind::Resume => unimplemented!(),
-        TerminatorKind::If{cond, targets} => { unimplemented!() },
+        TerminatorKind::If{cond, targets} => {
+            //Generate wp0 and wp1
+            let wp0 = gen(targets.0.index(), data, builder);
+            let wp1 = gen(targets.1.index(), data, builder);
+
+            //match condtion to correct value
+            let condition = match cond {
+                //condition will either be a constant bool or
+                Operand::Constant (ref constant) => {
+                    match constant.literal {
+                        Literal::Value {ref value} => {
+                            match value {
+                                &ConstVal::Bool (ref boolean) =>{
+                                    Predicate::BooleanLiteral(*boolean)
+                                },
+                                _ => unimplemented!(),
+                            }
+                        },
+                        _ => unimplemented!(),
+                    }
+                },
+                Operand::Consume(lvalue) => {
+                    Predicate::VariableMapping(gen_lvalue(lvalue, data))
+                },
+            };
+            //generate not operand
+            let not_condition = Predicate::UnaryExpression(UnaryPredicateData {op : BooleanUnaryOperator::Not, p: Box::new(condition.clone())});
+            //create condition->wp0
+            let wp0 = Predicate::BinaryExpression(BinaryPredicateData {op: BooleanBinaryOperator::Implication, p1: Box::new(condition.clone()), p2: Box::new(wp0.unwrap())});
+            //create not_condition->wp1
+            let wp1 = Predicate::BinaryExpression(BinaryPredicateData {op: BooleanBinaryOperator::Implication, p1: Box::new(not_condition.clone()), p2: Box::new(wp1.unwrap())});
+            //wp0 && wp1
+            let wp = Predicate::BinaryExpression(BinaryPredicateData {op: BooleanBinaryOperator::And, p1: Box::new(wp0), p2: Box::new(wp1)});
+            return Some(wp);
+        },
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
     }
