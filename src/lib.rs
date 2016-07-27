@@ -122,7 +122,6 @@ impl Attr {
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
 	// This initializes the Reporting Module to Add the environment to the logger
-    printlns!("This is a new test");
 	reporting::init();
 	//reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
     //reg.register_syntax_extension(intern("condition"),

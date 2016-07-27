@@ -14,11 +14,151 @@ use log::{LogRecord, LogLevelFilter};
 use env_logger::LogBuilder;
 use term;
 
+// The Warning Macro
+macro_rules! rp_warn {
+    ($fmt:expr) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.fg(term::color::YELLOW).unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+       
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "WARNING: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the Warning log function with sent in message
+        warn!(concat!($fmt, "\n"));
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.fg(term::color::YELLOW).unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+        
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "WARNING: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the Warning log function with sent in message
+        warn!(concat!($fmt, "\n"), $($arg)*);
+    });
+}
 
-#[macro_use]
-macro_rules! printlns {
-    ($fmt:expr) => (print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+// The Error Macro
+macro_rules! rp_error {
+    ($fmt:expr) => ({
+        // Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.fg(term::color::RED).unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+       
+        // Terminal will only work with Write Macro from what I know 
+        write!(terminal, "ERROR: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        // Call the Error log function with sent in message
+        error!(concat!($fmt, "\n"));
+	    process::exit(1);
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        // Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.fg(term::color::RED).unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+        
+        // Terminal will only work with Write Macro from what I know 
+        write!(terminal, "ERROR: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        // Call the Error log function with sent in message
+        error!(concat!($fmt, "\n"), $($arg)*);
+        // Exit out of program
+	    process::exit(1);
+    });
+}
+
+// The Debug Macro
+macro_rules! rp_debug {
+    ($fmt:expr) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+       
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "DEBUG: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the Debug log function with sent in message
+        debug!(concat!($fmt, "\n"));
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+        
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "DEBUG: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the Debug log function with sent in message
+        debug!(concat!($fmt, "\n"), $($arg)*);
+    });
+}
+
+// The Info Macro
+macro_rules! rp_info {
+    ($fmt:expr) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+       
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "INFO: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the info log function with sent in message
+        info!(concat!($fmt, "\n"));
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+        
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "INFO: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the info log function with sent in message
+        info!(concat!($fmt, "\n"), $($arg)*);
+    });
+}
+
+// The Trace Macro
+macro_rules! rp_trace {
+    ($fmt:expr) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+       
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "TRACE: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the Trace log function with sent in message
+        trace!(concat!($fmt, "\n"));
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        //Set up the Terminal for formatting
+        let mut terminal = term::stdout().unwrap();
+        terminal.attr(term::Attr::Bold).unwrap();
+        
+        //Terminal will only work with Write Macro from what I know 
+        write!(terminal, "TRACE: ").unwrap();
+        terminal.reset().unwrap();
+        terminal.flush();
+        //Call the Trace log function with sent in message
+        trace!(concat!($fmt, "\n"), $($arg)*);
+    });
 }
 
 //Sets up the Reporting Modulle
@@ -36,86 +176,4 @@ pub fn init() {
 	}
 
 	builder.init().unwrap();
-
-    printlns!("This is a reporting test");
-
-	//error("error message");
-	//info("info message");
-
-	//println!("Next test");
-}
-
-
-
-/// Reports noteworthy rustproof behavior to the compiler
-/// # Arguments
-/// * 'msg' - The message to report
-pub fn warn(val: &'static str) {
-	let mut terminal = term::stdout().unwrap();
-	terminal.fg(term::color::YELLOW).unwrap();
-	terminal.attr(term::Attr::Bold).unwrap();
-	
-	write!(terminal, "WARNING: ").unwrap();
-	terminal.reset().unwrap();
-	terminal.flush();
-	warn!("{}", val);
-}
-
-/// Reports errors to the compiler
-/// # Arguments
-/// * 'msg' - The message to report
-pub fn error(val: &'static str) {
-	let mut terminal = term::stdout().unwrap();
-	terminal.fg(term::color::RED).unwrap();
-	terminal.attr(term::Attr::Bold).unwrap();
-	
-	write!(terminal, "ERROR: ").unwrap();
-	terminal.reset().unwrap();
-	terminal.flush();
-	error!("{}", val);
-	process::exit(1);
-}
-
-/// Reports errors to the compiler
-/// # Arguments
-/// * 'msg' - The message to report
-pub fn debug(val: &'static str) {
-	let mut terminal = term::stdout().unwrap();
-	terminal.fg(term::color::RED).unwrap();
-	terminal.attr(term::Attr::Bold).unwrap();
-	
-	write!(terminal, "DEBUG: ").unwrap();
-	terminal.reset().unwrap();
-	terminal.flush();
-	debug!("{}", val);
-}
-
-
-
-/// Reports errors to the compiler
-/// # Arguments
-/// * 'msg' - The message to report
-pub fn info(val: &'static str) {
-	let mut terminal = term::stdout().unwrap();
-	terminal.fg(term::color::WHITE).unwrap();
-	terminal.attr(term::Attr::Bold).unwrap();
-	
-	write!(terminal, "INFO: ").unwrap();
-	terminal.reset().unwrap();
-	terminal.flush();
-	info!("{}", val);
-}
-
-/// Reports errors to the compiler
-/// # Arguments
-/// * 'msg' - The message to report
-pub fn trace(val: &'static str) {
-	let mut terminal = term::stdout().unwrap();
-	terminal.fg(term::color::GREEN).unwrap();
-	terminal.attr(term::Attr::Bold).unwrap();
-	
-	write!(terminal, "TRACE: ").unwrap();
-	terminal.reset().unwrap();
-	terminal.flush();
-	trace!("{}", val);
 }
