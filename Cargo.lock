@@ -5,7 +5,9 @@ dependencies = [
  "env_logger 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lalrpop-util 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libsmt 0.1.0 (git+https://github.com/sushant94/libsmt.rs.git)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "petgraph 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "term 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -141,6 +143,15 @@ version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "libsmt"
+version = "0.1.0"
+source = "git+https://github.com/sushant94/libsmt.rs.git#6cca6bf6b2434f2026d5c1a753abb9030380d0c4"
+dependencies = [
+ "petgraph 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.73 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "log"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -156,6 +167,14 @@ dependencies = [
 [[package]]
 name = "petgraph"
 version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "fixedbitset 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "petgraph"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "fixedbitset 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
