@@ -78,8 +78,8 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
             //create not_condition->wp1
             let wp1 = Predicate::BinaryExpression(BinaryPredicateData {op: BooleanBinaryOperator::Implication, p1: Box::new(not_condition.clone()), p2: Box::new(wp1.unwrap())});
             //wp0 && wp1
-            let wp = Predicate::BinaryExpression(BinaryPredicateData {op: BooleanBinaryOperator::And, p1: Box::new(wp0), p2: Box::new(wp1)});
-            return Some(wp);
+            wp = Some(Predicate::BinaryExpression(BinaryPredicateData {op: BooleanBinaryOperator::And, p1: Box::new(wp0), p2: Box::new(wp1)}));
+
         },
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
