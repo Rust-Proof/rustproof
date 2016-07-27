@@ -73,7 +73,9 @@ pub BOOL_UOP: BooleanUnaryOperator = {
 pub BOOL_BOP: BooleanBinaryOperator = {
 	"&&" => BooleanBinaryOperator::And,
 	"||" => BooleanBinaryOperator::Or,
-	"->" => BooleanBinaryOperator::Implies,
+	"XOR" => BooleanBinaryOperator::Xor,
+	"=>" => BooleanBinaryOperator::Implication,
+	"<=>" => BooleanBinaryOperator::BiImplication,
 };
 
 pub INT_UOP: IntegerUnaryOperator = {

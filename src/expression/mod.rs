@@ -59,8 +59,14 @@ impl fmt::Display for Predicate {
                     BooleanBinaryOperator::Or => {
                         write!(f, "({} || {})", *b.p1, *b.p2)
                     },
-                    BooleanBinaryOperator::Implies => {
-                        write!(f, "({} -> {})", *b.p1, *b.p2)
+                    BooleanBinaryOperator::Xor => {
+                        write!(f, "({} XOR {})", *b.p1, *b.p2)
+                    },
+                    BooleanBinaryOperator::Implication => {
+                        write!(f, "({} => {})", *b.p1, *b.p2)
+                    },
+                    BooleanBinaryOperator::BiImplication => {
+                        write!(f, "({} <=> {})", *b.p1, *b.p2)
                     }
                 }
 
@@ -232,7 +238,9 @@ impl fmt::Debug for Term {
 pub enum BooleanBinaryOperator {
     And,
     Or,
-    Implies,
+    Xor,
+    Implication,
+    BiImplication
 }
 
 #[derive(Clone, PartialEq)]
