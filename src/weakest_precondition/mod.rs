@@ -266,7 +266,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 },
                 // Local variable
                 Lvalue::Var(ref var) => {
-                    // Return the name oof the variable
+                    // Return the name of the variable
                     data.3[var.index()].name.to_string()
                 },
                 Lvalue::ReturnPointer => {
