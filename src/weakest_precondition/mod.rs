@@ -221,7 +221,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                     IntegerBinaryOperator::Subtraction
                 },
                 &BinOp::Mul => {
-                    
+
                     IntegerBinaryOperator::Multiplication
                 },
                 &BinOp::Shl => {
@@ -317,6 +317,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         Lvalue::Var(ref var) => {
             // Find the name and type in the declaration
             VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: data.3[var.index()].ty.clone().to_string() }
+            //VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {
