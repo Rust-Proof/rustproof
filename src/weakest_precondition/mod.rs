@@ -222,7 +222,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::Sub => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
-                    // Append a clause to the weakest precondition representing the overflow assertion
+                    // Append a clause to the weakest precondition representing the underflow assertion
                     wp = Predicate::BinaryExpression( BinaryPredicateData{
                         op: BooleanBinaryOperator::And,
                         p1: Box::new(wp),
