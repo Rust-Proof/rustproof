@@ -16,6 +16,7 @@ use expression::*;
 use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
+use rustc::ty::Ty;
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
 pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Predicate> {
@@ -101,6 +102,35 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
     return wp;
 }
 
+pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> String {
+    match operand.clone() {
+        Operand::Constant(ref constant) => { constant.ty.to_string() },
+        Operand::Consume(ref lvalue) => {
+            match lvalue {
+                // Function argument
+                &Lvalue::Arg(ref arg) => {
+                    data.0[arg.index()].ty.to_string()
+                },
+                // Temporary variable
+                &Lvalue::Temp(ref temp) => {
+                    data.2[temp.index()].ty.to_string()
+                },
+                // Local variable
+                &Lvalue::Var(ref var) => {
+                    data.3[var.index()].ty.to_string()
+                },
+                _ => {
+                    unimplemented!();
+                    //FIXME: This code is here because it needs to return from all paths.
+                    //FIXME: It should throw an error or warning if reached
+                    "".to_string()
+                }
+            }
+        }
+    }
+}
+
+
 // Returns a (possibly) modified weakest precondition based on the content of a statement
 pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
     // FIXME: Remove debug print statement
@@ -116,13 +146,12 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
             rvalue = Some(rval.clone());
         }
     }
-
     // The variable or temp on the left-hand side of the assignment
     let mut var = gen_lvalue(lvalue.unwrap(), data);
 
     // The term on the right-hand side of the assignment
     let term : Term = match rvalue.clone().unwrap() {
-        Rvalue::CheckedBinaryOp(ref binop, ref lval, ref rval) => {
+        Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
             var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
@@ -131,26 +160,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::Add => {
                     // FIXME: More types may be required
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
-                    let ty = match rval.clone() {
-                        Operand::Constant(ref c) => { c.ty },
-                        Operand::Consume(ref l) => {
-                            match l {
-                                // Function argument
-                                &Lvalue::Arg(ref arg) => {
-                                    data.0[arg.index()].ty
-                                },
-                                // Temporary variable
-                                &Lvalue::Temp(ref temp) => {
-                                    data.2[temp.index()].ty
-                                },
-                                // Local variable
-                                &Lvalue::Var(ref var) => {
-                                    data.3[var.index()].ty
-                                },
-                                _ => { unimplemented!(); }
-                            }
-                        }
-                    };
+                    let ty = gen_ty(roperand, data);
                     // Append a clause to the weakest precondition representing the overflow assertion
                     wp = Predicate::BinaryExpression( BinaryPredicateData{
                         op: BooleanBinaryOperator::And,
@@ -165,12 +175,12 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                             //
                             t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
                                 // The bit-vector size of the given type
-                                size: match ty.to_string().as_str() {
+                                size: match ty.as_str() {
                                     "i32" => { 32 }
                                     _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                                 },
                                 // The maximum value for the given type
-                                value: match ty.to_string().as_str() {
+                                value: match ty.as_str() {
                                     "i32" => { i32::max_value() as i64 }
                                     _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                                 },
@@ -194,8 +204,8 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 _ => {panic!("Unsupported checked binary operation!");}
             };
 
-            let lvalue: Term = gen_operand(&lval, data);
-            let rvalue: Term = gen_operand(&rval, data);
+            let lvalue: Term = gen_operand(&loperand, data);
+            let rvalue: Term = gen_operand(&roperand, data);
 
             Term::BinaryExpression( BinaryExpressionData {
                 op: op,
