@@ -192,25 +192,25 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::Sub => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
-                    // Append a clause to the weakest precondition representing the overflow assertion
+                    // Append a clause to the weakest precondition representing the underflow assertion
                     wp = Predicate::BinaryExpression( BinaryPredicateData{
                         op: BooleanBinaryOperator::And,
                         p1: Box::new(wp),
                         p2: Box::new(Predicate::IntegerComparison( IntegerComparisonData{
                             op: IntegerComparisonOperator::GreaterThan,
-                            // Variable we are checking overflow on
+                            // Variable we are checking underflow on
                             t1: Box::new(Term::VariableMapping( VariableMappingData {
                                 name: var.clone().name,
                                 var_type: var.clone().var_type,
                             })),
-                            // Overflow
+                            // Underflow
                             t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
                                 // The bit-vector size of the given type
                                 size: match ty.as_str() {
                                     "i32" => { 32 }
                                     _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                                 },
-                                // The maximum value for the given type
+                                // The minimum value for the given type
                                 value: match ty.as_str() {
                                     "i32" => { i32::min_value() as i64 }
                                     _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
