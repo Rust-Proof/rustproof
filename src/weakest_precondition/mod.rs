@@ -313,6 +313,9 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::BitXor => {
                     IntegerBinaryOperator::BitwiseXor
                 },
+                &BinOp::Eq => {
+                    IntegerComparisonOperator::Equal
+                }
                 _ => {panic!("Unsupported unchecked binary operation!");}
             };
 
