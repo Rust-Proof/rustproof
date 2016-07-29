@@ -244,6 +244,10 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         },
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
             let op: IntegerBinaryOperator = match binop {
+                &BinOp::Add => {
+                    
+                    IntegerBinaryOperator::Addition
+                }
                 &BinOp::Div => {
                     IntegerBinaryOperator::Division
                 },
