@@ -102,6 +102,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
     return wp;
 }
 
+//generates a Ty from a given operand
 pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
@@ -128,6 +129,49 @@ pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Ve
             }
         }
     }
+}
+
+//generates an overflow_predicate.
+//Option is decided by op.
+//If it is IntegerComparisonOperator::GreaterThan, it checks the lower bounds
+//if it is IntegerComparisonOperator::LessThan, it checks the upper bounds
+    // FIXME: More types may be required
+pub fn gen_overflow_predicate(icop: &IntegerComparisonOperator, var: &VariableMappingData ,ty: String) -> Predicate {
+        Predicate::IntegerComparison( IntegerComparisonData{
+            op: icop.clone(),
+            // Variable we are checking overflow on
+            t1: Box::new(Term::VariableMapping( VariableMappingData {
+                name: var.clone().name,
+                var_type: var.clone().var_type,
+            })),
+            // Overflow
+            t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
+                // The bit-vector size of the given type
+                size: match ty.as_str() {
+                    "i32" => { 32 }
+                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                },
+                //match on op to see which direction you are detecting overflow in
+                value: match icop {
+                    // if op is GreaterThan check for uppper bounds
+                    &IntegerComparisonOperator::GreaterThan => {
+                    // The maximum value for the given type
+                        match ty.as_str() {
+                            "i32" => { i32::min_value() as i64 },
+                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                        }
+                    },
+                    // The maximum value for the given type
+                    &IntegerComparisonOperator::LessThan => {
+                        match ty.as_str() {
+                            "i32" => { i32::max_value() as i64 },
+                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                        }
+                    },
+                    _ => {unimplemented!();}
+                }
+            }))
+        })
 }
 
 
@@ -158,34 +202,20 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
 
             let op: IntegerBinaryOperator = match binop {
                 &BinOp::Add => {
-                    // FIXME: More types may be required
+
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
-                    // Append a clause to the weakest precondition representing the overflow assertion
+                    // Check the lower bound of overflow
                     wp = Predicate::BinaryExpression( BinaryPredicateData{
                         op: BooleanBinaryOperator::And,
                         p1: Box::new(wp),
-                        p2: Box::new(Predicate::IntegerComparison( IntegerComparisonData{
-                            op: IntegerComparisonOperator::LessThan,
-                            // Variable we are checking overflow on
-                            t1: Box::new(Term::VariableMapping( VariableMappingData {
-                                name: var.clone().name,
-                                var_type: var.clone().var_type,
-                            })),
-                            //
-                            t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
-                                // The bit-vector size of the given type
-                                size: match ty.as_str() {
-                                    "i32" => { 32 }
-                                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                                },
-                                // The maximum value for the given type
-                                value: match ty.as_str() {
-                                    "i32" => { i32::max_value() as i64 }
-                                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                                },
-                            }))
-                        }))
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    //check the upper bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
                     } );
                     IntegerBinaryOperator::Addition
                 },
@@ -196,34 +226,49 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                     wp = Predicate::BinaryExpression( BinaryPredicateData{
                         op: BooleanBinaryOperator::And,
                         p1: Box::new(wp),
-                        p2: Box::new(Predicate::IntegerComparison( IntegerComparisonData{
-                            op: IntegerComparisonOperator::GreaterThan,
-                            // Variable we are checking underflow on
-                            t1: Box::new(Term::VariableMapping( VariableMappingData {
-                                name: var.clone().name,
-                                var_type: var.clone().var_type,
-                            })),
-                            // Underflow
-                            t2: Box::new(Term::SignedBitVector( SignedBitVectorData {
-                                // The bit-vector size of the given type
-                                size: match ty.as_str() {
-                                    "i32" => { 32 }
-                                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                                },
-                                // The minimum value for the given type
-                                value: match ty.as_str() {
-                                    "i32" => { i32::min_value() as i64 }
-                                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                                },
-                            }))
-                        }))
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
                     } );
                     IntegerBinaryOperator::Subtraction
                 },
                 &BinOp::Mul => {
-
+                    // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
+                    let ty = gen_ty(roperand, data);
+                    // Check the lower bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    //check the upper bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
+                    } );
                     IntegerBinaryOperator::Multiplication
                 },
+                &BinOp::Div => {
+                    // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
+                    let ty = gen_ty(roperand, data);
+                    // Check the lower bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    //check the upper bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
+                    } );
+                    IntegerBinaryOperator::Division
+                }
                 &BinOp::Shl => {
                     IntegerBinaryOperator::BitwiseLeftShift
                 },
@@ -245,7 +290,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
             let op: IntegerBinaryOperator = match binop {
                 &BinOp::Add => {
-                    
+
                     IntegerBinaryOperator::Addition
                 }
                 &BinOp::Div => {
@@ -299,7 +344,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
     };
 
     // Replace any appearance of var in the weakest precondition with the term
-    let ret = Some(substitute_variable_in_predicate_with_term( wp, var, term ));
+    let ret = Some(substitute_variable_in_predicate_with_term( wp, var.clone(), term ));
     if DEBUG { println!("new predicate\t\t{:?}\n---------------------", ret.clone().unwrap());}
     return ret;
 }
