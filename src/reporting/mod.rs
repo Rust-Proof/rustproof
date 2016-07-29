@@ -26,8 +26,8 @@ macro_rules! rp_warn {
         write!(terminal, "WARNING: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush() {
-            Ok(_) => warn!(concat!($fmt, "\n"));
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => warn!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
     ($fmt:expr, $($arg:tt)*) => ({
@@ -40,8 +40,8 @@ macro_rules! rp_warn {
         write!(terminal, "WARNING: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => warn!(concat!($fmt, "\n"), $($arg)*);
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => warn!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
 }
@@ -58,8 +58,8 @@ macro_rules! rp_error {
         write!(terminal, "ERROR: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => error!(concat!($fmt, "\n"));
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => error!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
 	    process::exit(1);
     });
@@ -73,8 +73,8 @@ macro_rules! rp_error {
         write!(terminal, "ERROR: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => error!(concat!($fmt, "\n"), $($arg)*);
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => error!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
 	    process::exit(1);
     });
@@ -92,8 +92,8 @@ macro_rules! rp_debug {
         terminal.reset().unwrap();
         terminal.flush();
         match terminal.flush(); {
-            Ok(_) => debug!(concat!($fmt, "\n"));
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => debug!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
     ($fmt:expr, $($arg:tt)*) => ({
@@ -105,8 +105,8 @@ macro_rules! rp_debug {
         write!(terminal, "DEBUG: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => debug!(concat!($fmt, "\n"), $($arg)*);
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => debug!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
 }
@@ -122,8 +122,8 @@ macro_rules! rp_info {
         write!(terminal, "INFO: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => info!(concat!($fmt, "\n"));
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => info!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
     ($fmt:expr, $($arg:tt)*) => ({
@@ -135,8 +135,8 @@ macro_rules! rp_info {
         write!(terminal, "INFO: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => info!(concat!($fmt, "\n"), $($arg)*);
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => info!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
 }
@@ -152,8 +152,8 @@ macro_rules! rp_trace {
         write!(terminal, "TRACE: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => trace!(concat!($fmt, "\n"));
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => trace!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
     ($fmt:expr, $($arg:tt)*) => ({
@@ -165,8 +165,8 @@ macro_rules! rp_trace {
         write!(terminal, "TRACE: ").unwrap();
         terminal.reset().unwrap();
         match terminal.flush(); {
-            Ok(_) => trace!(concat!($fmt, "\n"), $($arg)*);
-            Err(e) => panic!("could not write to terminal: {:?}", e);
+            Ok(_) => trace!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
         }
     });
 }
