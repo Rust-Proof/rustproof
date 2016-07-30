@@ -9,6 +9,7 @@
 // except according to those terms.
 
 extern crate syntax;
+extern crate term;
 
 mod predicate_parser;
 
@@ -17,6 +18,7 @@ use syntax::codemap::Spanned;
 
 use super::Attr;
 use expression::Predicate;
+use std::process;
 
 // Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
 pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
@@ -26,12 +28,12 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
             if attribute_name == "condition" {
                 // Only accept if exactly 2 arguments
                 if args.len() != 2 {
-                    panic!("Condition attribute must have exactly 2 arguments.");
+                    rp_error!("Condition attribute must have exactly 2 arguments.");
                 }
                 // Parse the first argument
                 match args[0].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "pre" { panic!("The first argument must be \"pre\". {} was provided.", i_string); }
+                        if i_string != "pre" { rp_error!("The first argument must be \"pre\". {} was provided.", i_string); }
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
@@ -47,7 +49,7 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
                 // Parse the second argument
                 match args[1].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "post" { panic!("The second argument must be \"post\". {} was provided.", i_string); }
+                        if i_string != "post" { rp_error!("The second argument must be \"post\". {} was provided.", i_string); }
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
