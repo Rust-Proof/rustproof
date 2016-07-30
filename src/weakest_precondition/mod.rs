@@ -9,6 +9,7 @@
 // except according to those terms.
 
 extern crate rustc_const_math;
+extern crate term;
 use super::dev_tools;
 use super::Attr;
 use super::DEBUG;
@@ -174,6 +175,21 @@ pub fn gen_overflow_predicate(icop: &IntegerComparisonOperator, var: &VariableMa
         })
 }
 
+//generates the upper and lower bounds for overflow check
+pub fn gen_overflow_predicate_upper_and_lower(mut wp: Predicate, ty: String, var: VariableMappingData) -> Predicate {
+    wp = Predicate::BinaryExpression( BinaryPredicateData{
+        op: BooleanBinaryOperator::And,
+        p1: Box::new(wp),
+        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+    } );
+    //check the upper bound of overflow
+    Predicate::BinaryExpression( BinaryPredicateData{
+        op: BooleanBinaryOperator::And,
+        p1: Box::new(wp),
+        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
+    } )
+}
+
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
 pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
@@ -206,67 +222,28 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Check the lower bound of overflow
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
-                    } );
-                    //check the upper bound of overflow
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
-                    } );
+                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
                     IntegerBinaryOperator::Addition
                 },
                 &BinOp::Sub => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Append a clause to the weakest precondition representing the underflow assertion
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
-                    } );
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
-                    } );
+                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
                     IntegerBinaryOperator::Subtraction
                 },
                 &BinOp::Mul => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Check the lower bound of overflow
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
-                    } );
-                    //check the upper bound of overflow
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
-                    } );
+                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
                     IntegerBinaryOperator::Multiplication
                 },
                 &BinOp::Div => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Check the lower bound of overflow
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
-                    } );
-                    //check the upper bound of overflow
-                    wp = Predicate::BinaryExpression( BinaryPredicateData{
-                        op: BooleanBinaryOperator::And,
-                        p1: Box::new(wp),
-                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
-                    } );
+                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
                     IntegerBinaryOperator::Division
                 }
                 &BinOp::Shl => {
@@ -289,6 +266,15 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         },
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
             let op: IntegerBinaryOperator = match binop {
+                &BinOp::Add => {
+                    IntegerBinaryOperator::Addition
+                }
+                &BinOp::Sub => {
+                    IntegerBinaryOperator::Subtraction
+                }
+                &BinOp::Mul => {
+                    IntegerBinaryOperator::Multiplication
+                }
                 &BinOp::Div => {
                     IntegerBinaryOperator::Division
                 },
@@ -304,6 +290,9 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::BitXor => {
                     IntegerBinaryOperator::BitwiseXor
                 },
+                &BinOp::Eq => {
+                    panic!("Unsupported uncheck binary operation EQ")
+                }
                 _ => {panic!("Unsupported unchecked binary operation!");}
             };
 
@@ -362,6 +351,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         Lvalue::Var(ref var) => {
             // Find the name and type in the declaration
             VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: data.3[var.index()].ty.clone().to_string() }
+            //VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {

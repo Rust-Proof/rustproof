@@ -34,6 +34,8 @@
 #![feature(core_intrinsics)]
 #![feature(macro_rules)]
 
+#[macro_use] pub mod reporting;
+
 // debug flag
 const DEBUG: bool = true;
 
@@ -47,6 +49,7 @@ extern crate rustc_plugin;
 extern crate rustc_data_structures;
 extern crate syntax;
 extern crate term;
+
 
 // External imports
 use env_logger::LogBuilder;
@@ -65,6 +68,7 @@ use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 
+
 // Local imports
 use expression::{Predicate, BooleanBinaryOperator, BinaryPredicateData};
 use parser::*;
@@ -80,7 +84,7 @@ pub mod dev_tools; // FIXME: For debugging information, delete when project is "
 #[cfg(test)]
 mod tests; // Conditionally include tests when cargo --test is called
 
-#[macro_use] pub mod reporting;
+
 
 /*
 #[plugin_registrar]
