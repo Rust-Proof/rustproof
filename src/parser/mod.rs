@@ -75,7 +75,7 @@ pub fn parse_condition(condition: &str) -> Predicate {
             return p;
         },
         Err(e) => {
-            panic!("Error parsing condition \"{}\": {:?}", condition, e);
+            rp_error!("Error parsing condition \"{}\": {:?}", condition, e);
         }
     }
 }
