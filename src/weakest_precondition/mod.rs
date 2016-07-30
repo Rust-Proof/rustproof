@@ -9,6 +9,7 @@
 // except according to those terms.
 
 extern crate rustc_const_math;
+extern crate term;
 use super::dev_tools;
 use super::Attr;
 use super::DEBUG;
