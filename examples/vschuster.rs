@@ -12,7 +12,7 @@ fn main() {
 #[condition(pre="x: int < 2147483642", post="return: int == x: int +5")]
 fn add_five(x: i32) -> i32 {
     if true
-        {5 / x}
+        {5 - x}
     else
         {x}
 }
