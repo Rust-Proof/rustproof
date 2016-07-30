@@ -21,26 +21,28 @@ macro_rules! rp_warn {
         let mut terminal = term::stdout().unwrap();
         terminal.fg(term::color::YELLOW).unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-       
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "WARNING: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the Warning log function with sent in message
-        warn!(concat!($fmt, "\n"));
+        match terminal.flush() {
+            Ok(_) => warn!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
     ($fmt:expr, $($arg:tt)*) => ({
         //Set up the Terminal for formatting
         let mut terminal = term::stdout().unwrap();
         terminal.fg(term::color::YELLOW).unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-        
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "WARNING: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the Warning log function with sent in message
-        warn!(concat!($fmt, "\n"), $($arg)*);
+        match terminal.flush() {
+            Ok(_) => warn!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
 }
 
@@ -51,13 +53,14 @@ macro_rules! rp_error {
         let mut terminal = term::stdout().unwrap();
         terminal.fg(term::color::RED).unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-       
-        // Terminal will only work with Write Macro from what I know 
+
+        // Terminal will only work with Write Macro from what I know
         write!(terminal, "ERROR: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        // Call the Error log function with sent in message
-        error!(concat!($fmt, "\n"));
+        match terminal.flush() {
+            Ok(_) => error!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
 	    process::exit(1);
     });
     ($fmt:expr, $($arg:tt)*) => ({
@@ -65,14 +68,14 @@ macro_rules! rp_error {
         let mut terminal = term::stdout().unwrap();
         terminal.fg(term::color::RED).unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-        
-        // Terminal will only work with Write Macro from what I know 
+
+        // Terminal will only work with Write Macro from what I know
         write!(terminal, "ERROR: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        // Call the Error log function with sent in message
-        error!(concat!($fmt, "\n"), $($arg)*);
-        // Exit out of program
+        match terminal.flush() {
+            Ok(_) => error!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
 	    process::exit(1);
     });
 }
@@ -83,25 +86,27 @@ macro_rules! rp_debug {
         //Set up the Terminal for formatting
         let mut terminal = term::stdout().unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-       
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "DEBUG: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the Debug log function with sent in message
-        debug!(concat!($fmt, "\n"));
+        match terminal.flush() {
+            Ok(_) => debug!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
     ($fmt:expr, $($arg:tt)*) => ({
         //Set up the Terminal for formatting
         let mut terminal = term::stdout().unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-        
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "DEBUG: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the Debug log function with sent in message
-        debug!(concat!($fmt, "\n"), $($arg)*);
+        match terminal.flush() {
+            Ok(_) => debug!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
 }
 
@@ -111,25 +116,27 @@ macro_rules! rp_info {
         //Set up the Terminal for formatting
         let mut terminal = term::stdout().unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-       
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "INFO: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the info log function with sent in message
-        info!(concat!($fmt, "\n"));
+        match terminal.flush() {
+            Ok(_) => info!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
     ($fmt:expr, $($arg:tt)*) => ({
         //Set up the Terminal for formatting
         let mut terminal = term::stdout().unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-        
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "INFO: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the info log function with sent in message
-        info!(concat!($fmt, "\n"), $($arg)*);
+        match terminal.flush() {
+            Ok(_) => info!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
 }
 
@@ -139,25 +146,27 @@ macro_rules! rp_trace {
         //Set up the Terminal for formatting
         let mut terminal = term::stdout().unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-       
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "TRACE: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the Trace log function with sent in message
-        trace!(concat!($fmt, "\n"));
+        match terminal.flush() {
+            Ok(_) => trace!(concat!($fmt, "\n")),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
     ($fmt:expr, $($arg:tt)*) => ({
         //Set up the Terminal for formatting
         let mut terminal = term::stdout().unwrap();
         terminal.attr(term::Attr::Bold).unwrap();
-        
-        //Terminal will only work with Write Macro from what I know 
+
+        //Terminal will only work with Write Macro from what I know
         write!(terminal, "TRACE: ").unwrap();
         terminal.reset().unwrap();
-        terminal.flush();
-        //Call the Trace log function with sent in message
-        trace!(concat!($fmt, "\n"), $($arg)*);
+        match terminal.flush() {
+            Ok(_) => trace!(concat!($fmt, "\n"), $($arg)*),
+            Err(e) => panic!("could not write to terminal: {:?}", e),
+        }
     });
 }
 
