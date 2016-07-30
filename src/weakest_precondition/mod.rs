@@ -13,6 +13,7 @@ extern crate term;
 use super::dev_tools;
 use super::Attr;
 use super::DEBUG;
+use std::process;
 use expression::*;
 use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
@@ -150,7 +151,7 @@ pub fn gen_overflow_predicate(icop: &IntegerComparisonOperator, var: &VariableMa
                 // The bit-vector size of the given type
                 size: match ty.as_str() {
                     "i32" => { 32 }
-                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                    _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                 },
                 //match on op to see which direction you are detecting overflow in
                 value: match icop {
@@ -159,14 +160,14 @@ pub fn gen_overflow_predicate(icop: &IntegerComparisonOperator, var: &VariableMa
                     // The maximum value for the given type
                         match ty.as_str() {
                             "i32" => { i32::min_value() as i64 },
-                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
                     // The maximum value for the given type
                     &IntegerComparisonOperator::LessThan => {
                         match ty.as_str() {
                             "i32" => { i32::max_value() as i64 },
-                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
                     _ => {unimplemented!();}
@@ -252,7 +253,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::Shr => {
                     IntegerBinaryOperator::BitwiseRightShift
                 },
-                _ => {panic!("Unsupported checked binary operation!");}
+                _ => {rp_error!("Unsupported checked binary operation!");}
             };
 
             let lvalue: Term = gen_operand(&loperand, data);
@@ -291,9 +292,9 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                     IntegerBinaryOperator::BitwiseXor
                 },
                 &BinOp::Eq => {
-                    panic!("Unsupported uncheck binary operation EQ")
+                    rp_error!("Unsupported uncheck binary operation EQ")
                 }
-                _ => {panic!("Unsupported unchecked binary operation!");}
+                _ => {rp_error!("Unsupported unchecked binary operation!");}
             };
 
             let lvalue: Term = gen_operand(&lval, data);
@@ -325,7 +326,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         Rvalue::Use(ref operand) => {
             gen_operand(operand, data)
         },
-        _ => {panic!("Unsupported RValue type!");}
+        _ => {rp_error!("Unsupported RValue type!");}
     };
 
     // Replace any appearance of var in the weakest precondition with the term

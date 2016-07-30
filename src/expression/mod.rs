@@ -12,9 +12,10 @@
 //extern crate rustc;
 //extern crate syntax;
 //extern crate rustc_plugin;
-
+extern crate term;
 use rustc_plugin::Registry;
 use std::fmt;
+use std::process;
 
 #[derive(Clone, PartialEq)]
 pub struct BinaryPredicateData { pub op: BooleanBinaryOperator, pub p1: Box<Predicate>, pub p2: Box<Predicate> }
@@ -332,7 +333,7 @@ pub fn substitute_variable_in_predicate_with_term ( source_predicate: Predicate,
         Predicate::VariableMapping(v) => {
             // Shouldn't be able to replace a boolean variable with a term!
             if v == target {
-                panic!("Boolean variable cannot be replaced with integer value/expression.");
+                rp_error!("Boolean variable cannot be replaced with integer value/expression.");
             } else {
                 Predicate::VariableMapping( VariableMappingData { name: v.name.clone(), var_type: v.var_type.clone() } )
             }
