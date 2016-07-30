@@ -8,11 +8,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate rustc_const_math;
 extern crate term;
+extern crate rustc_const_math;
 use super::dev_tools;
 use super::Attr;
 use super::DEBUG;
+use super::reporting;
+use std::process;
 use expression::*;
 use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
@@ -150,7 +152,9 @@ pub fn gen_overflow_predicate(icop: &IntegerComparisonOperator, var: &VariableMa
                 // The bit-vector size of the given type
                 size: match ty.as_str() {
                     "i32" => { 32 }
-                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                    _ => {
+                        rp_error!("unimplemented checkedAdd right-hand operand type")
+                    }
                 },
                 //match on op to see which direction you are detecting overflow in
                 value: match icop {
@@ -159,37 +163,21 @@ pub fn gen_overflow_predicate(icop: &IntegerComparisonOperator, var: &VariableMa
                     // The maximum value for the given type
                         match ty.as_str() {
                             "i32" => { i32::min_value() as i64 },
-                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
                     // The maximum value for the given type
                     &IntegerComparisonOperator::LessThan => {
                         match ty.as_str() {
                             "i32" => { i32::max_value() as i64 },
-                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
-                    _ => {unimplemented!();}
+                    _ => { unimplemented!(); }
                 }
             }))
         })
 }
-
-//generates the upper and lower bounds for overflow check
-pub fn gen_overflow_predicate_upper_and_lower(mut wp: Predicate, ty: String, var: VariableMappingData) -> Predicate {
-    wp = Predicate::BinaryExpression( BinaryPredicateData{
-        op: BooleanBinaryOperator::And,
-        p1: Box::new(wp),
-        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
-    } );
-    //check the upper bound of overflow
-    Predicate::BinaryExpression( BinaryPredicateData{
-        op: BooleanBinaryOperator::And,
-        p1: Box::new(wp),
-        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
-    } )
-}
-
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
 pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Predicate>  {
@@ -222,28 +210,67 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Check the lower bound of overflow
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    //check the upper bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
+                    } );
                     IntegerBinaryOperator::Addition
                 },
                 &BinOp::Sub => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Append a clause to the weakest precondition representing the underflow assertion
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
+                    } );
                     IntegerBinaryOperator::Subtraction
                 },
                 &BinOp::Mul => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Check the lower bound of overflow
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    //check the upper bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
+                    } );
                     IntegerBinaryOperator::Multiplication
                 },
                 &BinOp::Div => {
                     // Retrieve the type of the right-hand operand (which should be the same as the left-hand)
                     let ty = gen_ty(roperand, data);
                     // Check the lower bound of overflow
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty, var.clone());
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::GreaterThan, &var, ty.clone()))
+                    } );
+                    //check the upper bound of overflow
+                    wp = Predicate::BinaryExpression( BinaryPredicateData{
+                        op: BooleanBinaryOperator::And,
+                        p1: Box::new(wp),
+                        p2: Box::new(gen_overflow_predicate(&IntegerComparisonOperator::LessThan, &var, ty.clone()))
+                    } );
                     IntegerBinaryOperator::Division
                 }
                 &BinOp::Shl => {
@@ -252,7 +279,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::Shr => {
                     IntegerBinaryOperator::BitwiseRightShift
                 },
-                _ => {panic!("Unsupported checked binary operation!");}
+                _ => { rp_error!("Unsupported checked binary operation!"); }
             };
 
             let lvalue: Term = gen_operand(&loperand, data);
@@ -266,15 +293,6 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         },
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
             let op: IntegerBinaryOperator = match binop {
-                &BinOp::Add => {
-                    IntegerBinaryOperator::Addition
-                }
-                &BinOp::Sub => {
-                    IntegerBinaryOperator::Subtraction
-                }
-                &BinOp::Mul => {
-                    IntegerBinaryOperator::Multiplication
-                }
                 &BinOp::Div => {
                     IntegerBinaryOperator::Division
                 },
@@ -290,10 +308,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
                 &BinOp::BitXor => {
                     IntegerBinaryOperator::BitwiseXor
                 },
-                &BinOp::Eq => {
-                    panic!("Unsupported uncheck binary operation EQ")
-                }
-                _ => {panic!("Unsupported unchecked binary operation!");}
+                _ => { rp_error!("Unsupported unchecked binary operation!"); }
             };
 
             let lvalue: Term = gen_operand(&lval, data);
@@ -325,7 +340,7 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         Rvalue::Use(ref operand) => {
             gen_operand(operand, data)
         },
-        _ => {panic!("Unsupported RValue type!");}
+        _ => { rp_error!("Unsupported RValue type!"); }
     };
 
     // Replace any appearance of var in the weakest precondition with the term
@@ -351,7 +366,6 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         Lvalue::Var(ref var) => {
             // Find the name and type in the declaration
             VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: data.3[var.index()].ty.clone().to_string() }
-            //VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {

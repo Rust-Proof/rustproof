@@ -39,7 +39,7 @@ macro_rules! rp_warn {
         //Terminal will only work with Write Macro from what I know
         write!(terminal, "WARNING: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => warn!(concat!($fmt, "\n"), $($arg)*),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -57,7 +57,7 @@ macro_rules! rp_error {
         // Terminal will only work with Write Macro from what I know
         write!(terminal, "ERROR: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => error!(concat!($fmt, "\n")),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -72,7 +72,7 @@ macro_rules! rp_error {
         // Terminal will only work with Write Macro from what I know
         write!(terminal, "ERROR: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => error!(concat!($fmt, "\n"), $($arg)*),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -91,7 +91,7 @@ macro_rules! rp_debug {
         write!(terminal, "DEBUG: ").unwrap();
         terminal.reset().unwrap();
         terminal.flush();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => debug!(concat!($fmt, "\n")),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -104,7 +104,7 @@ macro_rules! rp_debug {
         //Terminal will only work with Write Macro from what I know
         write!(terminal, "DEBUG: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => debug!(concat!($fmt, "\n"), $($arg)*),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -121,7 +121,7 @@ macro_rules! rp_info {
         //Terminal will only work with Write Macro from what I know
         write!(terminal, "INFO: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => info!(concat!($fmt, "\n")),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -134,7 +134,7 @@ macro_rules! rp_info {
         //Terminal will only work with Write Macro from what I know
         write!(terminal, "INFO: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => info!(concat!($fmt, "\n"), $($arg)*),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -151,7 +151,7 @@ macro_rules! rp_trace {
         //Terminal will only work with Write Macro from what I know
         write!(terminal, "TRACE: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => trace!(concat!($fmt, "\n")),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }
@@ -164,7 +164,7 @@ macro_rules! rp_trace {
         //Terminal will only work with Write Macro from what I know
         write!(terminal, "TRACE: ").unwrap();
         terminal.reset().unwrap();
-        match terminal.flush(); {
+        match terminal.flush() {
             Ok(_) => trace!(concat!($fmt, "\n"), $($arg)*),
             Err(e) => panic!("could not write to terminal: {:?}", e),
         }

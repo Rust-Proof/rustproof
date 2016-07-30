@@ -8,6 +8,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+extern crate term;
+use super::reporting;
+use std::process;
+
 use super::DEBUG;
 
 use std::convert::From;
