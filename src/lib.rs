@@ -32,7 +32,6 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 #![feature(core_intrinsics)]
-#![feature(macro_rules)]
 
 #[macro_use] pub mod reporting;
 
