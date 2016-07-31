@@ -344,7 +344,12 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         Rvalue::Use(ref operand) => {
             gen_operand(operand, data)
         },
-        _ => {rp_error!("Unsupported RValue type!");}
+        Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
+            // FIXME: need to support tuples in expression to proceed further
+            println!("DEBUG\n{:?} {:?}\n", ag_kind, vec_operand);
+            unimplemented!();
+        },
+        _ => { unimplemented!(); }
     };
 
     // Replace any appearance of var in the weakest precondition with the term
