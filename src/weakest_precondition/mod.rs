@@ -48,7 +48,6 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Call{func, args, destination, cleanup} => {
             // FIXME: WIP / review  with group
             // If basic block has no targets return
-            println!("destination {:?}", destination.clone());
             match destination.clone() {
                 None => {
                     wp = builder.post_expr.clone();
