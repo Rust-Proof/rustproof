@@ -47,20 +47,16 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         },
         TerminatorKind::Call{func, args, destination, cleanup} => {
             // FIXME: WIP / review  with group
-            // Check if function call is a panic
-            match func {
-                Operand::Consume(ref x) => { unimplemented!(); },
-                Operand::Constant(ref func_ty) => {
-                    match func_ty {
-                        begin_panic_fmt => {
-                            // This is a panic block with no exit
-                            // FIXME: is this what we want to do here?
-                            wp = builder.post_expr.clone();
-                            return wp;
-                        }
-                    }
-                },
+            // If basic block has no targets return
+            println!("destination {:?}", destination.clone());
+            match destination.clone() {
+                None => {
+                    wp = builder.post_expr.clone();
+                    return wp;
+                 },
+                _ => {}
             }
+
             wp = gen(destination.unwrap().1.index(), data, builder);
         },
         TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
