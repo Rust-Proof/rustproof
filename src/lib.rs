@@ -32,6 +32,7 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 #![feature(core_intrinsics)]
+#![feature(libstd_sys_internals)]
 
 #[macro_use] pub mod reporting;
 
