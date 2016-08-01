@@ -19,6 +19,7 @@ use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::Ty;
+use std::rt::begin_panic_fmt;
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
 pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Predicate> {
@@ -44,7 +45,19 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
             // Retrieve the weakest precondition from the following block
             wp = gen(target.index(), data, builder);
         },
-        TerminatorKind::Call{func, args, destination, cleanup} => unimplemented!(),
+        TerminatorKind::Call{func, args, destination, cleanup} => {
+            // FIXME: WIP / review  with group
+            // If basic block has no targets return
+            match destination.clone() {
+                None => {
+                    wp = builder.post_expr.clone();
+                    return wp;
+                 },
+                _ => {}
+            }
+
+            wp = gen(destination.unwrap().1.index(), data, builder);
+        },
         TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
         TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
         TerminatorKind::Unreachable => unimplemented!(),
@@ -326,7 +339,12 @@ pub fn gen_stmt(mut wp: Predicate, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&
         Rvalue::Use(ref operand) => {
             gen_operand(operand, data)
         },
-        _ => {rp_error!("Unsupported RValue type!");}
+        Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
+            // FIXME: need to support tuples in expression to proceed further
+            println!("DEBUG\n{:?} {:?}\n", ag_kind, vec_operand);
+            unimplemented!();
+        },
+        _ => { unimplemented!(); }
     };
 
     // Replace any appearance of var in the weakest precondition with the term
