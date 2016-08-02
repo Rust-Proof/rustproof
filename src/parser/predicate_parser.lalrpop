@@ -8,90 +8,59 @@ use expression::UnsignedBitVectorData;
 use expression::VariableMappingData;
 use expression::UnaryExpressionData;
 use expression::BinaryExpressionData;
-use expression::BooleanUnaryOperator;
-use expression::BooleanBinaryOperator;
-use expression::IntegerComparisonOperator;
-use expression::IntegerUnaryOperator;
-use expression::IntegerBinaryOperator;
+use expression::UnaryOperator;
+use expression::BinaryOperator;
 
 grammar;
 
-pub P1: Predicate = {
-	<p1: P1> <op: BOOL_BOP> <p2: P2> => Predicate::BinaryExpression( BinaryPredicateData { op: op, p1: Box::new(p1), p2: Box::new(p2) } ),
-	P2,
+pub E1: Expression = {
+	<left: E1> <op: BOP> <right: E2> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+	E2,
 };
 
-pub P2: Predicate = {
-	<op: BOOL_UOP> <p: P2> => Predicate::UnaryExpression( UnaryPredicateData { op: op, p: Box::new(p) } ),
-	P3,
+pub E2: Expression = {
+	<op: UOP> <e: E2> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
+	E3,
 };
 
-pub P3: Predicate = {
-	<t1: A> <op: INT_COMP> <t2: A> => Predicate::IntegerComparison( IntegerComparisonData { op: op, t1: Box::new(t1), t2: Box::new(t2) } ),
-	"true" => Predicate::BooleanLiteral(true),
-	"false" => Predicate::BooleanLiteral(false),
-	<v:r"_[a-zA-Z0-9_]+"> ":" "bool" => Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "bool".to_string() } ),
-	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "bool" =>  Predicate::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "bool".to_string() } ),
-	"(" <p: P1> ")" => p,
+pub E3: Expression = {
+	"true" => Expression::BooleanLiteral(true),
+	"false" => Expression::BooleanLiteral(false),
+	<i:r"[-][0-9]+"> => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
+	<i:r"[0-9]+"> => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(i).unwrap() } ),
+	<v:r"_[a-zA-Z0-9_]+"> ":" "bool" => Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "bool".to_string() } ),
+	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "bool" =>  Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "bool".to_string() } ),
+	<v:r"_[a-zA-Z0-9_]+"> ":" "int" => Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "int".to_string() } ),
+	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "int" =>  Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "int".to_string() } ),
+	"(" <e: E1> ")" => e,
 };
 
-pub A: Term = {
-	<a1: A> "[" <a2: A> "]" => Term::BinaryExpression( BinaryExpressionData { op: IntegerBinaryOperator::ArrayLookup, t1: Box::new(a1), t2: Box::new(a2) } ),
-	T1,
+pub INT_UOP: UnaryOperator = {
+	"-" => UnaryOperator::Negation,
+	"!" => UnaryOperator::BitwiseNot,
+	"NOT" => UnaryOperator::Not,
 };
 
-pub T1: Term = {
-	<t1: T1> <op: INT_BOP> <t2: T2> => Term::BinaryExpression( BinaryExpressionData { op: op, t1: Box::new(t1), t2: Box::new(t2) } ),
-	T2,
-};
-
-pub T2: Term = {
-	<op: INT_UOP> <t: T3> => Term::UnaryExpression( UnaryExpressionData { op: op, t: Box::new(t) } ),
-	T3,
-};
-
-pub T3: Term = {
-	<l:r"[0-9]+"> => Term::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(l).unwrap() } ),
-	<v:r"_[a-zA-Z0-9_]+"> ":" "int" => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "int".to_string() } ),
-	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "int" => Term::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "int".to_string() } ),
-	"(" <t: T1> ")" => t,
-};
-
-pub INT_COMP: IntegerComparisonOperator = {
-	"<" => IntegerComparisonOperator::LessThan,
-	"<=" => IntegerComparisonOperator::LessThanOrEqual,
-	">" => IntegerComparisonOperator::GreaterThan,
-	">=" => IntegerComparisonOperator::GreaterThanOrEqual,
-	"==" => IntegerComparisonOperator::Equal,
-	"!=" => IntegerComparisonOperator::NotEqual,
-};
-
-pub BOOL_UOP: BooleanUnaryOperator = {
-	"!!" => BooleanUnaryOperator::Not,
-};
-
-pub BOOL_BOP: BooleanBinaryOperator = {
-	"&&" => BooleanBinaryOperator::And,
-	"||" => BooleanBinaryOperator::Or,
-	"XOR" => BooleanBinaryOperator::Xor,
-	"=>" => BooleanBinaryOperator::Implication,
-	"<=>" => BooleanBinaryOperator::BiImplication,
-};
-
-pub INT_UOP: IntegerUnaryOperator = {
-	"-" => IntegerUnaryOperator::Negation,
-	"!" => IntegerUnaryOperator::BitwiseNot,
-};
-
-pub INT_BOP: IntegerBinaryOperator = {
-	"+" => IntegerBinaryOperator::Addition,
-	"-" => IntegerBinaryOperator::Subtraction,
-	"*" => IntegerBinaryOperator::Multiplication,
-	"/" => IntegerBinaryOperator::Division,
-	"%" => IntegerBinaryOperator::Modulo,
-	"&" => IntegerBinaryOperator::BitwiseAnd,
-	"|" => IntegerBinaryOperator::BitwiseOr,
-	"^" => IntegerBinaryOperator::BitwiseXor,
-	"<<" => IntegerBinaryOperator::BitwiseLeftShift,
-	">>" => IntegerBinaryOperator::BitwiseRightShift,
+pub INT_BOP: BinaryOperator = {
+	"+" => BinaryOperator::Addition,
+	"-" => BinaryOperator::Subtraction,
+	"*" => BinaryOperator::Multiplication,
+	"/" => BinaryOperator::Division,
+	"%" => BinaryOperator::Modulo,
+	"&" => BinaryOperator::BitwiseAnd,
+	"|" => BinaryOperator::BitwiseOr,
+	"^" => BinaryOperator::BitwiseXor,
+	"<<" => BinaryOperator::BitwiseLeftShift,
+	">>" => BinaryOperator::BitwiseRightShift,
+	"<" => BinaryOperator::LessThan,
+	"<=" => BinaryOperator::LessThanOrEqual,
+	">" => BinaryOperator::GreaterThan,
+	">=" => BinaryOperator::GreaterThanOrEqual,
+	"==" => BinaryOperator::Equal,
+	"!=" => BinaryOperator::NotEqual,
+	"AND" => BinaryOperator::And,
+	"OR" => BinaryOperator::Or,
+	"XOR" => BinaryOperator::Xor,
+	"IMPLICATION" => BinaryOperator::Implication,
+	"BIIMPLICATION" => BinaryOperator::BiImplication,
 };

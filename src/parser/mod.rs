@@ -17,7 +17,7 @@ use syntax::ast::{MetaItemKind, Attribute_};
 use syntax::codemap::Spanned;
 
 use super::Attr;
-use expression::Predicate;
+use expression::Expression;
 use std::process;
 
 // Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
@@ -68,11 +68,11 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
     }
 }
 
-// Calls the predicate parser on a given pre/post condition, and returns a Predicate if it is valid.
-pub fn parse_condition(condition: &str) -> Predicate {
-    match predicate_parser::parse_P1(condition) {
-        Ok(p) => {
-            return p;
+// Calls the predicate parser on a given pre/post condition, and returns a Expression if it is valid.
+pub fn parse_condition(condition: &str) -> Expression {
+    match predicate_parser::parse_E1(condition) {
+        Ok(e) => {
+            return e;
         },
         Err(e) => {
             rp_error!("Error parsing condition \"{}\": {:?}", condition, e);
