@@ -9,7 +9,6 @@
 // except according to those terms.
 
 extern crate rustc_const_math;
-extern crate term;
 use super::dev_tools;
 use super::Attr;
 use super::DEBUG;
@@ -20,6 +19,7 @@ use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::Ty;
 use std::rt::begin_panic_fmt;
+use term;
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
 pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Expression> {

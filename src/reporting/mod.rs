@@ -8,13 +8,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate term;
-
 use std::env;
 use std::process;
 use log::{LogRecord, LogLevelFilter};
 use env_logger::LogBuilder;
-use term::*;
+use term;
 
 // The Warning Macro
 macro_rules! rp_warn {
