@@ -63,13 +63,12 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Unreachable => unimplemented!(),
         TerminatorKind::Resume => unimplemented!(),
         TerminatorKind::If{cond, targets} => {
-            //Generate wp0 and wp1
-            let wp0 = gen(targets.0.index(), data, builder);
-            let wp1 = gen(targets.1.index(), data, builder);
+            // Generate weakest precondition for if and else clause
+            let wp_if = gen(targets.0.index(), data, builder);
+            let wp_else = gen(targets.1.index(), data, builder);
 
-            //match condtion to correct value
+            // Generate the conditional expression
             let condition = match cond {
-                //condition will either be a constant bool or
                 Operand::Constant (ref constant) => {
                     match constant.literal {
                         Literal::Value {ref value} => {
@@ -83,19 +82,18 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
                         _ => unimplemented!(),
                     }
                 },
-                Operand::Consume(lvalue) => {
-                    Expression::VariableMapping(gen_lvalue(lvalue, data))
+                Operand::Consume(c) => {
+                    Expression::VariableMapping(gen_lvalue(c, data))
                 },
             };
-            //generate not operand
+            // Negate the conditional expression
             let not_condition = Expression::UnaryExpression(UnaryExpressionData {op : UnaryOperator::Not, e: Box::new(condition.clone())});
-            //create condition->wp0
-            let wp0 = Expression::BinaryExpression(BinaryExpressionData {op: BinaryOperator::Implication, left: Box::new(condition.clone()), right: Box::new(wp0.unwrap())});
-            //create not_condition->wp1
-            let wp1 = Expression::BinaryExpression(BinaryExpressionData {op: BinaryOperator::Implication, left: Box::new(not_condition.clone()), right: Box::new(wp1.unwrap())});
-            //wp0 && wp1
-            wp = Some(Expression::BinaryExpression(BinaryExpressionData {op: BinaryOperator::And, left: Box::new(wp0), right: Box::new(wp1)}));
-
+            // wp(If c x else y) = (c -> x) AND ((NOT c) -> y)
+            wp = Some(Expression::BinaryExpression(BinaryExpressionData {
+                op: BinaryOperator::And,
+                left: Box::new(Expression::BinaryExpression(BinaryExpressionData {op: BinaryOperator::Implication, left: Box::new(condition.clone()), right: Box::new(wp_if.unwrap())})),
+                right: Box::new(Expression::BinaryExpression(BinaryExpressionData {op: BinaryOperator::Implication, left: Box::new(not_condition.clone()), right: Box::new(wp_else.unwrap())}))
+            }));
         },
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
@@ -117,7 +115,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
     return wp;
 }
 
-//generates a Ty from a given operand
+// Returns the type of an operand as a String
 pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
@@ -304,10 +302,30 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
                 &BinOp::BitXor => {
                     BinaryOperator::BitwiseXor
                 },
+                &BinOp::Shl => {
+                    BinaryOperator::BitwiseLeftShift
+                },
+                &BinOp::Shr => {
+                    BinaryOperator::BitwiseRightShift
+                },
+                &BinOp::Lt => {
+                    BinaryOperator::LessThan
+                },
+                &BinOp::Le => {
+                    BinaryOperator::LessThanOrEqual
+                },
+                &BinOp::Gt => {
+                    BinaryOperator::GreaterThan
+                },
+                &BinOp::Ge => {
+                    BinaryOperator::GreaterThanOrEqual
+                },
                 &BinOp::Eq => {
-                    rp_error!("Unsupported uncheck binary operation EQ")
+                    BinaryOperator::Equal
+                },
+                &BinOp::Ne => {
+                    BinaryOperator::NotEqual
                 }
-                _ => {rp_error!("Unsupported unchecked binary operation!");}
             };
 
             let lvalue: Expression = gen_operand(&lval, data);
