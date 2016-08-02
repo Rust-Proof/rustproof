@@ -8,30 +8,29 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use expression::{Term, Predicate, IntegerComparisonOperator, BinaryPredicateData, VariableMappingData, IntegerComparisonData};
-use expression::{substitute_variable_in_predicate_with_term, substitute_variable_in_term_with_term};
+use expression::{Expression, BinaryOperator, BinaryExpressionData, VariableMappingData, substitute_variable_with_expression};
 
 #[test]
 fn simple_replacement() {
 	let target_var : VariableMappingData = VariableMappingData { name: "x".to_string(), var_type: "i32".to_string() };
-	let target: Term = Term::VariableMapping( target_var.clone() );
-	let superfluous: Term = Term::VariableMapping( VariableMappingData { name: "z".to_string(), var_type: "i32".to_string() } );
-	let replacement: Term = Term::VariableMapping( VariableMappingData { name: "y".to_string(), var_type: "i32".to_string() } );
-	let p: Predicate = Predicate::IntegerComparison( IntegerComparisonData{
-		op: IntegerComparisonOperator::LessThan, 
-		t1: Box::new( target.clone() ),
-		t2: Box::new( superfluous.clone() ),
+	let target: Expression = Expression::VariableMapping( target_var.clone() );
+	let superfluous: Expression = Expression::VariableMapping( VariableMappingData { name: "z".to_string(), var_type: "i32".to_string() } );
+	let replacement: Expression = Expression::VariableMapping( VariableMappingData { name: "y".to_string(), var_type: "i32".to_string() } );
+	let mut p: Expression = Expression::BinaryExpression( BinaryExpressionData{
+		op: BinaryOperator::LessThan, 
+		left: Box::new( target.clone() ),
+		right: Box::new( superfluous.clone() ),
 	} );
 
-	let correct_result: Predicate = Predicate::IntegerComparison( IntegerComparisonData{
-		op: IntegerComparisonOperator::LessThan, 
-		t1: Box::new( replacement.clone() ),
-		t2: Box::new( superfluous.clone() ),
+	let correct_result: Expression = Expression::BinaryExpression( BinaryExpressionData{
+		op: BinaryOperator::LessThan, 
+		left: Box::new( replacement.clone() ),
+		right: Box::new( superfluous.clone() ),
 	} );
-	let result = substitute_variable_in_predicate_with_term(p, target_var, replacement);
-	println!("result {:?}", result);
+	substitute_variable_with_expression(&mut p, &target_var, &replacement);
+	println!("result {:?}", p);
 	println!("correct_result {:?}", correct_result);
-	assert_eq!(result, correct_result);
+	assert_eq!(p, correct_result);
 }
 
 #[test]
@@ -51,35 +50,4 @@ fn variable_mapping_data_equality() {
 	assert!(var1 != var5);
 	assert!(var1 != var6);
 	assert!(var6 == var6);
-}
-
-//substitute_variable_in_predicate_with_term()
-
-#[test]
-fn substitute_variable_in_predicate_with_term_test() {
-
-}
-
-
-//substitute_variable_in_term_with_term()
-
-#[test]
-fn variable_mapping_data_replaced_with_variable_mapping_data() {
-	let var1: VariableMappingData = VariableMappingData { name: "x".to_string(), var_type: "i32".to_string() };
-	let term1: Term = Term::VariableMapping(VariableMappingData { name: "x".to_string(), var_type: "i32".to_string() });
-	let term2: Term = Term::VariableMapping(VariableMappingData { name: "y".to_string(), var_type: "u32".to_string() });
-	let term3: Term = Term::VariableMapping(VariableMappingData { name: "y".to_string(), var_type: "u32".to_string() });
-
-	let term4: Term = substitute_variable_in_term_with_term(term1, var1, term2);
-	match term4 {
-		Term::VariableMapping(v) => {
-			match term3 {
-				Term::VariableMapping(u) => {
-					assert!(v == u);
-				},
-				_ => {}
-			}
-		},
-		_ => {}
-	}
 }

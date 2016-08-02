@@ -29,7 +29,7 @@ use expression::*;
 
 // Now that we have a verification condition, we need to verify that it is always true.
 // Simply satisfying P->WP isn't enough. We need to verify that !(P->WP) is *unsatisfiable*
-pub fn gen_smtlib (vc: &Predicate) {
+pub fn gen_smtlib (vc: &Expression) {
     // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
 
@@ -42,8 +42,8 @@ pub fn gen_smtlib (vc: &Predicate) {
     // DEBUG
     //println!("Verification Condition is: ``{}''", vc);
 
-    // Traverse the Predicate graph and build the solver
-    let vcon = solver.pred2smtlib(&vc);
+    // Traverse the Expression graph and build the solver
+    let vcon = solver.expr2smtlib(&vc);
     let _ = solver.assert(core::OpCodes::Not, &[vcon]);
 
     // Check the satisfiability of the solver
@@ -62,8 +62,7 @@ pub trait Pred2SMT {
     type Idx: Debug + Clone;
     type Logic: Logic;
 
-    fn pred2smtlib (&mut self, &Predicate) -> Self::Idx;
-    fn term2smtlib (&mut self, &Term) -> Self::Idx;
+    fn expr2smtlib (&mut self, &Expression) -> Self::Idx;
 }
 
 // bajr is keeping this here for posterity... and misplaced pride
@@ -74,101 +73,139 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
     type Idx = NodeIndex;
     type Logic = QF_ABV;
 
-    fn pred2smtlib (&mut self, vc: &Predicate) -> Self::Idx {
+    fn expr2smtlib (&mut self, vc: &Expression) -> Self::Idx {
         match vc {
-            &Predicate::VariableMapping (ref v) => {
-                match v.var_type.as_ref() {
-                    "bool" => return self.new_var(Some(&v.name), core::Sorts::Bool),
-                    _ => return self.new_var(Some(&v.name), core::Sorts::Bool),
-                }
-            },
-            &Predicate::BooleanLiteral (ref b) => {
-                if *b == true {
-                    return self.new_const(core::OpCodes::True);
-                } else {
-                    return self.new_const(core::OpCodes::False);
-                }
-            },
-            &Predicate::BinaryExpression (ref b) => {
+            &Expression::BinaryExpression (ref b) => {
                 match b.op {
-                    BooleanBinaryOperator::And => {
-                        let l = self.pred2smtlib(b.p1.as_ref());
-                        let r = self.pred2smtlib(b.p2.as_ref());
+                    BinaryOperator::Addition => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvAdd, &[l,r]);
+                    },
+                    BinaryOperator::Subtraction => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSub, &[l,r]);
+                    },
+                    BinaryOperator::Multiplication => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvMul, &[l,r]);
+                    },
+                    BinaryOperator::Division => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSDiv, &[l,r]);
+                    },
+                    BinaryOperator::Modulo => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSMod, &[l,r]);
+                    },
+                    BinaryOperator::BitwiseOr => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvOr, &[l,r]);
+                    },
+                    BinaryOperator::BitwiseAnd => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvAnd, &[l,r]);
+                    },
+                    BinaryOperator::BitwiseXor => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvXor, &[l,r]);
+                    },
+                    BinaryOperator::BitwiseLeftShift => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvShl, &[l,r]);
+                    },
+                    // FIXME: Find out if this is always arithmetic, logical, or if it changes
+                    BinaryOperator::BitwiseRightShift => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvLShr, &[l,r]);
+                    },
+                    BinaryOperator::LessThan => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSLt, &[l,r]);
+                    },
+                    BinaryOperator::LessThanOrEqual => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSLe, &[l,r]);
+                    },
+                    BinaryOperator::GreaterThan => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSGt, &[l,r]);
+                    },
+                    BinaryOperator::GreaterThanOrEqual => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSGe, &[l,r]);
+                    },
+                    BinaryOperator::Equal => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(core::OpCodes::Cmp, &[l,r]);
+                    },
+                    BinaryOperator::NotEqual => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        let eq = self.assert(core::OpCodes::Cmp, &[l,r]);
+                        return self.assert(core::OpCodes::Not, &[eq]);
+                    },
+                    BinaryOperator::And => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::And, &[l,r]);
                     },
-                    BooleanBinaryOperator::Or => {
-                        let l = self.pred2smtlib(b.p1.as_ref());
-                        let r = self.pred2smtlib(b.p2.as_ref());
+                    BinaryOperator::Or => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Or, &[l,r]);
                     },
-                    BooleanBinaryOperator::Xor => {
-                        let l = self.pred2smtlib(b.p1.as_ref());
-                        let r = self.pred2smtlib(b.p2.as_ref());
+                    BinaryOperator::Xor => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Xor, &[l,r]);
                     },
-                    BooleanBinaryOperator::Implication => {
-                        let l = self.pred2smtlib(b.p1.as_ref());
-                        let r = self.pred2smtlib(b.p2.as_ref());
+                    BinaryOperator::Implication => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Imply, &[l,r]);
                     },
 
-                    BooleanBinaryOperator::BiImplication => {
-                        let l = self.pred2smtlib(b.p1.as_ref());
-                        let r = self.pred2smtlib(b.p2.as_ref());
+                    BinaryOperator::BiImplication => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Cmp, &[l,r]);
                     }
                 }
             },
-            &Predicate::UnaryExpression (ref u) => {
+            &Expression::UnaryExpression (ref u) => {
                 match u.op {
-                    BooleanUnaryOperator::Not => {
-                        let n = self.pred2smtlib(u.p.as_ref());
+                    UnaryOperator::Negation => {
+                        let n = self.expr2smtlib(u.e.as_ref());
+                        return self.assert(bitvec::OpCodes::BvNeg, &[n]);
+                    },
+                    UnaryOperator::BitwiseNot => {
+                        let n = self.expr2smtlib(u.e.as_ref());
+                        return self.assert(bitvec::OpCodes::BvNot, &[n]);
+                    },
+                    UnaryOperator::Not => {
+                        let n = self.expr2smtlib(u.e.as_ref());
                         return self.assert(core::OpCodes::Not, &[n]);
                     },
                 }
             },
-            &Predicate::IntegerComparison (ref i) => {
-                match i.op {
-                    IntegerComparisonOperator::LessThan => {
-                        let l = self.term2smtlib(i.t1.as_ref());
-                        let r = self.term2smtlib(i.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvSLt, &[l,r]);
-                    },
-                    IntegerComparisonOperator::LessThanOrEqual => {
-                        let l = self.term2smtlib(i.t1.as_ref());
-                        let r = self.term2smtlib(i.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvSLe, &[l,r]);
-                    },
-                    IntegerComparisonOperator::GreaterThan => {
-                        let l = self.term2smtlib(i.t1.as_ref());
-                        let r = self.term2smtlib(i.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvSGt, &[l,r]);
-                    },
-                    IntegerComparisonOperator::GreaterThanOrEqual => {
-                        let l = self.term2smtlib(i.t1.as_ref());
-                        let r = self.term2smtlib(i.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvSGe, &[l,r]);
-                    },
-                    IntegerComparisonOperator::Equal => {
-                        let l = self.term2smtlib(i.t1.as_ref());
-                        let r = self.term2smtlib(i.t2.as_ref());
-                        return self.assert(core::OpCodes::Cmp, &[l,r]);
-                    },
-                    IntegerComparisonOperator::NotEqual => {
-                        let l = self.term2smtlib(i.t1.as_ref());
-                        let r = self.term2smtlib(i.t2.as_ref());
-                        let eq = self.assert(core::OpCodes::Cmp, &[l,r]);
-                        return self.assert(core::OpCodes::Not, &[eq]);
-                    },
-                }
-            }
-        }
-    }
-
-    fn term2smtlib (&mut self, term: &Term) -> Self::Idx {
-        match term {
-            &Term::VariableMapping (ref v) => {
+            &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
+                    "bool" => return self.new_var(Some(&v.name), core::Sorts::Bool),
                     // FIXME All these variables are size 64 bitvectors, should they be different?
                     "int" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
                     "i32" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
@@ -178,88 +215,17 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     _ => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
                 }
             },
-            &Term::BinaryExpression (ref b) => {
-                match b.op {
-                    IntegerBinaryOperator::Addition => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvAdd, &[l,r]);
-                    },
-                    IntegerBinaryOperator::Subtraction => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvSub, &[l,r]);
-                    },
-                    IntegerBinaryOperator::Multiplication => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvMul, &[l,r]);
-                    },
-                    IntegerBinaryOperator::Division => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvSDiv, &[l,r]);
-                    },
-                    IntegerBinaryOperator::Modulo => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvSMod, &[l,r]);
-                    },
-                    IntegerBinaryOperator::BitwiseOr => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvOr, &[l,r]);
-                    },
-                    IntegerBinaryOperator::BitwiseAnd => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvAnd, &[l,r]);
-                    },
-                    IntegerBinaryOperator::BitwiseXor => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvXor, &[l,r]);
-                    },
-                    IntegerBinaryOperator::BitwiseLeftShift => {
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvShl, &[l,r]);
-                    },
-                    IntegerBinaryOperator::BitwiseRightShift => { // AShr or LShr?
-                        let l = self.term2smtlib(b.t1.as_ref());
-                        let r = self.term2smtlib(b.t2.as_ref());
-                        return self.assert(bitvec::OpCodes::BvLShr, &[l,r]);
-                    },
-                    IntegerBinaryOperator::ArrayLookup => {
-                        // FIXME This arm is unimplemented!
-                        // FIXME But it must exist and it must return an index
-                        return self.new_const(core::OpCodes::True);
-//                          return self.assert(array_ex::OpCodes::Select, &[.., ..]);
-                    },
-                    IntegerBinaryOperator::ArrayUpdate => {
-                        // FIXME This arm is unimplemented!
-                        // FIXME But it must exist and it must return an index
-                        return self.new_const(core::OpCodes::True);
-//                          return self.assert(array_ex::OpCodes::Store, &[.., ..]);
-                    },
+            &Expression::BooleanLiteral (ref b) => {
+                if *b == true {
+                    return self.new_const(core::OpCodes::True);
+                } else {
+                    return self.new_const(core::OpCodes::False);
                 }
             },
-            &Term::UnaryExpression (ref u) => {
-                match u.op {
-                    IntegerUnaryOperator::Negation => {
-                        let n = self.term2smtlib(u.t.as_ref());
-                        return self.assert(bitvec::OpCodes::BvNeg, &[n]);
-                    },
-                    IntegerUnaryOperator::BitwiseNot => {
-                        let n = self.term2smtlib(u.t.as_ref());
-                        return self.assert(bitvec::OpCodes::BvNot, &[n]);
-                    },
-                }
-            },
-            &Term::UnsignedBitVector (ref u) => {
+            &Expression::UnsignedBitVector (ref u) => {
                 return bv_const!(self, u.value, 64);
             },
-            &Term::SignedBitVector (ref s) => {
+            &Expression::SignedBitVector (ref s) => {
                 return bv_const!(self, s.value as u64, 64);
             }
         }
