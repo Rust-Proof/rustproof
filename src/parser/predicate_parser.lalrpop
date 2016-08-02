@@ -1,16 +1,5 @@
 use std::str::FromStr;
-use expression::Predicate;
-use expression::Term;
-use expression::UnaryPredicateData;
-use expression::BinaryPredicateData;
-use expression::IntegerComparisonData;
-use expression::UnsignedBitVectorData;
-use expression::VariableMappingData;
-use expression::UnaryExpressionData;
-use expression::BinaryExpressionData;
-use expression::UnaryOperator;
-use expression::BinaryOperator;
-
+use expression::{Expression, BinaryExpressionData, UnaryExpressionData, VariableMappingData, UnsignedBitVectorData, SignedBitVectorData, BinaryOperator, UnaryOperator};
 grammar;
 
 pub E1: Expression = {
@@ -35,13 +24,13 @@ pub E3: Expression = {
 	"(" <e: E1> ")" => e,
 };
 
-pub INT_UOP: UnaryOperator = {
+pub UOP: UnaryOperator = {
 	"-" => UnaryOperator::Negation,
 	"!" => UnaryOperator::BitwiseNot,
 	"NOT" => UnaryOperator::Not,
 };
 
-pub INT_BOP: BinaryOperator = {
+pub BOP: BinaryOperator = {
 	"+" => BinaryOperator::Addition,
 	"-" => BinaryOperator::Subtraction,
 	"*" => BinaryOperator::Multiplication,
@@ -58,6 +47,8 @@ pub INT_BOP: BinaryOperator = {
 	">=" => BinaryOperator::GreaterThanOrEqual,
 	"==" => BinaryOperator::Equal,
 	"!=" => BinaryOperator::NotEqual,
+	"&&" => BinaryOperator::And,
+	"||" => BinaryOperator::Or,
 	"AND" => BinaryOperator::And,
 	"OR" => BinaryOperator::Or,
 	"XOR" => BinaryOperator::Xor,

@@ -32,7 +32,7 @@ pub enum Expression {
     // A variable; should be either one of a function's formal arguments, a special "return" variable, or something from an encapsulating scope.
     VariableMapping(VariableMappingData),
     // Boolean literals
-    BooleanLiteral(bool)
+    BooleanLiteral(bool),
     // Integer literals
     UnsignedBitVector(UnsignedBitVectorData),
     SignedBitVector(SignedBitVectorData)
@@ -45,19 +45,19 @@ impl fmt::Display for Expression {
             &Expression::BinaryExpression (ref b) => {
                 match b.op {
                     BinaryOperator::And => {
-                        write!(f, "({} && {})", *b.left, *b.right)
+                        write!(f, "({} AND {})", *b.left, *b.right)
                     },
                     BinaryOperator::Or => {
-                        write!(f, "({} || {})", *b.left, *b.right)
+                        write!(f, "({} OR {})", *b.left, *b.right)
                     },
                     BinaryOperator::Xor => {
                         write!(f, "({} XOR {})", *b.left, *b.right)
                     },
                     BinaryOperator::Implication => {
-                        write!(f, "({} => {})", *b.left, *b.right)
+                        write!(f, "({} IMPLICATION {})", *b.left, *b.right)
                     },
                     BinaryOperator::BiImplication => {
-                        write!(f, "({} <=> {})", *b.left, *b.right)
+                        write!(f, "({} BIIMPLICATION {})", *b.left, *b.right)
                     },
                     BinaryOperator::Addition => {
                         write!(f, "({} + {})", *b.left, *b.right)
@@ -89,41 +89,23 @@ impl fmt::Display for Expression {
                     BinaryOperator::BitwiseRightShift => {
                         write!(f, "({} >> {})", *b.left, *b.right)
                     },
-                    IntegerComparisonOperator::LessThan => {
-                        write!(f, "({} < {})", *i.left, *i.right)
+                    BinaryOperator::LessThan => {
+                        write!(f, "({} < {})", *b.left, *b.right)
                     },
-                    IntegerComparisonOperator::LessThanOrEqual => {
-                        write!(f, "({} <= {})", *i.left, *i.right)
+                    BinaryOperator::LessThanOrEqual => {
+                        write!(f, "({} <= {})", *b.left, *b.right)
                     },
-                    IntegerComparisonOperator::GreaterThan => {
-                        write!(f, "({} > {})", *i.left, *i.right)
+                    BinaryOperator::GreaterThan => {
+                        write!(f, "({} > {})", *b.left, *b.right)
                     },
-                    IntegerComparisonOperator::GreaterThanOrEqual => {
-                        write!(f, "({} >= {})", *i.left, *i.right)
+                    BinaryOperator::GreaterThanOrEqual => {
+                        write!(f, "({} >= {})", *b.left, *b.right)
                     },
-                    IntegerComparisonOperator::Equal => {
-                        write!(f, "({} == {})", *i.left, *i.right)
+                    BinaryOperator::Equal => {
+                        write!(f, "({} == {})", *b.left, *b.right)
                     },
-                    IntegerComparisonOperator::NotEqual => {
-                        write!(f, "({} != {})", *i.left, *i.right)
-                    },
-                    IntegerComparisonOperator::LessThan => {
-                        write!(f, "({} < {})", *i.left, *i.right)
-                    },
-                    IntegerComparisonOperator::LessThanOrEqual => {
-                        write!(f, "({} <= {})", *i.left, *i.right)
-                    },
-                    IntegerComparisonOperator::GreaterThan => {
-                        write!(f, "({} > {})", *i.left, *i.right)
-                    },
-                    IntegerComparisonOperator::GreaterThanOrEqual => {
-                        write!(f, "({} >= {})", *i.left, *i.right)
-                    },
-                    IntegerComparisonOperator::Equal => {
-                        write!(f, "({} == {})", *i.left, *i.right)
-                    },
-                    IntegerComparisonOperator::NotEqual => {
-                        write!(f, "({} != {})", *i.left, *i.right)
+                    BinaryOperator::NotEqual => {
+                        write!(f, "({} != {})", *b.left, *b.right)
                     }
                 }
 
@@ -131,7 +113,7 @@ impl fmt::Display for Expression {
             &Expression::UnaryExpression (ref u) => {
                 match u.op {
                     UnaryOperator::Not => {
-                        write!(f, "(!!{})", *u.e)
+                        write!(f, "(NOT {})", *u.e)
                     },
                     UnaryOperator::Negation => {
                         write!(f, "(- {})", *u.e)
@@ -147,10 +129,10 @@ impl fmt::Display for Expression {
             &Expression::BooleanLiteral (ref b) => {
                 write!(f, "({})", b)
             },
-            &Term::UnsignedBitVector(ref u) => {
+            &Expression::UnsignedBitVector(ref u) => {
                 write!(f, "({})", u.value)
             },
-            &Term::SignedBitVector(ref s) => {
+            &Expression::SignedBitVector(ref s) => {
                 write!(f, "({})", s.value)
             }
         }
@@ -188,29 +170,10 @@ impl fmt::Display for VariableMappingData {
 }
 
 #[derive(Clone, PartialEq)]
-pub struct BinaryExpressionData { pub op: BinaryOperator, pub left: Box<Term>, pub right: Box<Term> }
-
-#[derive(Clone, PartialEq)]
-pub struct UnaryExpressionData { pub op: UnaryOperator, pub t: Box<Term> }
-
-#[derive(Clone, PartialEq)]
 pub struct UnsignedBitVectorData { pub size: u8, pub value: u64 }
 
 #[derive(Clone, PartialEq)]
 pub struct SignedBitVectorData { pub size: u8, pub value: i64 }
-
-// A literal, variable, or expression involving either.
-#[derive(Clone, PartialEq)]
-pub enum Term {
-    // Integer expressions
-    BinaryExpression(BinaryExpressionData),
-    UnaryExpression(UnaryExpressionData),
-    // An integer variable; should be either one of a function's formal arguments, a special "return" variable, or something from an encapsulating scope.
-    VariableMapping(VariableMappingData),
-    // Integer literals
-    UnsignedBitVector(UnsignedBitVectorData),
-    SignedBitVector(SignedBitVectorData)
-}
 
 #[derive(Clone, PartialEq)]
 pub enum BinaryOperator {
@@ -249,26 +212,31 @@ pub enum UnaryOperator {
     Not,
 }
 
-// Recurses through a Expression and replaces any Variable Mapping with the given Term.
-pub fn substitute_variable_with_expression ( mut source_expression: Expression, target: VariableMappingData, replacement: Term ) {
+// Recurses through a Expression and replaces any Variable Mapping with the given Expression.
+pub fn substitute_variable_with_expression ( source_expression: &mut Expression, target: &VariableMappingData, replacement: &Expression ) {
+    let mut replace: bool = false;
     match source_expression {
-        Expression::BinaryExpression(b) => {
+        &mut Expression::BinaryExpression(ref mut b) => {
             // Recurisvely call the sub-expressions
-            substitute_variable_with_expression(b.left, target, replacement);
-            substitute_variable_with_expression(b.right, target, replacement);
+            substitute_variable_with_expression(&mut(*b.left), &target, &replacement);
+            substitute_variable_with_expression(&mut(*b.right), &target, &replacement);
         },
-        Expression::UnaryExpression(u) => {
+        &mut Expression::UnaryExpression(ref mut u) => {
             // Recurisvely call the sub-expression
-            substitute_variable_with_expression(b.e, target, replacement);
+            substitute_variable_with_expression(&mut(*u.e), &target, &replacement);
         },
-        Expression::VariableMapping(v) => {
+        &mut Expression::VariableMapping(ref mut v) => {
             // Substitute the variable if it matches the target
             if v == target {
-                source_expression = replacement;
+                replace = true;
             }
         },
         _ => {
             // No substitution should be done
         }
+    }
+
+    if replace {
+        *source_expression = replacement.clone();
     }
 }

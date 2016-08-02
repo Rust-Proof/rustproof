@@ -70,7 +70,7 @@ use syntax::ptr::P;
 
 
 // Local imports
-use expression::{Predicate, BooleanBinaryOperator, BinaryPredicateData};
+use expression::{Expression, BinaryOperator, BinaryExpressionData};
 use parser::*;
 use smt_output::*;
 use weakest_precondition::*;
@@ -102,9 +102,9 @@ pub struct Attr {
     pub post_span: Option<Span>,
     pub pre_string: String,
     pub post_string: String,
-    pub pre_expr: Option<Predicate>,
-    pub post_expr: Option<Predicate>,
-    pub weakest_precondition: Option<Predicate>,
+    pub pre_expr: Option<Expression>,
+    pub post_expr: Option<Expression>,
+    pub weakest_precondition: Option<Expression>,
 }
 
 impl Attr {
@@ -257,10 +257,10 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         self.builder.weakest_precondition = gen(0, &data, &self.builder);
 
         // Create the verification condition, P -> WP
-        let verification_condition: Predicate = Predicate::BinaryExpression( BinaryPredicateData{
-            op: BooleanBinaryOperator::Implication,
-            p1: Box::new(self.builder.pre_expr.as_ref().unwrap().clone()),
-            p2: Box::new(self.builder.weakest_precondition.as_ref().unwrap().clone())
+        let verification_condition: Expression = Expression::BinaryExpression( BinaryExpressionData{
+            op: BinaryOperator::Implication,
+            left: Box::new(self.builder.pre_expr.as_ref().unwrap().clone()),
+            right: Box::new(self.builder.weakest_precondition.as_ref().unwrap().clone())
         } );
 
         // FIXME: Remove debug print statement
