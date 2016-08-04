@@ -48,10 +48,13 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Call{func, args, destination, cleanup} => {
             // FIXME: WIP / review  with group
             // If basic block has no targets return
+            println!("DEBUG\n{:?}\t{:?}", func, args);
+            // FIXME: match on function name (panic)
             match destination.clone() {
                 None => {
-                    wp = builder.post_expr.clone();
-                    return wp;
+                    //wp = builder.post_expr.clone();
+                    //return wp;
+                    return Some(Expression::BooleanLiteral(false));
                  },
                 _ => {}
             }
@@ -135,9 +138,6 @@ pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Ve
                 },
                 _ => {
                     unimplemented!();
-                    //FIXME: This code is here because it needs to return from all paths.
-                    //FIXME: It should throw an error or warning if reached
-                    "".to_string()
                 }
             }
         }
@@ -359,9 +359,24 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
         },
         Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
             // FIXME: need to support tuples in expression to proceed further
-            println!("DEBUG\n{:?} {:?}\n", ag_kind, vec_operand);
-            unimplemented!();
+            //println!("DEBUG\n{:?} {:?}\n", ag_kind, vec_operand);
+            //unimplemented!();
+            Expression::VariableMapping(var.clone())
         },
+        Rvalue::Cast(ref cast_kind, ref cast_operand, ref cast_ty) => {
+            // FIXME: doesnt do anything
+            //println!("cast {:?} {:?} {:?} ", cast_kind, cast_operand, cast_ty);
+            //unimplemented!();
+            Expression::VariableMapping(var.clone())
+        },
+        Rvalue::Ref(ref ref_region, ref ref_borrow_kind, ref ref_lvalue) => {
+            // FIXME: doesnt do anything
+            //println!("ref {:?} {:?} {:?} ", ref_region, ref_borrow_kind, ref_lvalue);
+            //unimplemented!();
+            Expression::VariableMapping(var.clone())
+        },
+        Rvalue::Box(..) => { unimplemented!(); },
+        Rvalue::Len(..) => { unimplemented!(); },
         _ => { unimplemented!(); }
     };
 
