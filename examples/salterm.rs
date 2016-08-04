@@ -11,7 +11,7 @@ fn main() {
 	foo(x);
 }
 
-#[condition(pre="x: int > 0", post="return: int > 5")]
+#[condition(pre="x: int > 0 AND x: int < 5", post="return: int > 5")]
 fn foo(x: i32) -> i32 {
 	x + 5
 }

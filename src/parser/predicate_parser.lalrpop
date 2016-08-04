@@ -3,16 +3,36 @@ use expression::{Expression, BinaryExpressionData, UnaryExpressionData, Variable
 grammar;
 
 pub E1: Expression = {
-	<left: E1> <op: BOP> <right: E2> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+	<left: E1> <op: BOP1> <right: E2> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
 	E2,
 };
 
 pub E2: Expression = {
-	<op: UOP> <e: E2> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
+	<left: E2> <op: BOP2> <right: E3> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
 	E3,
 };
 
 pub E3: Expression = {
+	<left: E3> <op: BOP3> <right: E4> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+	E4,
+};
+
+pub E4: Expression = {
+	<left: E4> <op: BOP4> <right: E5> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+	E5,
+};
+
+pub E5: Expression = {
+	<left: E5> <op: BOP5> <right: E6> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+	E6,
+};
+
+pub E6: Expression = {
+	<op: UOP> <e: E6> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
+	E7,
+};
+
+pub E7: Expression = {
 	"true" => Expression::BooleanLiteral(true),
 	"false" => Expression::BooleanLiteral(false),
 	<i:r"[-][0-9]+"> => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
@@ -30,28 +50,37 @@ pub UOP: UnaryOperator = {
 	"NOT" => UnaryOperator::Not,
 };
 
-pub BOP: BinaryOperator = {
-	"+" => BinaryOperator::Addition,
-	"-" => BinaryOperator::Subtraction,
-	"*" => BinaryOperator::Multiplication,
-	"/" => BinaryOperator::Division,
-	"%" => BinaryOperator::Modulo,
+pub BOP1: BinaryOperator = {
+	"AND" => BinaryOperator::And,
+	"OR" => BinaryOperator::Or,
+	"XOR" => BinaryOperator::Xor,
+	"IMPLIES" => BinaryOperator::Implication,
+	"EQUIV" => BinaryOperator::BiImplication,
+};
+
+pub BOP2: BinaryOperator = {
+	"&&" => BinaryOperator::And,
+	"||" => BinaryOperator::Or,
+};
+
+pub BOP3: BinaryOperator = {
 	"&" => BinaryOperator::BitwiseAnd,
 	"|" => BinaryOperator::BitwiseOr,
 	"^" => BinaryOperator::BitwiseXor,
 	"<<" => BinaryOperator::BitwiseLeftShift,
 	">>" => BinaryOperator::BitwiseRightShift,
+};
+
+pub BOP4: BinaryOperator = {
+	"+" => BinaryOperator::Addition,
+	"-" => BinaryOperator::Subtraction,
+};
+
+pub BOP5: BinaryOperator = {
 	"<" => BinaryOperator::LessThan,
 	"<=" => BinaryOperator::LessThanOrEqual,
 	">" => BinaryOperator::GreaterThan,
 	">=" => BinaryOperator::GreaterThanOrEqual,
 	"==" => BinaryOperator::Equal,
 	"!=" => BinaryOperator::NotEqual,
-	"&&" => BinaryOperator::And,
-	"||" => BinaryOperator::Or,
-	"AND" => BinaryOperator::And,
-	"OR" => BinaryOperator::Or,
-	"XOR" => BinaryOperator::Xor,
-	"IMPLICATION" => BinaryOperator::Implication,
-	"BIIMPLICATION" => BinaryOperator::BiImplication,
 };
