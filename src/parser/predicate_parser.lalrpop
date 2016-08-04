@@ -7,32 +7,32 @@ pub E1: Expression = {
 	E2,
 };
 
-pub E2: Expression = {
+E2: Expression = {
 	<left: E2> <op: BOP2> <right: E3> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
 	E3,
 };
 
-pub E3: Expression = {
+E3: Expression = {
 	<left: E3> <op: BOP3> <right: E4> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
 	E4,
 };
 
-pub E4: Expression = {
+E4: Expression = {
 	<left: E4> <op: BOP4> <right: E5> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
 	E5,
 };
 
-pub E5: Expression = {
+E5: Expression = {
 	<left: E5> <op: BOP5> <right: E6> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
 	E6,
 };
 
-pub E6: Expression = {
+E6: Expression = {
 	<op: UOP> <e: E6> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
 	E7,
 };
 
-pub E7: Expression = {
+E7: Expression = {
 	"true" => Expression::BooleanLiteral(true),
 	"false" => Expression::BooleanLiteral(false),
 	<i:r"[-][0-9]+"> => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
@@ -41,13 +41,13 @@ pub E7: Expression = {
 	"(" <e: E1> ")" => e,
 };
 
-pub UOP: UnaryOperator = {
+UOP: UnaryOperator = {
 	"-" => UnaryOperator::Negation,
 	"!" => UnaryOperator::BitwiseNot,
 	"NOT" => UnaryOperator::Not,
 };
 
-pub BOP1: BinaryOperator = {
+BOP1: BinaryOperator = {
 	"AND" => BinaryOperator::And,
 	"OR" => BinaryOperator::Or,
 	"XOR" => BinaryOperator::Xor,
@@ -55,12 +55,12 @@ pub BOP1: BinaryOperator = {
 	"EQUIV" => BinaryOperator::BiImplication,
 };
 
-pub BOP2: BinaryOperator = {
+BOP2: BinaryOperator = {
 	"&&" => BinaryOperator::And,
 	"||" => BinaryOperator::Or,
 };
 
-pub BOP3: BinaryOperator = {
+BOP3: BinaryOperator = {
 	"&" => BinaryOperator::BitwiseAnd,
 	"|" => BinaryOperator::BitwiseOr,
 	"^" => BinaryOperator::BitwiseXor,
@@ -68,12 +68,12 @@ pub BOP3: BinaryOperator = {
 	">>" => BinaryOperator::BitwiseRightShift,
 };
 
-pub BOP4: BinaryOperator = {
+BOP4: BinaryOperator = {
 	"+" => BinaryOperator::Addition,
 	"-" => BinaryOperator::Subtraction,
 };
 
-pub BOP5: BinaryOperator = {
+BOP5: BinaryOperator = {
 	"<" => BinaryOperator::LessThan,
 	"<=" => BinaryOperator::LessThanOrEqual,
 	">" => BinaryOperator::GreaterThan,
@@ -82,12 +82,12 @@ pub BOP5: BinaryOperator = {
 	"!=" => BinaryOperator::NotEqual,
 };
 
-pub IDENTIFIER: String = {
+IDENTIFIER: String = {
 	<i:r"_[a-zA-Z0-9_]+"> => i.to_string(),
 	<i:r"[a-zA-Z][a-zA-Z0-9_]*"> => i.to_string(),
 };
 
-pub TYPE: String = {
+TYPE: String = {
 	"bool" => "bool".to_string(),
 	"i8" => "i8".to_string(),
 	"i16" => "i16".to_string(),
