@@ -54,10 +54,10 @@ impl fmt::Display for Expression {
                         write!(f, "({} XOR {})", *b.left, *b.right)
                     },
                     BinaryOperator::Implication => {
-                        write!(f, "({} IMPLICATION {})", *b.left, *b.right)
+                        write!(f, "({} IMPLIES {})", *b.left, *b.right)
                     },
                     BinaryOperator::BiImplication => {
-                        write!(f, "({} BIIMPLICATION {})", *b.left, *b.right)
+                        write!(f, "({} EQUIV {})", *b.left, *b.right)
                     },
                     BinaryOperator::Addition => {
                         write!(f, "({} + {})", *b.left, *b.right)
@@ -152,7 +152,7 @@ pub struct VariableMappingData { pub name: String, pub var_type: String}
 // Check equality for VariableMappingData types. Should return true if the name and type of the variables are the same.
 impl PartialEq for VariableMappingData {
     fn eq(&self, _rhs: &VariableMappingData) -> bool {
-        if self.name == _rhs.name  { //&& (self.var_type == _rhs.var_type)
+        if (self.name == _rhs.name)  && (self.var_type == _rhs.var_type) {
             true
         } else {
             false

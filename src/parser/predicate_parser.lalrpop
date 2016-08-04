@@ -37,10 +37,7 @@ pub E7: Expression = {
 	"false" => Expression::BooleanLiteral(false),
 	<i:r"[-][0-9]+"> => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
 	<i:r"[0-9]+"> => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(i).unwrap() } ),
-	<v:r"_[a-zA-Z0-9_]+"> ":" "bool" => Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "bool".to_string() } ),
-	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "bool" =>  Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "bool".to_string() } ),
-	<v:r"_[a-zA-Z0-9_]+"> ":" "int" => Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "int".to_string() } ),
-	<v:r"[a-zA-Z][a-zA-Z0-9_]*"> ":" "int" =>  Expression::VariableMapping( VariableMappingData { name: v.to_string(), var_type: "int".to_string() } ),
+	<n: IDENTIFIER> ":" <t: TYPE> => Expression::VariableMapping( VariableMappingData { name: n, var_type: t } ),
 	"(" <e: E1> ")" => e,
 };
 
@@ -83,4 +80,21 @@ pub BOP5: BinaryOperator = {
 	">=" => BinaryOperator::GreaterThanOrEqual,
 	"==" => BinaryOperator::Equal,
 	"!=" => BinaryOperator::NotEqual,
+};
+
+pub IDENTIFIER: String = {
+	<i:r"_[a-zA-Z0-9_]+"> => i.to_string(),
+	<i:r"[a-zA-Z][a-zA-Z0-9_]*"> => i.to_string(),
+};
+
+pub TYPE: String = {
+	"bool" => "bool".to_string(),
+	"i8" => "i8".to_string(),
+	"i16" => "i16".to_string(),
+	"i32" => "i32".to_string(),
+	"i64" => "i64".to_string(),
+	"u8" => "u8".to_string(),
+	"u16" => "u16".to_string(),
+	"u32" => "u32".to_string(),
+	"u64" => "u64".to_string(),
 };

@@ -206,7 +206,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
             &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
                     "bool" => return self.new_var(Some(&v.name), core::Sorts::Bool),
-                    // FIXME All these variables are size 64 bitvectors, should they be different?
+                    // FIXME: All these variables are size 64 bitvectors, should they be different?
                     "int" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
                     "i32" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
                     "i64" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
