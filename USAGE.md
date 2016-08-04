@@ -50,6 +50,13 @@ There are three ways to think about operators: how many operands they work on, w
 
 __Note__: The "&&", "||", and "!" operators are treated identically to the "AND", "OR", and "NOT" operators, respectively. "AND" and "OR" are added as conventions to make clear what is and is not meant to be a Rust-like expression, and "!" is overriden in Rust to be both logical and bitwise negation, since bitwise negation on a boolean primitive type amounts to the same thing.
 
+__Operator precedence is as follows__ (more tightly binding first):
+- (Unary), !, NOT
+*, /, %
++, - (Binary)
+^, &, |, <<, >>
+&&, ||
+AND, OR, XOR, IMPLICATION, BIIMPLICATION
 
 __Examples__:
 
