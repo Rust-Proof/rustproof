@@ -9,7 +9,7 @@ fn main() {
     println!("{:?}", x);
 }
 
-#[condition(pre="x: int > 0", post="x: int >= 5")]
+#[condition(pre="x: i32 > 0", post="return: i32 >= 5")]
 fn add_five(mut x: i32) -> i32 {
     x = x + 5;
     return x;
