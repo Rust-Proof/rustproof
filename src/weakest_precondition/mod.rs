@@ -161,7 +161,14 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
                 // The bit-vector size of the given type
                 size: match ty.as_str() {
-                    "i32" => { 32 }
+                    "i8" => { 8 },
+                    "i16" => { 16 },
+                    "i32" => { 32 },
+                    "i64" => { 64 },
+                    "u8" => { 8 },
+                    "u16" => { 16 },
+                    "u32" => { 32 },
+                    "u64" => { 64 },
                     _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                 },
                 //match on op to see which direction you are detecting overflow in
@@ -170,7 +177,14 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
                     &BinaryOperator::GreaterThan => {
                     // The maximum value for the given type
                         match ty.as_str() {
+                            "i8" => { i8::min_value() as i64 },
+                            "i16" => { i16::min_value() as i64 },
                             "i32" => { i32::min_value() as i64 },
+                            "i64" => { i64::min_value() as i64 },
+                            "u8" => { u8::min_value() as i64 },
+                            "u16" => { u16::min_value() as i64 },
+                            "u32" => { u32::min_value() as i64 },
+                            "u64" => { u64::min_value() as i64 },
                             _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
