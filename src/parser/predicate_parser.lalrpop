@@ -54,8 +54,8 @@ pub BOP1: BinaryOperator = {
 	"AND" => BinaryOperator::And,
 	"OR" => BinaryOperator::Or,
 	"XOR" => BinaryOperator::Xor,
-	"IMPLICATION" => BinaryOperator::Implication,
-	"BIIMPLICATION" => BinaryOperator::BiImplication,
+	"IMPLIES" => BinaryOperator::Implication,
+	"EQUIV" => BinaryOperator::BiImplication,
 };
 
 pub BOP2: BinaryOperator = {
