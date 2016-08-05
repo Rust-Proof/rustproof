@@ -160,7 +160,14 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
                 // The bit-vector size of the given type
                 size: match ty.as_str() {
-                    "i32" => { 32 }
+                    "i8" => { 8 },
+                    "i16" => { 16 },
+                    "i32" => { 32 },
+                    "i64" => { 64 },
+                    "u8" => { 8 },
+                    "u16" => { 16 },
+                    "u32" => { 32 },
+                    "u64" => { 64 },
                     _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                 },
                 //match on op to see which direction you are detecting overflow in
@@ -169,7 +176,14 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
                     &BinaryOperator::GreaterThan => {
                     // The maximum value for the given type
                         match ty.as_str() {
+                            "i8" => { i8::min_value() as i64 },
+                            "i16" => { i16::min_value() as i64 },
                             "i32" => { i32::min_value() as i64 },
+                            "i64" => { i64::min_value() as i64 },
+                            "u8" => { u8::min_value() as i64 },
+                            "u16" => { u16::min_value() as i64 },
+                            "u32" => { u32::min_value() as i64 },
+                            "u64" => { u64::min_value() as i64 },
                             _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
@@ -221,7 +235,8 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
     let mut var = gen_lvalue(lvalue.unwrap(), data);
 
     // The expression on the right-hand side of the assignment
-    let expression : Expression = match rvalue.clone().unwrap() {
+    let mut expression = Vec::new();
+    match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
@@ -269,11 +284,11 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
 
-            Expression::BinaryExpression( BinaryExpressionData {
+            expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
                 left: Box::new(lvalue),
                 right: Box::new(rvalue)
-             } )
+            } ));
         },
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
             let op: BinaryOperator = match binop {
@@ -330,11 +345,11 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             let lvalue: Expression = gen_operand(&lval, data);
             let rvalue: Expression = gen_operand(&rval, data);
 
-            Expression::BinaryExpression( BinaryExpressionData {
+            expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
                 left: Box::new(lvalue),
                 right: Box::new(rvalue)
-             } )
+            } ));
         },
         Rvalue::UnaryOp(ref unop, ref val) => {
             let op: UnaryOperator = match unop {
@@ -348,31 +363,44 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
 
             let value: Expression = gen_operand(&val, data);
 
-            Expression::UnaryExpression( UnaryExpressionData {
+            expression.push(Expression::UnaryExpression( UnaryExpressionData {
                 op: op,
                 e: Box::new(value)
-            } )
+            } ));
         },
         Rvalue::Use(ref operand) => {
-            gen_operand(operand, data)
+            expression.push(gen_operand(operand, data));
         },
         Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
-            // FIXME: need to support tuples in expression to proceed further
-            //println!("DEBUG\n{:?} {:?}\n", ag_kind, vec_operand);
-            //unimplemented!();
-            Expression::VariableMapping(var.clone())
+            match ag_kind {
+                &AggregateKind::Tuple => {
+                    for i in 0..vec_operand.len() {
+                        expression.push(Expression::VariableMapping( VariableMappingData {
+                            name: var.name.as_str().to_string() + "." + i.to_string().as_str(),
+                            var_type: gen_ty(&vec_operand[i], data)
+                        } ));
+                    }
+                },
+                // FIXME: Vectors are weird. let's not bother with them yet
+                /*
+                &AggregateKind::Vec => {
+                    unimplemented!()
+                },
+                */
+                _ => { rp_error!("Unsupported aggregate: only tuples are supported"); }
+            }
         },
         Rvalue::Cast(ref cast_kind, ref cast_operand, ref cast_ty) => {
             // FIXME: doesnt do anything
             //println!("cast {:?} {:?} {:?} ", cast_kind, cast_operand, cast_ty);
             //unimplemented!();
-            Expression::VariableMapping(var.clone())
+            expression.push(Expression::VariableMapping(var.clone()));
         },
         Rvalue::Ref(ref ref_region, ref ref_borrow_kind, ref ref_lvalue) => {
             // FIXME: doesnt do anything
             //println!("ref {:?} {:?} {:?} ", ref_region, ref_borrow_kind, ref_lvalue);
             //unimplemented!();
-            Expression::VariableMapping(var.clone())
+            expression.push(Expression::VariableMapping(var.clone()));
         },
         Rvalue::Box(..) => { unimplemented!(); },
         Rvalue::Len(..) => { unimplemented!(); },
@@ -380,7 +408,9 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
     };
 
     // Replace any appearance of var in the weakest precondition with the expression
-    substitute_variable_with_expression( &mut wp, &var, &expression );
+    for i in 0..expression.len() {
+        substitute_variable_with_expression( &mut wp, &var, &expression[i] );
+    }
     if DEBUG { println!("new expression\t\t{:?}\n---------------------", wp.clone());}
     return Some(wp);
 }

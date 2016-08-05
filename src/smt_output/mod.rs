@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+extern crate term;
+
 use super::DEBUG;
 
 use std::convert::From;
@@ -24,6 +26,7 @@ use libsmt::logics::qf_abv;
 use libsmt::logics::lia::*;
 use libsmt::logics::lia;
 use petgraph::graph::NodeIndex;
+use std::process;
 
 use expression::*;
 
@@ -205,14 +208,16 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
             },
             &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
-                    "bool" => return self.new_var(Some(&v.name), core::Sorts::Bool),
-                    // FIXME All these variables are size 64 bitvectors, should they be different?
-                    "int" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                    "i32" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                    "i64" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                    "u32" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                    "u64" => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
-                    _ => return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)),
+                    "bool" => { return self.new_var(Some(&v.name), core::Sorts::Bool); },
+                    "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
+                    "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
+                    "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
+                    "i64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)); },
+                    "u8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
+                    "u16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
+                    "u32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
+                    "u64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)); },
+                    _ => { rp_error!("Invalid or Unsupported type for variable: \"{}\" : \"{}\"", v.name, v.var_type); },
                 }
             },
             &Expression::BooleanLiteral (ref b) => {
