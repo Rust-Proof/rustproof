@@ -19,37 +19,44 @@ In the precondition, the user can only reference variables that are arguments to
 ## Operators
 There are three ways to think about operators: how many operands they work on, what types of operands they can work with, and what type an expression involving them resolves to. Currently there is no operator precedence, so complex expressions must be wrapped in parentheses to determine associativity. Rustproof uses infix notation.
 
-| Operator      | Name                        | Number of operands | Operand type  | Resolution type |
-|---------------|-----------------------------|--------------------|---------------|-----------------|
-| +             | Addition                    | 2                  | Integer       | Integer         |
-| -             | Subtraction                 | 2                  | Integer       | Integer         |
-| *             | Multiplication              | 2                  | Integer       | Integer         |
-| /             | Division                    | 2                  | Integer       | Integer         |
-| %             | Modulus / Remainder         | 2                  | Integer       | Integer         |
-| \|            | Bitwise Or                  | 2                  | Any Primitive | Any Primitive   |
-| &             | Bitwise And                 | 2                  | Any Primitive | Any Primitive   |
-| ^             | Bitwise Exclusive Or / XOR  | 2                  | Any Primitive | Any Primitive   |
-| <<            | Bitwise Left Shift          | 2                  | Any Primitive | Any Primitive   |
-| >>            | Bitwise Right Shift         | 2                  | Any Primitive | Any Primitive   |
-| <             | Less Than                   | 2                  | Integer       | Boolean         |
-| <=            | Less Than Or Equal          | 2                  | Integer       | Boolean         |
-| >             | Greater Than                | 2                  | Integer       | Boolean         |
-| >=            | Greater Than Or Equal       | 2                  | Integer       | Boolean         |
-| ==            | Equality                    | 2                  | Integer       | Boolean         |
-| !=            | Inequality                  | 2                  | Integer       | Boolean         |
-| &&            | Logical And                 | 2                  | Boolean       | Boolean         |
-| \|\|          | Logical Or                  | 2                  | Boolean       | Boolean         |
-| AND           | Conjunction                 | 2                  | Boolean       | Boolean         |
-| OR            | Disjunction                 | 2                  | Boolean       | Boolean         |
-| XOR           | Exclusive Disjunction / XOR | 2                  | Boolean       | Boolean         |
-| IMPLICATION   | Implication                 | 2                  | Boolean       | Boolean         |
-| BIIMPLICATION | Equivalence                 | 2                  | Boolean       | Boolean         |
-| -             | Negation                    | 1                  | Integer       | Integer         |
-| !             | Bitwise Not                 | 1                  | Any Primitive | Any Primitive   |
-| NOT           | Logical Negation            | 1                  | Boolean       | Boolean         |
+| Operator | Name                        | Number of operands | Operand type  | Resolution type |
+|----------|-----------------------------|--------------------|---------------|-----------------|
+| +        | Addition                    | 2                  | Integer       | Integer         |
+| -        | Subtraction                 | 2                  | Integer       | Integer         |
+| *        | Multiplication              | 2                  | Integer       | Integer         |
+| /        | Division                    | 2                  | Integer       | Integer         |
+| %        | Modulus / Remainder         | 2                  | Integer       | Integer         |
+| \|       | Bitwise Or                  | 2                  | Any Primitive | Any Primitive   |
+| &        | Bitwise And                 | 2                  | Any Primitive | Any Primitive   |
+| ^        | Bitwise Exclusive Or / XOR  | 2                  | Any Primitive | Any Primitive   |
+| <<       | Bitwise Left Shift          | 2                  | Any Primitive | Any Primitive   |
+| >>       | Bitwise Right Shift         | 2                  | Any Primitive | Any Primitive   |
+| <        | Less Than                   | 2                  | Integer       | Boolean         |
+| <=       | Less Than Or Equal          | 2                  | Integer       | Boolean         |
+| >        | Greater Than                | 2                  | Integer       | Boolean         |
+| >=       | Greater Than Or Equal       | 2                  | Integer       | Boolean         |
+| ==       | Equality                    | 2                  | Integer       | Boolean         |
+| !=       | Inequality                  | 2                  | Integer       | Boolean         |
+| &&       | Logical And                 | 2                  | Boolean       | Boolean         |
+| \|\|     | Logical Or                  | 2                  | Boolean       | Boolean         |
+| AND      | Conjunction                 | 2                  | Boolean       | Boolean         |
+| OR       | Disjunction                 | 2                  | Boolean       | Boolean         |
+| XOR      | Exclusive Disjunction / XOR | 2                  | Boolean       | Boolean         |
+| IMPLIES  | Implication                 | 2                  | Boolean       | Boolean         |
+| EQUIV    | Equivalence                 | 2                  | Boolean       | Boolean         |
+| -        | Negation                    | 1                  | Integer       | Integer         |
+| !        | Bitwise Not                 | 1                  | Any Primitive | Any Primitive   |
+| NOT      | Logical Negation            | 1                  | Boolean       | Boolean         |
 
 __Note__: The "&&", "||", and "!" operators are treated identically to the "AND", "OR", and "NOT" operators, respectively. "AND" and "OR" are added as conventions to make clear what is and is not meant to be a Rust-like expression, and "!" is overriden in Rust to be both logical and bitwise negation, since bitwise negation on a boolean primitive type amounts to the same thing.
 
+__Operator precedence is as follows__ (more tightly binding first):
+- (Unary), !, NOT
+*, /, %
++, - (Binary)
+^, &, |, <<, >>
+&&, ||
+AND, OR, XOR, IMPLICATION, BIIMPLICATION
 
 __Examples__:
 

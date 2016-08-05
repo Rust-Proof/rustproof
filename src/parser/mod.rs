@@ -11,7 +11,7 @@
 extern crate syntax;
 extern crate term;
 
-mod predicate_parser;
+mod expression_parser;
 
 use syntax::ast::{MetaItemKind, Attribute_};
 use syntax::codemap::Spanned;
@@ -70,7 +70,7 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
 
 // Calls the predicate parser on a given pre/post condition, and returns a Expression if it is valid.
 pub fn parse_condition(condition: &str) -> Expression {
-    match predicate_parser::parse_E1(condition) {
+    match expression_parser::parse_E1(condition) {
         Ok(e) => {
             return e;
         },
