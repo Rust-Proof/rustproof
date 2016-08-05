@@ -17,9 +17,10 @@ use expression::*;
 use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_data_structures::indexed_vec::Idx;
-use rustc::ty::Ty;
+use rustc::ty::{Ty, TypeVariants};
 use std::rt::begin_panic_fmt;
 use term;
+
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
 pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Expression> {
@@ -46,20 +47,18 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
             wp = gen(target.index(), data, builder);
         },
         TerminatorKind::Call{func, args, destination, cleanup} => {
-            // FIXME: WIP / review  with group
-            // If basic block has no targets return
-            println!("DEBUG\n{:?}\t{:?}", func, args);
-            // FIXME: match on function name (panic)
-            match destination.clone() {
-                None => {
-                    //wp = builder.post_expr.clone();
-                    //return wp;
-                    return Some(Expression::BooleanLiteral(false));
-                 },
-                _ => {}
-            }
+            // Determine if this is the end of a panic. (assumed false branch of assertion, so return a precondition of false [this path will never be taken])
+            match func {
+                Operand::Constant (ref c) => {
+                    let s = format!("{:?}", c.literal);
+                    if s.contains("begin_panic") {
+                        return Some(Expression::BooleanLiteral(false));
+                    }
 
-            wp = gen(destination.unwrap().1.index(), data, builder);
+                },
+                Operand::Consume (ref l) => { unimplemented!() },
+            }
+            unimplemented!();
         },
         TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
         TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
