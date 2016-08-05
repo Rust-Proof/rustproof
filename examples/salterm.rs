@@ -4,14 +4,12 @@
 
 extern crate rustproof;
 
-use rustproof::expression::{Expression, BinaryExpressionData, BinaryOperator};
-
 fn main() {
 	let x = 4;
 	foo(x);
 }
 
-#[condition(pre="x: i32 > 0 AND x: i32 < 5", post="return: i32 > -5 AND return: i32 < 0")]
+#[condition(pre="x:i32 > 0:i32 AND x:i32 < 5:i32", post="return:i32 < 10:i32")]
 fn foo(x: i32) -> i32 {
 	x + -5
 }
