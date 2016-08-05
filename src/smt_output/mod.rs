@@ -42,9 +42,6 @@ pub fn gen_smtlib (vc: &Expression) {
     // Apply logic to Z3 instance
     solver.set_logic(&mut z3);
 
-    // DEBUG
-    //println!("Verification Condition is: ``{}''", vc);
-
     // Traverse the Expression graph and build the solver
     let vcon = solver.expr2smtlib(&vc);
     let _ = solver.assert(core::OpCodes::Not, &[vcon]);
