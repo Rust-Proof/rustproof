@@ -209,7 +209,7 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
     match expression {
         &Expression::BinaryExpression(ref b) => {
             match b.op {
-                BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::BitwiseLeftShift | BinaryOperator::BitwiseRightShift => {
+                BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication | BinaryOperator::Division | BinaryOperator::Modulo => {
                     let l_type: String = determine_evaluation_type(&*b.left);
                     let r_type: String = determine_evaluation_type(&*b.right);
                     // Ensure both operands are numeric types
@@ -217,6 +217,20 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
                     // Ensure both operand types match
                     } else if l_type != r_type {
+                        rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                    } else {
+                        l_type
+                    }
+                },
+                BinaryOperator::BitwiseLeftShift | BinaryOperator::BitwiseRightShift => {
+                    let l_type: String = determine_evaluation_type(&*b.left);
+                    let r_type: String = determine_evaluation_type(&*b.right);
+
+                    // Ensure both operands are numeric types
+                    if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
+                        rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
+                    //Ensure both operand types are of same signedness
+                    } else if (l_type.starts_with("i") && r_type.starts_with("i")) || (l_type.starts_with("u") && r_type.starts_with("u")) {
                         rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
                     } else {
                         l_type
