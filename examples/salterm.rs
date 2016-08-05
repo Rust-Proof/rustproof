@@ -11,7 +11,7 @@ fn main() {
 	foo(x);
 }
 
-#[condition(pre="x: i32 > 0 AND x: i32 < 5", post="return: i32 > -5 AND return: i32 < 0")]
-fn foo(x: i32) -> i32 {
-	x + -5
+#[condition(pre="true", post="true EQUIV true")]
+fn foo(x: i32) {
+	x + 1;
 }

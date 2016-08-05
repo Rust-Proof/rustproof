@@ -151,7 +151,7 @@ impl fmt::Display for BinaryOperator {
             &BinaryOperator::And => { write!(f, "AND/&&") },
             &BinaryOperator::Or => { write!(f, "OR/||") },
             &BinaryOperator::Xor => { write!(f, "XOR") },
-            &BinaryOperator::Implication => { write!(f, "IMLPIES") },
+            &BinaryOperator::Implication => { write!(f, "IMPLIES") },
             &BinaryOperator::BiImplication => { write!(f, "EQUIV") }
         }
     }
