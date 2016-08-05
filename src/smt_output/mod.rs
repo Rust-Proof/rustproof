@@ -228,10 +228,10 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                 }
             },
             &Expression::UnsignedBitVector (ref u) => {
-                return bv_const!(self, u.value, 64);
+                return bv_const!(self, u.value, u.size as usize);
             },
             &Expression::SignedBitVector (ref s) => {
-                return bv_const!(self, s.value as u64, 64);
+                return bv_const!(self, s.value as u64, s.size as usize);
             }
         }
     }

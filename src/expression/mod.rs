@@ -43,85 +43,10 @@ impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Expression::BinaryExpression (ref b) => {
-                match b.op {
-                    BinaryOperator::And => {
-                        write!(f, "({} AND {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Or => {
-                        write!(f, "({} OR {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Xor => {
-                        write!(f, "({} XOR {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Implication => {
-                        write!(f, "({} IMPLIES {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::BiImplication => {
-                        write!(f, "({} EQUIV {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Addition => {
-                        write!(f, "({} + {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Subtraction => {
-                        write!(f, "({} - {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Multiplication => {
-                        write!(f, "({} * {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Division => {
-                        write!(f, "({} / {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Modulo => {
-                        write!(f, "({} % {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::BitwiseOr => {
-                        write!(f, "({} | {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::BitwiseAnd => {
-                        write!(f, "({} & {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::BitwiseXor => {
-                        write!(f, "({} ^ {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::BitwiseLeftShift => {
-                        write!(f, "({} << {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::BitwiseRightShift => {
-                        write!(f, "({} >> {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::LessThan => {
-                        write!(f, "({} < {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::LessThanOrEqual => {
-                        write!(f, "({} <= {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::GreaterThan => {
-                        write!(f, "({} > {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::GreaterThanOrEqual => {
-                        write!(f, "({} >= {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::Equal => {
-                        write!(f, "({} == {})", *b.left, *b.right)
-                    },
-                    BinaryOperator::NotEqual => {
-                        write!(f, "({} != {})", *b.left, *b.right)
-                    }
-                }
-
+                write!(f, "({} {} {})", *b.left, b.op, *b.right)
             },
             &Expression::UnaryExpression (ref u) => {
-                match u.op {
-                    UnaryOperator::Not => {
-                        write!(f, "(NOT {})", *u.e)
-                    },
-                    UnaryOperator::Negation => {
-                        write!(f, "(- {})", *u.e)
-                    },
-                    UnaryOperator::BitwiseNot => {
-                        write!(f, "(! {})", *u.e)
-                    }
-                }
+                write!(f, "({} {})", u.op, *u.e)
             },
             &Expression::VariableMapping (ref v) => {
                 write!(f, "({} : {})", v.name, v.var_type)
@@ -130,10 +55,10 @@ impl fmt::Display for Expression {
                 write!(f, "({})", b)
             },
             &Expression::UnsignedBitVector(ref u) => {
-                write!(f, "({})", u.value)
+                write!(f, "({} : u{})", u.value, u.size.to_string())
             },
             &Expression::SignedBitVector(ref s) => {
-                write!(f, "({})", s.value)
+                write!(f, "({} : i{})", s.value, s.size.to_string())
             }
         }
     }
@@ -204,6 +129,34 @@ pub enum BinaryOperator {
     BiImplication
 }
 
+impl fmt::Display for BinaryOperator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &BinaryOperator::Addition => { write!(f, "+") },
+            &BinaryOperator::Subtraction => { write!(f, "-") },
+            &BinaryOperator::Multiplication => { write!(f, "*") },
+            &BinaryOperator::Division => { write!(f, "/") },
+            &BinaryOperator::Modulo => { write!(f, "%") },
+            &BinaryOperator::BitwiseOr => { write!(f, "|") },
+            &BinaryOperator::BitwiseAnd => { write!(f, "&") },
+            &BinaryOperator::BitwiseXor => { write!(f, "^") },
+            &BinaryOperator::BitwiseLeftShift => { write!(f, "<<") },
+            &BinaryOperator::BitwiseRightShift => { write!(f, ">>") },
+            &BinaryOperator::LessThan => { write!(f, "<") },
+            &BinaryOperator::LessThanOrEqual => { write!(f, "<=") },
+            &BinaryOperator::GreaterThan => { write!(f, ">") },
+            &BinaryOperator::GreaterThanOrEqual => { write!(f, ">=") },
+            &BinaryOperator::Equal => { write!(f, "==") },
+            &BinaryOperator::NotEqual => { write!(f, "!=") },
+            &BinaryOperator::And => { write!(f, "AND/&&") },
+            &BinaryOperator::Or => { write!(f, "OR/||") },
+            &BinaryOperator::Xor => { write!(f, "XOR") },
+            &BinaryOperator::Implication => { write!(f, "IMLPIES") },
+            &BinaryOperator::BiImplication => { write!(f, "EQUIV") }
+        }
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub enum UnaryOperator {
     Negation,
@@ -212,7 +165,17 @@ pub enum UnaryOperator {
     Not,
 }
 
-// Recurses through a Expression and replaces any Variable Mapping with the given Expression.
+impl fmt::Display for UnaryOperator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &UnaryOperator::Negation => { write!(f, "-") },
+            &UnaryOperator::BitwiseNot => { write!(f, "!") },
+            &UnaryOperator::Not => { write!(f, "NOT") }
+        }
+    }
+}
+
+// Recurses through an Expression and replaces any Variable Mapping with the given Expression.
 pub fn substitute_variable_with_expression ( source_expression: &mut Expression, target: &VariableMappingData, replacement: &Expression ) {
     let mut replace: bool = false;
     match source_expression {
@@ -238,5 +201,136 @@ pub fn substitute_variable_with_expression ( source_expression: &mut Expression,
 
     if replace {
         *source_expression = replacement.clone();
+    }
+}
+
+// Recurses through an Expression and returns the type it would evaluate to.
+pub fn determine_evaluation_type ( expression: &Expression ) -> String {
+    match expression {
+        &Expression::BinaryExpression(ref b) => {
+            match b.op {
+                BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::BitwiseLeftShift | BinaryOperator::BitwiseRightShift => {
+                    let l_type: String = determine_evaluation_type(&*b.left);
+                    let r_type: String = determine_evaluation_type(&*b.right);
+                    // Ensure both operands are numeric types
+                    if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
+                        rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
+                    // Ensure both operand types match
+                    } else if l_type != r_type {
+                        rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                    } else {
+                        l_type
+                    }
+                },
+                BinaryOperator::BitwiseOr | BinaryOperator::BitwiseAnd | BinaryOperator::BitwiseXor => {
+                    let l_type: String = determine_evaluation_type(&*b.left);
+                    let r_type: String = determine_evaluation_type(&*b.right);
+                    // Ensure both operand types match
+                    if l_type != r_type {
+                        rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                    } else {
+                        l_type
+                    } 
+                },
+                BinaryOperator::LessThan | BinaryOperator::LessThanOrEqual | BinaryOperator::GreaterThan | BinaryOperator::GreaterThanOrEqual | BinaryOperator::Equal | BinaryOperator::NotEqual => {
+                    let l_type: String = determine_evaluation_type(&*b.left);
+                    let r_type: String = determine_evaluation_type(&*b.right);
+                    // Ensure both operands are numeric types
+                    if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
+                        rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
+                    // Ensure both operand types match
+                    } else if l_type != r_type {
+                        rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                    } else {
+                        "bool".to_string()
+                    }
+                },
+                BinaryOperator::And | BinaryOperator::Or | BinaryOperator::Xor | BinaryOperator::Implication | BinaryOperator::BiImplication => {
+                    let l_type: String = determine_evaluation_type(&*b.left);
+                    let r_type: String = determine_evaluation_type(&*b.right);
+                    // Ensure both operands are boolean types
+                    if (l_type != "bool".to_string()) || (r_type != "bool".to_string()) {
+                        rp_error!("Invalid use of binary operator {} on numeric value(s)", b.op);
+                    // Ensure both operand types match
+                    } else if l_type != r_type {
+                        rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                    } else {
+                        "bool".to_string()
+                    }
+                }
+            }
+        },
+        &Expression::UnaryExpression(ref u) => {
+            match u.op {
+                UnaryOperator::Negation => {
+                    let e_type: String = determine_evaluation_type(&*u.e);
+                    // Ensure operand is a numeric type
+                    if e_type == "bool".to_string() {
+                        rp_error!("Invalid use of operator {} on boolean value {}", u.op, *u.e);
+                    // Ensure operand is not an unsigned type
+                    } else if (e_type == "u8".to_string()) || (e_type == "u16".to_string()) || (e_type == "u32".to_string()) || (e_type == "u64".to_string()) {
+                        rp_error!("Invalid use of operator {} on unsigned value {}", u.op, *u.e);
+                    } else {
+                        e_type
+                    }
+                },
+                UnaryOperator::BitwiseNot => {
+                    determine_evaluation_type(&*u.e)
+                },
+                UnaryOperator::Not => {
+                    let e_type: String = determine_evaluation_type(&*u.e);
+                    // Ensure operand is a boolean type
+                    if e_type != "bool".to_string() {
+                        rp_error!("Invalid use of operator {} on non-boolean value {}", u.op, *u.e);
+                    } else {
+                        e_type
+                    }
+                }
+            }
+        },
+        &Expression::VariableMapping(ref v) => {
+            v.var_type.clone()
+        },
+        &Expression::BooleanLiteral(ref b) => {
+            "bool".to_string()
+        },
+        &Expression::UnsignedBitVector(ref u) => {
+            match u.size {
+                8 => {
+                    "u8".to_string()
+                },
+                16 => {
+                    "u16".to_string()
+                },
+                32 => {
+                    "u32".to_string()
+                },
+                64 => {
+                    "u64".to_string()
+                },
+                _ => {
+                    rp_error!("Invalid or Unsupported integer type: \"u{}\"", u.size.to_string());
+                }
+            }
+        },
+        &Expression::SignedBitVector(ref s) => {
+            match s.size {
+                8 => {
+                    "i8".to_string()
+                },
+                16 => {
+                    "i16".to_string()
+                },
+                32 => {
+                    "i32".to_string()
+                },
+                64 => {
+                    "i64".to_string()
+                },
+                _ => {
+                    rp_error!("Invalid or Unsupported integer type: \"i{}\"", s.size.to_string());
+                }
+            }
+        }
     }
 }
