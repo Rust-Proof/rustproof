@@ -42,10 +42,23 @@ pub fn gen_smtlib (vc: &Expression) {
     // Apply logic to Z3 instance
     solver.set_logic(&mut z3);
 
-    // Traverse the Expression graph and build the solver
+    // Check the satisfiability of the solver
     let vcon = solver.expr2smtlib(&vc);
     let _ = solver.assert(core::OpCodes::Not, &[vcon]);
 
+    let (res, check) = solver.solve(&mut z3);
+    match res {
+        Ok(..) => {
+            match check {
+                SMTRes::Sat(..) => { println!("\nVerification Condition is not valid.\n{:?}", check); },
+                SMTRes::Unsat(..) => { println!("\nVerification Condition is valid.\n{:?}", check); },
+                _ => { unimplemented!() }
+            }
+        },
+        Err(..) => { println!("\nError in Verification Condition Generation.\n{:?}", check); }
+    }
+
+    /*
     // Check the satisfiability of the solver
     if let Ok(result) = solver.solve(&mut z3) {
         // If the assertion is satisfiable, then the VC is not valid (not always true)
@@ -56,6 +69,7 @@ pub fn gen_smtlib (vc: &Expression) {
         // FIXME Do we want to output if things are good?
         println!("\nVerification Condition is valid!");
     }
+    */
 }
 
 pub trait Pred2SMT {
