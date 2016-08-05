@@ -9,6 +9,7 @@
 // except according to those terms.
 
 extern crate rustc_const_math;
+
 use super::dev_tools;
 use super::Attr;
 use super::DEBUG;
@@ -16,6 +17,7 @@ use std::process;
 use expression::*;
 use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
+use rustc_const_math::ConstInt;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::{Ty, TypeVariants};
 use std::rt::begin_panic_fmt;
@@ -504,7 +506,33 @@ pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData
                 Literal::Value {ref value} => {
                     match value {
                         &ConstVal::Integral(ref const_int) => {
-                            Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: const_int.to_u64_unchecked() } )
+                            match const_int {
+                                &ConstInt::I8(i) => {
+                                    Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i as i64 } )
+                                },
+                                &ConstInt::I16(i) => {
+                                    Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i as i64 } )
+                                },
+                                &ConstInt::I32(i) => {
+                                    Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i as i64 } )
+                                },
+                                &ConstInt::I64(i) => {
+                                    Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i as i64 } )
+                                },
+                                &ConstInt::U8(u) => {
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u as u64 } )
+                                },
+                                &ConstInt::U16(u) => {
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u as u64 } )
+                                },
+                                &ConstInt::U32(u) => {
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u as u64 } )
+                                },
+                                &ConstInt::U64(u) => {
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u as u64 } )
+                                },
+                                _ => { unimplemented!(); }
+                            }
                         },
                         _ => { unimplemented!(); },
                     }
