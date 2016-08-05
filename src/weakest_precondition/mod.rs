@@ -444,22 +444,26 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         Lvalue::Projection(pro) => {
             // FIXME: Lots of intermediaries, should be condensed
             // Get the name of the variable being projected
-            // FIXME: Remove debug print statement
-            let lvalue_name = match pro.as_ref().base {
+            let mut lvalue_name = "".to_string();
+            let mut lvalue_type = "".to_string();
+            match pro.as_ref().base {
                 // Argument
                 Lvalue::Arg(ref arg) => {
                     // Return the name of the argument
-                    data.0[arg.index()].debug_name.as_str().to_string()
+                    lvalue_name = data.0[arg.index()].debug_name.as_str().to_string();
+                    lvalue_type = data.0[arg.index()].ty.clone().to_string();
                 },
                 // Temporary variable
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
-                    "tmp".to_string() + temp.index().to_string().as_str()
+                    lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
+                    lvalue_type = data.2[temp.index()].ty.clone().to_string();
                 },
                 // Local variable
                 Lvalue::Var(ref var) => {
                     // Return the name of the variable
-                    data.3[var.index()].name.to_string()
+                    lvalue_name = data.3[var.index()].name.to_string();
+                    lvalue_type = data.3[var.index()].ty.clone().to_string();
                 },
                 Lvalue::ReturnPointer => {
                     unimplemented!();
@@ -484,9 +488,10 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 }
                 _ => { unimplemented!(); }
             };
+            println!("lvalue_name: {}\nlvalue_type: {}", lvalue_name, lvalue_type);
 
             //Get the index int from index_operand, then stick it in the VariableMappingData
-            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: "".to_string() }
+            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: lvalue_type }
         },
         _=> {unimplemented!();}
     }
