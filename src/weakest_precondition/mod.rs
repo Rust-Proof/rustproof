@@ -186,14 +186,14 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
                             "u16" => { u16::min_value() as i64 },
                             "u32" => { u32::min_value() as i64 },
                             "u64" => { u64::min_value() as i64 },
-                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
                     // The maximum value for the given type
                     &BinaryOperator::LessThan => {
                         match ty.as_str() {
                             "i32" => { i32::max_value() as i64 },
-                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
                     _ => {unimplemented!();}
@@ -204,16 +204,18 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
 
 //generates the upper and lower bounds for overflow check
 pub fn gen_overflow_predicate_upper_and_lower(mut wp: Expression, ty: String, var: VariableMappingData) -> Expression {
+    let mut v = var;
+    v.name = v.name+".0";
     wp = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp),
-        right: Box::new(gen_overflow_predicate(&BinaryOperator::GreaterThan, &var, ty.clone()))
+        right: Box::new(gen_overflow_predicate(&BinaryOperator::GreaterThan, &v, ty.clone()))
     } );
     //check the upper bound of overflow
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp),
-        right: Box::new(gen_overflow_predicate(&BinaryOperator::LessThan, &var, ty.clone()))
+        right: Box::new(gen_overflow_predicate(&BinaryOperator::LessThan, &v, ty.clone()))
     } )
 }
 
@@ -291,7 +293,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
 
 
             var.name = var.name+".0";
-            var.var_type="i32".to_string();
+            //var.var_type="i32".to_string();
             println!("lv = {:?}", var);
 
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
@@ -432,18 +434,26 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
     match lvalue {
         // Function argument
         Lvalue::Arg(ref arg) => {
+            println!("{:?}", "arg mapping");
             // Find the name and type in the declaration
             VariableMappingData{ name: data.0[arg.index()].debug_name.as_str().to_string(), var_type: data.0[arg.index()].ty.clone().to_string() }
         },
         // Temporary variable
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
-            let ty = data.2[temp.index()].ty.clone().to_string();
+            let mut ty = data.2[temp.index()].ty.clone().to_string();
             println!("ty = {:?}", ty);
+            match data.2[temp.index()].ty.sty {
+                TypeVariants::TyTuple(ref t) => {
+                    ty = t[0].to_string();
+                },
+                _ => { }
+            }
             VariableMappingData{ name: "tmp".to_string() + temp.index().to_string().as_str(), var_type: ty }
         },
         // Local variable
         Lvalue::Var(ref var) => {
+            // FIXME: fix comment
             // Find the name and type in the declaration
             VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: data.3[var.index()].ty.clone().to_string() }
             //VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
