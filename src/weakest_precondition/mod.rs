@@ -529,7 +529,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
             };
 
             // Get the index int from index_operand, then stick it in the VariableMappingData
-            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: "".to_string() }
+            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: lvalue_type }
         },
         _=> {unimplemented!();}
     }

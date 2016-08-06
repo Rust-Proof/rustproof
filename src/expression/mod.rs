@@ -148,8 +148,8 @@ impl fmt::Display for BinaryOperator {
             &BinaryOperator::GreaterThanOrEqual => { write!(f, ">=") },
             &BinaryOperator::Equal => { write!(f, "==") },
             &BinaryOperator::NotEqual => { write!(f, "!=") },
-            &BinaryOperator::And => { write!(f, "AND/&&") },
-            &BinaryOperator::Or => { write!(f, "OR/||") },
+            &BinaryOperator::And => { write!(f, "AND") },
+            &BinaryOperator::Or => { write!(f, "OR") },
             &BinaryOperator::Xor => { write!(f, "XOR") },
             &BinaryOperator::Implication => { write!(f, "IMPLIES") },
             &BinaryOperator::BiImplication => { write!(f, "EQUIV") }
