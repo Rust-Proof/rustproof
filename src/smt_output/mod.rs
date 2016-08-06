@@ -259,11 +259,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                 }
             },
             &Expression::BooleanLiteral (ref b) => {
-                if *b == true {
-                    return self.new_const(core::OpCodes::True);
-                } else {
-                    return self.new_const(core::OpCodes::False);
-                }
+                return self.new_const(core::OpCodes::Const(*b));
             },
             &Expression::UnsignedBitVector (ref u) => {
                 return bv_const!(self, u.value, u.size as usize);

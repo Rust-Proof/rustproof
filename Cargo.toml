@@ -19,7 +19,7 @@ lalrpop = "0.11.0"
 [dependencies]
 env_logger = "0.3.4"
 lalrpop-util = "0.11.0"
-libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git" }
+libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git", branch = "bool-fix" }
 log = "0.3.6"
 petgraph = "*"
 term = "0.4.4"

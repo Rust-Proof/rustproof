@@ -37,7 +37,7 @@
 #[macro_use] pub mod reporting;
 
 // debug flag
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 // External crate imports
 extern crate env_logger;
