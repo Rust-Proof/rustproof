@@ -190,9 +190,10 @@ pub fn substitute_variable_with_expression ( source_expression: &mut Expression,
         },
         &mut Expression::VariableMapping(ref mut v) => {
             // Substitute the variable if it matches the target
-            if v == target {
+            // FIXME: hotfix inplace here to allow type inference for return blocks
+            if v == target || v.name == "return" {
                 replace = true;
-            }
+            } 
         },
         _ => {
             // No substitution should be done
@@ -244,7 +245,7 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
                     } else {
                         l_type
-                    } 
+                    }
                 },
                 BinaryOperator::LessThan | BinaryOperator::LessThanOrEqual | BinaryOperator::GreaterThan | BinaryOperator::GreaterThanOrEqual | BinaryOperator::Equal | BinaryOperator::NotEqual => {
                     let l_type: String = determine_evaluation_type(&*b.left);

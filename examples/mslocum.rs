@@ -3,7 +3,8 @@
 #![allow(dead_code)]
 
 fn main() {
-    let x = add_five(5);
+    //let x = add_five(5);
+    asrt();
 }
 
 // WP=      x+5 = x+5 & x < MAX-5
@@ -11,4 +12,9 @@ fn main() {
 fn add_five(x: i32) -> i32 {
     x+5
     //assert!(1 > 0)
+}
+
+#[scondition(pre="true", post="true")]
+fn asrt() {
+    assert!(1 > 0)
 }

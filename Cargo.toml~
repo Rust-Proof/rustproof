@@ -20,7 +20,10 @@ lalrpop = "0.11.0"
 env_logger = "0.3.4"
 lalrpop-util = "0.11.0"
 libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git" }
+<<<<<<< HEAD
+=======
 #libsmt = { path = "libsmt" }
+>>>>>>> a7119cf0c725de5cb2206831c2684a96f806b9ea
 log = "0.3.6"
 petgraph = "*"
 term = "0.4.4"
