@@ -286,6 +286,9 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
 
+            //var.name = var.name + ".0";
+            //var.var_type = "i32".to_string();
+
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
                 left: Box::new(lvalue),
@@ -443,6 +446,18 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
             // FIXME: Lots of intermediaries, should be condensed
+            // Get the index
+            let index: String = match pro.as_ref().elem.clone() {
+                ProjectionElem::Index(ref o) => {
+                    unimplemented!();
+                },
+                ProjectionElem::Field(ref field, ref ty) => {
+                    (field.index() as i32).to_string()
+                }
+                _ => { unimplemented!(); }
+            };
+
+            // FIXME: Lots of intermediaries, should be condensed
             // Get the name of the variable being projected
             let mut lvalue_name = "".to_string();
             let mut lvalue_type = "".to_string();
@@ -457,13 +472,28 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
                     lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
-                    lvalue_type = data.2[temp.index()].ty.clone().to_string();
+
+                    match data.2[temp.index()].ty.sty {
+                        TypeVariants::TyTuple(ref t) => {
+                            dev_tools::print_type_of(&0);
+                            lvalue_type = t[0].to_string();
+                        },
+                        _ => { unimplemented!() }
+                    }
                 },
                 // Local variable
                 Lvalue::Var(ref var) => {
                     // Return the name of the variable
                     lvalue_name = data.3[var.index()].name.to_string();
-                    lvalue_type = data.3[var.index()].ty.clone().to_string();
+                    let i = index.parse::<usize>().unwrap();
+
+                    match data.3[var.index()].ty.sty {
+                        TypeVariants::TyTuple(ref t) => {
+                            dev_tools::print_type_of(&i);
+                            lvalue_type = t[i].to_string();
+                        },
+                        _ => { unimplemented!() }
+                    }
                 },
                 Lvalue::ReturnPointer => {
                     unimplemented!();
@@ -475,18 +505,6 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 Lvalue::Projection(ref proj) => {
                     unimplemented!();
                 }
-            };
-
-            // FIXME: Lots of intermediaries, should be condensed
-            // Get the index
-            let index: String = match pro.as_ref().elem.clone() {
-                ProjectionElem::Index(ref o) => {
-                    unimplemented!();
-                },
-                ProjectionElem::Field(ref field, ref ty) => {
-                    (field.index() as i32).to_string()
-                }
-                _ => { unimplemented!(); }
             };
 
             //Get the index int from index_operand, then stick it in the VariableMappingData
