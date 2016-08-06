@@ -11,7 +11,7 @@ authors = [
             "Drew Gohman <dgohman@pdx.edu>"
           ]
 
-#build = "build.rs"
+build = "build.rs"
 
 [build-dependencies]
 lalrpop = "0.11.0"
@@ -20,7 +20,6 @@ lalrpop = "0.11.0"
 env_logger = "0.3.4"
 lalrpop-util = "0.11.0"
 libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git" }
-#libsmt = { path = "libsmt" }
 log = "0.3.6"
 petgraph = "*"
 term = "0.4.4"
