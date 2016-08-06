@@ -193,7 +193,7 @@ pub fn substitute_variable_with_expression ( source_expression: &mut Expression,
             // FIXME: hotfix inplace here to allow type inference for return blocks
             if v == target {
                 replace = true;
-            } 
+            }
         },
         _ => {
             // No substitution should be done
