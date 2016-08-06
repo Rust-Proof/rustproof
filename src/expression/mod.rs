@@ -191,7 +191,7 @@ pub fn substitute_variable_with_expression ( source_expression: &mut Expression,
         &mut Expression::VariableMapping(ref mut v) => {
             // Substitute the variable if it matches the target
             // FIXME: hotfix inplace here to allow type inference for return blocks
-            if v == target || v.name == "return" {
+            if v == target {
                 replace = true;
             }
         },

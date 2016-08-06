@@ -25,7 +25,7 @@ use term;
 
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
-pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Expression> {
+pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String), builder: &Attr) -> Option<Expression> {
     if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.1[index]); }
 
     //let mut block_targets = Vec::new();
@@ -120,7 +120,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
 }
 
 // Returns the type of an operand as a String
-pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> String {
+pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
         Operand::Consume(ref lvalue) => {
@@ -221,7 +221,7 @@ pub fn gen_overflow_predicate_upper_and_lower(mut wp: Expression, ty: String, va
 
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
-pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Expression>  {
+pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> Option<Expression>  {
     // FIXME: Remove debug print statement
     if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
 
@@ -425,7 +425,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
 }
 
 // Generates an appropriate variable mapping based on whatever variable, temp, or field is found
-pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> VariableMappingData {
+pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> VariableMappingData {
     match lvalue {
         // Function argument
         Lvalue::Arg(ref arg) => {
@@ -452,7 +452,8 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         },
         // The returned value
         Lvalue::ReturnPointer => {
-            VariableMappingData{ name: "return".to_string(), var_type : "".to_string() }
+
+            VariableMappingData{ name: "return".to_string(), var_type : data.4.clone() }
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
@@ -486,7 +487,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                     lvalue_type = data.2[temp.index()].ty.clone().to_string();
                     match data.2[temp.index()].ty.sty {
                         TypeVariants::TyTuple(ref t) => {
-                            lvalue_type = t[0].to_string();                            
+                            lvalue_type = t[0].to_string();
                         },
                         _ => { unimplemented!() }
                     }
@@ -516,15 +517,26 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 }
             };
 
-            //Get the index int from index_operand, then stick it in the VariableMappingData
-            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: lvalue_type }
+            // Get the index
+            let index: String = match pro.as_ref().elem.clone() {
+                ProjectionElem::Index(ref o) => {
+                    unimplemented!();
+                },
+                ProjectionElem::Field(ref field, ref ty) => {
+                    (field.index() as i32).to_string()
+                }
+                _ => { unimplemented!(); }
+            };
+
+            // Get the index int from index_operand, then stick it in the VariableMappingData
+            VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: "".to_string() }
         },
         _=> {unimplemented!();}
     }
 }
 
 // Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field
-pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Expression {
+pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> Expression {
     match operand {
         // A variable/temp/field
         &Operand::Consume (ref l) => {
