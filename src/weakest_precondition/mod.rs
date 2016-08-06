@@ -229,6 +229,8 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
     // Store the values of the statement
     match stmt.kind {
         StatementKind::Assign(ref lval, ref rval) => {
+            println!("{:?}", rval);
+            dev_tools::print_type_of(rval);
             lvalue = Some(lval.clone());
             rvalue = Some(rval.clone());
         }
@@ -238,12 +240,13 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
 
     // The expression on the right-hand side of the assignment
     let mut expression = Vec::new();
+    let mut checked_binop_flag = 0;
     match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
-            var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
-
+            //var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
+            checked_binop_flag=1;
             let op: BinaryOperator = match binop {
                 &BinOp::Add => {
 
@@ -285,6 +288,11 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
 
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
+
+
+            var.name = var.name+".0";
+            var.var_type="i32".to_string();
+            println!("lv = {:?}", var);
 
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
@@ -371,11 +379,13 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             } ));
         },
         Rvalue::Use(ref operand) => {
+            println!("operand = {:?}", operand);
             expression.push(gen_operand(operand, data));
         },
         Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
             match ag_kind {
                 &AggregateKind::Tuple => {
+                    println!("{:?}", "tuple shit");
                     for i in 0..vec_operand.len() {
                         expression.push(Expression::VariableMapping( VariableMappingData {
                             name: var.name.as_str().to_string() + "." + i.to_string().as_str(),
@@ -428,7 +438,9 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         // Temporary variable
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
-            VariableMappingData{ name: "tmp".to_string() + temp.index().to_string().as_str(), var_type: data.2[temp.index()].ty.clone().to_string() }
+            let ty = data.2[temp.index()].ty.clone().to_string();
+            println!("ty = {:?}", ty);
+            VariableMappingData{ name: "tmp".to_string() + temp.index().to_string().as_str(), var_type: ty }
         },
         // Local variable
         Lvalue::Var(ref var) => {
@@ -442,6 +454,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
+            println!("projection");
             // FIXME: Lots of intermediaries, should be condensed
             // Get the name of the variable being projected
             let mut lvalue_name = "".to_string();
@@ -456,8 +469,19 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 // Temporary variable
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
+                    println!("temp");
                     lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
                     lvalue_type = data.2[temp.index()].ty.clone().to_string();
+                    println!("{:?}", data.2[temp.index()].ty.sty);
+                    match data.2[temp.index()].ty.sty {
+                        TypeVariants::TyTuple(ref t) => {
+                            lvalue_type = t[0].to_string();
+                            println!("{:?}", t[0]);
+                            dev_tools::print_type_of(&t);
+                        },
+                        _ => { unimplemented!() }
+                    }
+                    dev_tools::print_type_of(&data.2[temp.index()].ty);
                 },
                 // Local variable
                 Lvalue::Var(ref var) => {
@@ -501,10 +525,12 @@ pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData
     match operand {
         // A variable/temp/field
         &Operand::Consume (ref l) => {
+            println!("consume");
             Expression::VariableMapping( gen_lvalue(l.clone(), data) )
         },
         // A literal value
         &Operand::Constant (ref c) => {
+            println!("constant");
             match c.literal {
                 Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
                 Literal::Value {ref value} => {
