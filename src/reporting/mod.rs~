@@ -69,7 +69,7 @@ macro_rules! rp_trace {
 //Sets up the Reporting Modulle
 pub fn init() {
 	let format = |record: &LogRecord| {
-		format!("________________________\n{}\n{}\n________________________", record.level(), record.args());
+		format!("________________________\n{}\n{}\n________________________", record.level(), record.args())
 	};
 
 	let mut builder = LogBuilder::new();
