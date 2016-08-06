@@ -25,7 +25,7 @@ use term;
 
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
-pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>), builder: &Attr) -> Option<Expression> {
+pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String), builder: &Attr) -> Option<Expression> {
     if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.1[index]); }
 
     //let mut block_targets = Vec::new();
@@ -120,7 +120,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
 }
 
 // Returns the type of an operand as a String
-pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> String {
+pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
         Operand::Consume(ref lvalue) => {
@@ -186,14 +186,14 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
                             "u16" => { u16::min_value() as i64 },
                             "u32" => { u32::min_value() as i64 },
                             "u64" => { u64::min_value() as i64 },
-                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
                     // The maximum value for the given type
                     &BinaryOperator::LessThan => {
                         match ty.as_str() {
                             "i32" => { i32::max_value() as i64 },
-                            _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
+                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                         }
                     },
                     _ => {unimplemented!();}
@@ -204,22 +204,24 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
 
 //generates the upper and lower bounds for overflow check
 pub fn gen_overflow_predicate_upper_and_lower(mut wp: Expression, ty: String, var: VariableMappingData) -> Expression {
+    let mut v = var;
+    v.name = v.name+".0";
     wp = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp),
-        right: Box::new(gen_overflow_predicate(&BinaryOperator::GreaterThan, &var, ty.clone()))
+        right: Box::new(gen_overflow_predicate(&BinaryOperator::GreaterThan, &v, ty.clone()))
     } );
     //check the upper bound of overflow
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp),
-        right: Box::new(gen_overflow_predicate(&BinaryOperator::LessThan, &var, ty.clone()))
+        right: Box::new(gen_overflow_predicate(&BinaryOperator::LessThan, &v, ty.clone()))
     } )
 }
 
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
-pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Option<Expression>  {
+pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> Option<Expression>  {
     // FIXME: Remove debug print statement
     if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
 
@@ -242,8 +244,8 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
-            var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
-
+            //var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
+            //checked_binop_flag=1;
             let op: BinaryOperator = match binop {
                 &BinOp::Add => {
 
@@ -285,6 +287,9 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
 
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
+
+
+            var.name = var.name+".0";
 
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
@@ -377,10 +382,12 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             match ag_kind {
                 &AggregateKind::Tuple => {
                     for i in 0..vec_operand.len() {
-                        expression.push(Expression::VariableMapping( VariableMappingData {
-                            name: var.name.as_str().to_string() + "." + i.to_string().as_str(),
+                        let e = Expression::VariableMapping( VariableMappingData {
+                            //name: var.name.as_str().to_string() + "." + i.to_string().as_str(),
+                            name: format!("{:?}", vec_operand[i]),
                             var_type: gen_ty(&vec_operand[i], data)
-                        } ));
+                        } );
+                        expression.push(e);
                     }
                 },
                 // FIXME: Vectors are weird. let's not bother with them yet
@@ -418,7 +425,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
 }
 
 // Generates an appropriate variable mapping based on whatever variable, temp, or field is found
-pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> VariableMappingData {
+pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> VariableMappingData {
     match lvalue {
         // Function argument
         Lvalue::Arg(ref arg) => {
@@ -428,38 +435,75 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
         // Temporary variable
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
-            VariableMappingData{ name: "tmp".to_string() + temp.index().to_string().as_str(), var_type: data.2[temp.index()].ty.clone().to_string() }
+            let mut ty = data.2[temp.index()].ty.clone().to_string();
+            match data.2[temp.index()].ty.sty {
+                TypeVariants::TyTuple(ref t) => {
+                    ty = t[0].to_string();
+                },
+                _ => { }
+            }
+            VariableMappingData{ name: "tmp".to_string() + temp.index().to_string().as_str(), var_type: ty }
         },
         // Local variable
         Lvalue::Var(ref var) => {
+            // FIXME: fix comment
             // Find the name and type in the declaration
             VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: data.3[var.index()].ty.clone().to_string() }
-            //VariableMappingData{ name: data.3[var.index()].name.to_string(), var_type: data.3[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {
-            VariableMappingData{ name: "return".to_string(), var_type : "".to_string() }
+
+            VariableMappingData{ name: "return".to_string(), var_type : data.4.clone() }
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
             // FIXME: Lots of intermediaries, should be condensed
+            // Get the index
+            let index: String = match pro.as_ref().elem.clone() {
+                ProjectionElem::Index(ref o) => {
+                    unimplemented!();
+                },
+                ProjectionElem::Field(ref field, ref ty) => {
+                    (field.index() as i32).to_string()
+                }
+                _ => { unimplemented!(); }
+            };
+
+            // FIXME: Lots of intermediaries, should be condensed
             // Get the name of the variable being projected
-            // FIXME: Remove debug print statement
-            let lvalue_name = match pro.as_ref().base {
+            let mut lvalue_name = "".to_string();
+            let mut lvalue_type = "".to_string();
+            match pro.as_ref().base {
                 // Argument
                 Lvalue::Arg(ref arg) => {
                     // Return the name of the argument
-                    data.0[arg.index()].debug_name.as_str().to_string()
+                    lvalue_name = data.0[arg.index()].debug_name.as_str().to_string();
+                    lvalue_type = data.0[arg.index()].ty.clone().to_string();
                 },
                 // Temporary variable
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
-                    "tmp".to_string() + temp.index().to_string().as_str()
+                    lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
+                    lvalue_type = data.2[temp.index()].ty.clone().to_string();
+                    match data.2[temp.index()].ty.sty {
+                        TypeVariants::TyTuple(ref t) => {
+                            lvalue_type = t[0].to_string();
+                        },
+                        _ => { unimplemented!() }
+                    }
                 },
                 // Local variable
                 Lvalue::Var(ref var) => {
                     // Return the name of the variable
-                    data.3[var.index()].name.to_string()
+                    let i = index.parse::<usize>().unwrap();
+                    lvalue_name = "var".to_string() + var.index().to_string().as_str();
+
+                    match data.3[var.index()].ty.sty {
+                        TypeVariants::TyTuple(ref t) => {
+                            lvalue_type = t[i].to_string();
+                        },
+                        _ => { unimplemented!() }
+                    }
                 },
                 Lvalue::ReturnPointer => {
                     unimplemented!();
@@ -473,7 +517,6 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 }
             };
 
-            // FIXME: Lots of intermediaries, should be condensed
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
                 ProjectionElem::Index(ref o) => {
@@ -485,7 +528,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                 _ => { unimplemented!(); }
             };
 
-            //Get the index int from index_operand, then stick it in the VariableMappingData
+            // Get the index int from index_operand, then stick it in the VariableMappingData
             VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: "".to_string() }
         },
         _=> {unimplemented!();}
@@ -493,7 +536,7 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
 }
 
 // Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field
-pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>)) -> Expression {
+pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> Expression {
     match operand {
         // A variable/temp/field
         &Operand::Consume (ref l) => {
