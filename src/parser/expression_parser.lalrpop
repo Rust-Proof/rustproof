@@ -28,16 +28,31 @@ E5: Expression = {
 };
 
 E6: Expression = {
-	<op: UOP> <e: E6> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
+	<left: E6> <op: BOP6> <right: E7> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
 	E7,
 };
 
 E7: Expression = {
+	<left: E7> <op: BOP7> <right: E8> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+	E8,
+};
+
+E8: Expression = {
+	<left: E8> <op: BOP8> <right: E9> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+	E9,
+};
+
+E9: Expression = {
+	<op: UOP> <e: E9> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
+	E10,
+};
+
+E10: Expression = {
 	"true" => Expression::BooleanLiteral(true),
 	"false" => Expression::BooleanLiteral(false),
 	<i:r"[-][0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
 	<i:r"[-][0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
-	<i:r"[-][0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ),
+	<i:r"[-][0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ), 
 	<i:r"[-][0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
 	<i:r"[0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
 	<i:r"[0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
@@ -58,6 +73,8 @@ UOP: UnaryOperator = {
 };
 
 BOP1: BinaryOperator = {
+	"&&" => BinaryOperator::And,
+	"||" => BinaryOperator::Or,
 	"AND" => BinaryOperator::And,
 	"OR" => BinaryOperator::Or,
 	"XOR" => BinaryOperator::Xor,
@@ -66,30 +83,40 @@ BOP1: BinaryOperator = {
 };
 
 BOP2: BinaryOperator = {
-	"&&" => BinaryOperator::And,
-	"||" => BinaryOperator::Or,
-};
-
-BOP3: BinaryOperator = {
-	"&" => BinaryOperator::BitwiseAnd,
-	"|" => BinaryOperator::BitwiseOr,
-	"^" => BinaryOperator::BitwiseXor,
-	"<<" => BinaryOperator::BitwiseLeftShift,
-	">>" => BinaryOperator::BitwiseRightShift,
-};
-
-BOP4: BinaryOperator = {
-	"+" => BinaryOperator::Addition,
-	"-" => BinaryOperator::Subtraction,
-};
-
-BOP5: BinaryOperator = {
 	"<" => BinaryOperator::LessThan,
 	"<=" => BinaryOperator::LessThanOrEqual,
 	">" => BinaryOperator::GreaterThan,
 	">=" => BinaryOperator::GreaterThanOrEqual,
 	"==" => BinaryOperator::Equal,
 	"!=" => BinaryOperator::NotEqual,
+};
+
+BOP3: BinaryOperator = {
+	"|" => BinaryOperator::BitwiseOr,
+};
+
+BOP4: BinaryOperator = {
+	"^" => BinaryOperator::BitwiseXor,
+};
+
+BOP5: BinaryOperator = {
+	"&" => BinaryOperator::BitwiseAnd,
+};
+
+BOP6: BinaryOperator = {
+	"<<" => BinaryOperator::BitwiseLeftShift,
+	">>" => BinaryOperator::BitwiseRightShift,
+};
+
+BOP7: BinaryOperator = {
+	"+" => BinaryOperator::Addition,
+	"-" => BinaryOperator::Subtraction,
+};
+
+BOP8: BinaryOperator = {
+	"*" => BinaryOperator::Multiplication,
+	"/" => BinaryOperator::Division,
+	"%" => BinaryOperator::Modulo,
 };
 
 IDENTIFIER: String = {
