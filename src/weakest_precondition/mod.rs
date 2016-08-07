@@ -306,7 +306,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
                     // add the division by 0 expression check
                     wp = gen_div_zero_check(wp, ty.clone(), rvalue.clone());
                     BinaryOperator::Division
-                }
+                },
                 &BinOp::Shl => {
                     BinaryOperator::BitwiseLeftShift
                 },
