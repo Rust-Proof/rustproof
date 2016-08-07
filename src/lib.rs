@@ -61,7 +61,7 @@ use rustc::mir::mir_map::MirMap;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, Arg, Temp, Var, ArgDecl, TempDecl, VarDecl};
 use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
 use rustc::mir::visit::Visitor;
-use rustc::ty::TyCtxt;
+use rustc::ty::{TyCtxt, FnOutput};
 use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, Annotatable};
@@ -214,7 +214,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             // Begin examining the MIR code
             MirVisitor::visit_mir(self, mir);
         }
-
     }
 }
 
@@ -251,8 +250,16 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
             // var_data is a vector of VarDecl
             var_data.push(&mir.var_decls[var]);
         }
+
+        let func_return_type: String = match mir.return_ty {
+            FnOutput::FnConverging(t) => {
+                t.to_string()
+            },
+            _ => { unimplemented!(); }
+        };
+
         // Store all the data
-        let data = (arg_data, block_data, temp_data, var_data);
+        let data = (arg_data, block_data, temp_data, var_data, func_return_type);
 
         // Generate the weakest precondition
         self.builder.weakest_precondition = gen(0, &data, &self.builder);
