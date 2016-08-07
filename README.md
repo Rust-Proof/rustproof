@@ -16,11 +16,11 @@ Where the "pre" and "post" conditions are logical expressions.
 
 For example:
 
-`#[condition(pre="x:i32 > 0:i32", post="x:i32 >=5:i32")]`
+`#[condition(pre=" x:i32 > 0:i32 ", post=" x:i32 >= 5:i32 ")]`
 
 A complete example of how to format:
 
-    #[condition(pre="x:i32 < 10:i32 && x:i32 > 0:i32", post="return:i32 < 5:i32")]
+    #[condition(pre=" x:i32 < 10:i32 && x:i32 > 0:i32", post=" return:i32 < 5:i32 ")]
 	fn add_five_or_three(x: i32)-> i32  {
         if x > 3 {  
             x + 5  
