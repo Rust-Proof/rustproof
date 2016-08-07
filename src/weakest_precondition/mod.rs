@@ -155,14 +155,16 @@ pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Ve
 
 // Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
 pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
+    let mut v = var.clone();
+    v.name = v.name + ".0";
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
         right: Box::new(
             Expression::BinaryExpression( BinaryExpressionData {
                 op: BinaryOperator::LessThanOrEqual,
-                left: Box::new(Expression::VariableMapping(var.clone())),
-                right: Box::new(match var.var_type.as_str() {
+                left: Box::new(Expression::VariableMapping(v.clone())),
+                right: Box::new(match v.var_type.as_str() {
                     "i8" => {
                         Expression::SignedBitVector( SignedBitVectorData{
                             size: 8u8,
@@ -211,7 +213,7 @@ pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
                             value: u64::max_value() as u64
                         })
                     },
-                    _ => { panic!("Unsupported return type of binary operation: {}", var.var_type); }
+                    _ => { panic!("Unsupported return type of binary operation: {}", v.var_type); }
                 })
             })
         )
@@ -220,14 +222,16 @@ pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
 
 // Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
 pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
+    let mut v = var.clone();
+    v.name = v.name + ".0";
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
         right: Box::new(
             Expression::BinaryExpression( BinaryExpressionData {
                 op: BinaryOperator::GreaterThanOrEqual,
-                left: Box::new(Expression::VariableMapping(var.clone())),
-                right: Box::new(match var.var_type.as_str() {
+                left: Box::new(Expression::VariableMapping(v.clone())),
+                right: Box::new(match v.var_type.as_str() {
                     "i8" => {
                         Expression::SignedBitVector( SignedBitVectorData{
                             size: 8u8,
@@ -276,7 +280,7 @@ pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
                             value: u64::min_value() as u64
                         })
                     },
-                    _ => { panic!("Unsupported return type of binary operation: {}", var.var_type); }
+                    _ => { panic!("Unsupported return type of binary operation: {}", v.var_type); }
                 })
             })
         )
@@ -519,6 +523,9 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
 
     // Replace any appearance of var in the weakest precondition with the expression
     for i in 0..expression.len() {
+        println!("substituting: {}", var);
+        println!("with: {}", expression[i]);
+        println!("in: {}", wp);
         substitute_variable_with_expression( &mut wp, &var, &expression[i] );
     }
     if DEBUG { println!("new expression\t\t{:?}\n---------------------", wp.clone());}
