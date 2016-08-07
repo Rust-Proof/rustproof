@@ -50,19 +50,45 @@ E9: Expression = {
 E10: Expression = {
     "true" => Expression::BooleanLiteral(true),
     "false" => Expression::BooleanLiteral(false),
-    <i:r"[-][0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
-    <i:r"[-][0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
-    <i:r"[-][0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ), 
-    <i:r"[-][0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "u8" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "u16" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "u32" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u64::from_str(i).unwrap() } ),
-    <i:r"[0-9]+"> ":" "u64" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(i).unwrap() } ),
-    <n: IDENTIFIER> ":" <t: TYPE> => Expression::VariableMapping( VariableMappingData { name: n, var_type: t } ),
+    <i:r"[-][0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[-][0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[-][0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[-][0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::from_str(i).unwrap() as i64
+    } ),
+    <i:r"[0-9]+"> ":" "u8" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 8, value: u8::from_str(i).unwrap() as u64
+    } ),
+    <i:r"[0-9]+"> ":" "u16" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 16, value: u16::from_str(i).unwrap() as u64
+    } ),
+    <i:r"[0-9]+"> ":" "u32" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 32, value: u32::from_str(i).unwrap() as u64
+    } ),
+    <i:r"[0-9]+"> ":" "u64" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 64, value: u64::from_str(i).unwrap() as u64
+    } ),
+    <n: IDENTIFIER> ":" <t: TYPE> => Expression::VariableMapping( VariableMappingData {
+        name: n, var_type: t
+    } ),
     <ib: INT_BOUNDS> => ib,
     "(" <e: E1> ")" => e,
 };

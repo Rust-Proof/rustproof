@@ -17132,7 +17132,9 @@ pub fn __action21<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action22<
@@ -17144,7 +17146,9 @@ pub fn __action22<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action23<
@@ -17156,7 +17160,9 @@ pub fn __action23<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action24<
@@ -17168,7 +17174,9 @@ pub fn __action24<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action25<
@@ -17180,7 +17188,9 @@ pub fn __action25<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action26<
@@ -17192,7 +17202,9 @@ pub fn __action26<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action27<
@@ -17204,7 +17216,9 @@ pub fn __action27<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action28<
@@ -17216,7 +17230,9 @@ pub fn __action28<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::from_str(i).unwrap() as i64
+    } )
 }
 
 pub fn __action29<
@@ -17228,7 +17244,9 @@ pub fn __action29<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u64::from_str(i).unwrap() } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 8, value: u8::from_str(i).unwrap() as u64
+    } )
 }
 
 pub fn __action30<
@@ -17240,7 +17258,9 @@ pub fn __action30<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u64::from_str(i).unwrap() } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 16, value: u16::from_str(i).unwrap() as u64
+    } )
 }
 
 pub fn __action31<
@@ -17252,7 +17272,9 @@ pub fn __action31<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u64::from_str(i).unwrap() } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 32, value: u32::from_str(i).unwrap() as u64
+    } )
 }
 
 pub fn __action32<
@@ -17264,7 +17286,9 @@ pub fn __action32<
     (_, _, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(i).unwrap() } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 64, value: u64::from_str(i).unwrap() as u64
+    } )
 }
 
 pub fn __action33<
@@ -17276,7 +17300,9 @@ pub fn __action33<
     (_, t, _): (usize, String, usize),
 ) -> Expression
 {
-    Expression::VariableMapping( VariableMappingData { name: n, var_type: t } )
+    Expression::VariableMapping( VariableMappingData {
+        name: n, var_type: t
+    } )
 }
 
 pub fn __action34<
