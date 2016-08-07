@@ -32,7 +32,7 @@ A complete example of how to format:
 
 To use rustproof and ensure a clean build on your code:
 
-`cargo clean && cargo build --example example`
+`cargo build`
 
 # Dependencies
 
