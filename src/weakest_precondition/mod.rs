@@ -11,7 +11,6 @@
 extern crate rustc_const_math;
 
 use super::dev_tools;
-use super::Attr;
 use super::DEBUG;
 use std::process;
 use expression::*;
@@ -25,11 +24,10 @@ use term;
 
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
-pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String), builder: &Attr) -> Option<Expression> {
+pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String), post_expr: &Option<Expression>) -> Option<Expression> {
+    // FIXME: Debug should not be a const; it must be user-facing
     if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.1[index]); }
 
-    //let mut block_targets = Vec::new();
-    //let mut block_kind = "";
     let mut wp: Option<Expression> = None;
 
     // Parse terminator data
@@ -37,16 +35,16 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
     match terminator {
         TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
             // Retrieve the weakest precondition from the following block
-            wp = gen(target.index(), data, builder);
+            wp = gen(target.index(), data, post_expr);
         },
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
-            wp = builder.post_expr.clone();
+            wp = post_expr.clone();
             return wp;
         },
         TerminatorKind::Goto{target} => {
             // Retrieve the weakest precondition from the following block
-            wp = gen(target.index(), data, builder);
+            wp = gen(target.index(), data, post_expr);
         },
         TerminatorKind::Call{func, args, destination, cleanup} => {
             // Determine if this is the end of a panic. (assumed false branch of assertion, so return a precondition of false [this path will never be taken])
@@ -68,8 +66,8 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         TerminatorKind::Resume => unimplemented!(),
         TerminatorKind::If{cond, targets} => {
             // Generate weakest precondition for if and else clause
-            let wp_if = gen(targets.0.index(), data, builder);
-            let wp_else = gen(targets.1.index(), data, builder);
+            let wp_if = gen(targets.0.index(), data, post_expr);
+            let wp_else = gen(targets.1.index(), data, post_expr);
 
             // Generate the conditional expression
             let condition = match cond {
