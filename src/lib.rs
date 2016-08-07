@@ -51,7 +51,6 @@ extern crate rustc_const_math;
 extern crate syntax;
 extern crate term;
 
-
 // External imports
 use env_logger::LogBuilder;
 use log::{LogRecord, LogLevelFilter};
@@ -69,7 +68,6 @@ use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
 
-
 // Local imports
 use expression::{Expression, BinaryOperator, BinaryExpressionData};
 use parser::*;
@@ -83,114 +81,44 @@ pub mod smt_output;
 pub mod weakest_precondition;
 pub mod dev_tools; // FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
-mod tests; // Conditionally include tests when cargo --test is called
+mod tests;
 
 
-
-/*
-#[plugin_registrar]
-pub fn plugin_registrar(reg: &mut Registry) {
-    reg.register_macro("printlns", printlns);
-}
-*/
-
-#[derive(Debug)]
-pub struct Attr {
-    pub func_name: String,
-    pub func_span: Option<Span>,
-    pub func: Option<syntax::ptr::P<syntax::ast::Block>>,
-    pub pre_span: Option<Span>,
-    pub post_span: Option<Span>,
-    pub pre_string: String,
-    pub post_string: String,
-    pub pre_expr: Option<Expression>,
-    pub post_expr: Option<Expression>,
-    pub weakest_precondition: Option<Expression>,
-}
-
-impl Attr {
-    fn clear(&mut self) {
-        self.func_name = "".to_string();
-        self.func_span = None;
-        self.func = None;
-        self.pre_span = None;
-        self.post_span = None;
-        self.pre_string = "".to_string();
-        self.post_string = "".to_string();
-        self.pre_expr = None;
-        self.post_expr = None;
-        self.weakest_precondition = None;
-    }
-}
 
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
 	// This initializes the Reporting Module to Add the environment to the logger
 	reporting::init();
-	//reg.register_syntax_extension(intern("condition"), MultiDecorator(Box::new(expand_condition)));
-    //reg.register_syntax_extension(intern("condition"),
-    //                              MultiDecorator(Box::new(expand_condition)));
+
     let visitor = MirVisitor {
-        builder: Attr {
-            func_name: "".to_string(),
-            func_span: None,
-            func: None,
-            pre_string: "".to_string(),
-            post_string: "".to_string(),
-            pre_span: None,
-            post_span: None,
-            pre_expr: None,
-            post_expr: None,
-            weakest_precondition: None,
-        },
+        pre_string: "".to_string(),
+        post_string: "".to_string(),
+        pre_expr: None,
+        post_expr: None,
     };
+
     reg.register_mir_pass(Box::new(visitor));
 }
 
-// FIXME: FOR NOW, THIS IS COMMENTED OUT FOR REFERENCE PURPOSES.
-// For every #[condition], this function is called
-// FIXME: I don't really know what `push: &mut FnMut(Annotatable)` is, but I know its required.
-/// Checks an attribute for proper placement and starts the control flow of the application
-/*
-fn expand_condition(ctx: &mut ExtCtxt, span: Span,
-                    meta: &MetaItem, item: &Annotatable,
-                    push: &mut FnMut(Annotatable)) {
-    match item {
-        &Annotatable::Item(ref it) => match it.node {
-            // If the item is a function
-            ItemKind::Fn(..) => {
-                control_flow(meta, item);
-            },
-            // Otherwise, it shouldn't have #[condition] on it
-            _ => expand_bad_item(ctx, span),
-        },
-        // If it isn't an item at all, also shouldn't have #[condition] on it
-        _ => expand_bad_item(ctx, span),
-    }
-}
-*/
-
-// FIXME: THIS WILL BE USED SOON
-// If the #[condition] is not on a function, error out
-/*
-fn expand_bad_item(ctx: &mut ExtCtxt, span: Span) {
-    ctx.span_err(span, "#[condition] must be placed on a function".into());
-}
-*/
-
 struct MirVisitor {
-    builder: Attr,
+    pre_string: String,
+    post_string: String,
+    pre_expr: Option<Expression>,
+    post_expr: Option<Expression>,
 }
 
 // This must be here, and it must be blank
-impl <'tcx> Pass for MirVisitor {
-}
+impl <'tcx> Pass for MirVisitor {}
 
 impl <'tcx> MirPass<'tcx> for MirVisitor {
+    // Visit the MIR of the entire program
     fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
         // Clear the stored attributes in the builder
-        self.builder.clear();
+        self.pre_string = "".to_string();
+        self.post_string = "".to_string();
+        self.pre_expr = None;
+        self.post_expr = None;
 
         // Store relevant data
         let item_id = src.item_id();
@@ -198,18 +126,16 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         let name = tcx.item_path_str(def_id);
         let attrs = tcx.map.attrs(item_id);
 
-        self.builder.func_name = name;
-
-        // FIXME: I'm pretty sure this is a bad way to do this. but it does work.
+        // TODO: Find a better way to do this
         for attr in attrs {
-            parse_attribute(&mut self.builder, attr);
+            parse_attribute(&mut self.pre_string, &mut self.post_string, attr);
         }
 
-        // FIXME: Better condition check
-        if self.builder.pre_string != "" {
+        // TODO: Find a better condition check
+        if self.pre_string != "" {
             // Parse the pre- and postcondition arguments
-            self.builder.pre_expr = Some(parser::parse_condition(self.builder.pre_string.as_str()));
-            self.builder.post_expr = Some(parser::parse_condition(self.builder.post_string.as_str()));
+            self.pre_expr = Some(parser::parse_condition(self.pre_string.as_str()));
+            self.post_expr = Some(parser::parse_condition(self.post_string.as_str()));
 
             // Begin examining the MIR code
             MirVisitor::visit_mir(self, mir);
@@ -218,10 +144,8 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 }
 
 impl<'tcx> Visitor<'tcx> for MirVisitor {
-    // NOTE: Had trouble using visit_basic_block_data since I couldn't pass around the mir blocks.
-    // This function instead implements visit_basic_block_data within it.
+    // Visit the MIR of a function
     fn visit_mir(&mut self, mir: &Mir<'tcx>) {
-
         let mut arg_data = Vec::new();
         let mut block_data = Vec::new();
         let mut temp_data = Vec::new();
@@ -232,25 +156,26 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
             let block = BasicBlock::new(index);
             block_data.push(&mir[block]);
         }
+
         // Get the function argument declarations
         for index in 0..mir.arg_decls.len() {
             let arg = Arg::new(index);
-            // arg_data is a vector of ArgDecl
             arg_data.push(&mir.arg_decls[arg]);
         }
+
         // Get the temp declarations
         for index in 0..mir.temp_decls.len() {
             let temp = Temp::new(index);
-            // temp_data is a vector of TempDecl
             temp_data.push(&mir.temp_decls[temp]);
         }
+
         // Get the variable declarations
         for index in 0..mir.var_decls.len() {
             let var = Var::new(index);
-            // var_data is a vector of VarDecl
             var_data.push(&mir.var_decls[var]);
         }
 
+        // Get the return type
         let func_return_type: String = match mir.return_ty {
             FnOutput::FnConverging(t) => {
                 t.to_string()
@@ -262,20 +187,19 @@ impl<'tcx> Visitor<'tcx> for MirVisitor {
         let data = (arg_data, block_data, temp_data, var_data, func_return_type);
 
         // Generate the weakest precondition
-        self.builder.weakest_precondition = gen(0, &data, &self.builder);
+        let weakest_precondition = gen(0, &data, &self.post_expr);
 
         // Create the verification condition, P -> WP
         let verification_condition: Expression = Expression::BinaryExpression( BinaryExpressionData{
             op: BinaryOperator::Implication,
-            left: Box::new(self.builder.pre_expr.as_ref().unwrap().clone()),
-            right: Box::new(self.builder.weakest_precondition.as_ref().unwrap().clone())
+            left: Box::new(self.pre_expr.as_ref().unwrap().clone()),
+            right: Box::new(weakest_precondition.as_ref().unwrap().clone())
         } );
 
-        // FIXME: Remove debug print statement
+        // FIXME: Debug should not be a const; it must be user-facing
         if DEBUG { println!("vc: {}\n", verification_condition); }
 
-        // Output to smt_lib format
-        //Pred2SMT::gen_smtlib(&verification_condition.clone());
+        // Output to SMT-LIB format
         gen_smtlib(&verification_condition.clone());
     }
 }
