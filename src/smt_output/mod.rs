@@ -46,7 +46,7 @@ pub fn gen_smtlib (vc: &Expression) {
     let vcon = solver.expr2smtlib(&vc);
     let _ = solver.assert(core::OpCodes::Not, &[vcon]);
 
-    let (res, check) = solver.solve(&mut z3);
+    let (res, check) = solver.solve(&mut z3, DEBUG);
     match res {
         Ok(..) => {
             match check {
