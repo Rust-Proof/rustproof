@@ -16,7 +16,7 @@ E3: Expression = {
     <left: E3> <op: BOP3> <right: E4> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
     E4,
 };
-
+    
 E4: Expression = {
     <left: E4> <op: BOP4> <right: E5> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
     E5,
@@ -89,6 +89,7 @@ E10: Expression = {
     <n: IDENTIFIER> ":" <t: TYPE> => Expression::VariableMapping( VariableMappingData {
         name: n, var_type: t
     } ),
+    <ib: INT_BOUNDS> => ib,
     "(" <e: E1> ")" => e,
 };
 
@@ -160,4 +161,23 @@ TYPE: String = {
     "u16" => "u16".to_string(),
     "u32" => "u32".to_string(),
     "u64" => "u64".to_string(),
+};
+
+INT_BOUNDS: Expression = {
+    "i8::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i8::max_value() as i64 } ),
+    "i16::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i16::max_value() as i64 } ),
+    "i32::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i32::max_value() as i64 } ),
+    "i64::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::max_value() as i64 } ),
+    "i8::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i8::min_value() as i64 } ),
+    "i16::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i16::min_value() as i64 } ),
+    "i32::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i32::min_value() as i64 } ),
+    "i64::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::min_value() as i64 } ),
+    "u8::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u8::max_value() as u64 } ),
+    "u16::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u16::max_value() as u64 } ),
+    "u32::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u32::max_value() as u64 } ),
+    "u64::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::max_value() as u64 } ),
+    "u8::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u8::min_value() as u64 } ),
+    "u16::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u16::min_value() as u64 } ),
+    "u32::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u32::min_value() as u64 } ),
+    "u64::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::min_value() as u64 } ),
 };
