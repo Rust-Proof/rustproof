@@ -9,7 +9,7 @@ fn main() {
 //      let z = sub_five(5);
 }
 
-#[condition(pre="(x: i32 <= 2147483647:i32) && (x: i32 >= -2147483648:i32)",
+#[condition(pre="(x: i32 <= i32::MAX) && (x: i32 >= i32::MIN)",
             post="return: i32 == (x: i32 + 5:i32)")]
 fn test_slt(x: i32) -> i32 {
     x+5
