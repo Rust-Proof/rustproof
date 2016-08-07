@@ -149,64 +149,64 @@ pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Ve
 //if it is BinaryOperator::LessThan, it checks the upper bounds
     // FIXME: More types may be required
 pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,ty: String) -> Expression {
-        Expression::BinaryExpression( BinaryExpressionData {
-            op: icop.clone(),
-            // Variable we are checking overflow on
-            left: Box::new(Expression::VariableMapping( VariableMappingData {
-                name: var.clone().name,
-                var_type: var.clone().var_type,
-            })),
-            // Overflow
-            right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-                // The bit-vector size of the given type
-                size: match ty.as_str() {
-                    "i8" => { 8 },
-                    "i16" => { 16 },
-                    "i32" => { 32 },
-                    "i64" => { 64 },
-                    "u8" => { 8 },
-                    "u16" => { 16 },
-                    "u32" => { 32 },
-                    "u64" => { 64 },
-                    _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
-                },
-                //match on op to see which direction you are detecting overflow in
-                value: match icop {
-                    // if op is GreaterThan check for uppper bounds
-                    &BinaryOperator::GreaterThan => {
-                    // The maximum value for the given type
-                        match ty.as_str() {
-                            "i8" => { i8::min_value() as i64 },
-                            "i16" => { i16::min_value() as i64 },
-                            "i32" => { i32::min_value() as i64 },
-                            "i64" => { i64::min_value() as i64 },
-                            "u8" => { u8::min_value() as i64 },
-                            "u16" => { u16::min_value() as i64 },
-                            "u32" => { u32::min_value() as i64 },
-                            "u64" => { u64::min_value() as i64 },
-                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                        }
-                    },
-                    // The maximum value for the given type
-                    &BinaryOperator::LessThan => {
-                        match ty.as_str() {
-                            "i8" => { i8::max_value() as i64 },
-                            "i16" => { i16::max_value() as i64 },
-                            "i32" => { i32::max_value() as i64 },
-                            "i64" => { i64::max_value() as i64 },
-                            "u8" => { u8::max_value() as i64 },
-                            "u16" => { u16::max_value() as i64 },
-                            "u32" => { u32::max_value() as i64 },
-                            "u64" => { u64::max_value() as i64 },
-                            _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                        }
-                    },
-                    // 0 for a div by zero check
-                    &BinaryOperator::Equal => { 0 },
-                    _ => {unimplemented!();}
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: icop.clone(),
+        // Variable we are checking overflow on
+        left: Box::new(Expression::VariableMapping( VariableMappingData {
+            name: var.clone().name,
+            var_type: var.clone().var_type,
+        })),
+        // Overflow
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            // The bit-vector size of the given type
+            size: match ty.as_str() {
+                "i8" => { 8 },
+                "i16" => { 16 },
+                "i32" => { 32 },
+                "i64" => { 64 },
+                "u8" => { 8 },
+                "u16" => { 16 },
+                "u32" => { 32 },
+                "u64" => { 64 },
+                _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
+            },
+        //match on op to see which direction you are detecting overflow in
+        value: match icop {
+            // if op is GreaterThan check for uppper bounds
+            &BinaryOperator::GreaterThan => {
+                // The maximum value for the given type
+                match ty.as_str() {
+                    "i8" => { i8::min_value() as i64 },
+                    "i16" => { i16::min_value() as i64 },
+                    "i32" => { i32::min_value() as i64 },
+                    "i64" => { i64::min_value() as i64 },
+                    "u8" => { u8::min_value() as i64 },
+                    "u16" => { u16::min_value() as i64 },
+                    "u32" => { u32::min_value() as i64 },
+                    "u64" => { u64::min_value() as i64 },
+                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
                 }
-            }))
-        })
+            },
+            // The maximum value for the given type
+            &BinaryOperator::LessThan => {
+                match ty.as_str() {
+                    "i8" => { i8::max_value() as i64 },
+                    "i16" => { i16::max_value() as i64 },
+                    "i32" => { i32::max_value() as i64 },
+                    "i64" => { i64::max_value() as i64 },
+                    "u8" => { u8::max_value() as i64 },
+                    "u16" => { u16::max_value() as i64 },
+                    "u32" => { u32::max_value() as i64 },
+                    "u64" => { u64::max_value() as i64 },
+                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
+                }
+            },
+            // 0 for a div by zero check
+            &BinaryOperator::Equal => { 0 },
+            _ => { unimplemented!(); }
+        }
+        }))
+    })
 }
 
 //generates the upper and lower bounds for overflow check
@@ -278,7 +278,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
-            var = VariableMappingData { name: var.name.as_str().to_string() + ".0", var_type: var.var_type.as_str().to_string() };
+            var = VariableMappingData { name: var.name + ".0", var_type: var.var_type };
             let ty = gen_ty(roperand, data);
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
@@ -301,10 +301,10 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
                 &BinOp::Div => {
                     // Add the overflow and undeflow expression checks
                     wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
-                    // add the division by 0 expression check
+                    // Add the division by 0 expression check
                     wp = gen_div_zero_check(wp, ty.clone(), rvalue.clone());
                     BinaryOperator::Division
-                }
+                },
                 &BinOp::Shl => {
                     BinaryOperator::BitwiseLeftShift
                 },
