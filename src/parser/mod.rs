@@ -17,7 +17,7 @@ use syntax::ast::{MetaItemKind, Attribute_};
 use syntax::codemap::Spanned;
 
 use super::Attr;
-use expression::Expression;
+use expression::{Expression, ty_check};
 use std::process;
 
 // Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
@@ -72,7 +72,14 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
 pub fn parse_condition(condition: &str) -> Expression {
     match expression_parser::parse_E1(condition) {
         Ok(e) => {
-            return e;
+            match ty_check(&e) {
+                Ok(_) => {
+                    return e;
+                },
+                Err(s) => {
+                    rp_error!("{}", s);
+                }
+            }
         },
         Err(e) => {
             rp_error!("Error parsing condition \"{}\": {:?}", condition, e);
