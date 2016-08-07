@@ -442,7 +442,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
         },
         Rvalue::UnaryOp(ref unop, ref val) => {
             let op: UnaryOperator = match unop {
-                &UnOp::Not => { UnaryOperator::BitwiseNot },
+                &UnOp::Not => { UnaryOperator::Not },
                 &UnOp::Neg => { UnaryOperator::Negation },
             };
 
