@@ -1,4 +1,0 @@
-(declare-fun x () (_ BitVec 32))
-(assert (not (=> (bvugt x (_ bv0 32)) (bvuge (bvadd x (_ bv5 32)) (_ bv5 32)))))
-(check-sat)
-(get-model)
