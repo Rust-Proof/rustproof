@@ -24,7 +24,10 @@ use term;
 
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
-pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String), post_expr: &Option<Expression>) -> Option<Expression> {
+pub fn gen(index: usize,
+           data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String),
+           post_expr: &Option<Expression>)
+           -> Option<Expression> {
     // FIXME: Debug should not be a const; it must be user-facing
     if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.1[index]); }
 
@@ -128,7 +131,9 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
 }
 
 // Returns the type of an operand as a String
-pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> String {
+fn gen_ty(operand: &Operand,
+          data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
+          -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
         Operand::Consume(ref lvalue) => {
@@ -158,7 +163,10 @@ pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Ve
 //If it is BinaryOperator::GreaterThan, it checks the lower bounds
 //if it is BinaryOperator::LessThan, it checks the upper bounds
     // FIXME: More types may be required
-pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,ty: String) -> Expression {
+fn gen_overflow_predicate(icop: &BinaryOperator,
+                          var: &VariableMappingData,
+                          ty: String)
+                          -> Expression {
     Expression::BinaryExpression( BinaryExpressionData {
         op: icop.clone(),
         // Variable we are checking overflow on
@@ -220,9 +228,11 @@ pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,
 }
 
 //generates the upper and lower bounds for overflow check
-pub fn gen_overflow_predicate_upper_and_lower(mut wp: Expression, ty: String, var: VariableMappingData) -> Expression {
+fn gen_overflow_predicate_upper_and_lower(mut wp: Expression,
+                                          ty: String,
+                                          var: VariableMappingData)
+                                          -> Expression {
     let mut v = var;
-    v.name = v.name+".0";
     wp = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp),
@@ -237,11 +247,11 @@ pub fn gen_overflow_predicate_upper_and_lower(mut wp: Expression, ty: String, va
 }
 
 //generates a check to make sure that the wp is not divided by 0
-pub fn gen_div_zero_check(wp: Expression, ty: String, exp: Expression) -> Expression {
-    Expression::BinaryExpression( BinaryExpressionData{
+fn gen_div_zero_check(wp: Expression, ty: String, exp: Expression) -> Expression {
+    Expression::BinaryExpression( BinaryExpressionData {
         op: BinaryOperator::And,
         left: Box::new(wp),
-        right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
+        right: Box::new(Expression::BinaryExpression( BinaryExpressionData {
             op: BinaryOperator::NotEqual,
             left: Box::new(exp),
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
@@ -255,7 +265,7 @@ pub fn gen_div_zero_check(wp: Expression, ty: String, exp: Expression) -> Expres
                     "u16" => { 16 },
                     "u32" => { 32 },
                     "u64" => { 64 },
-                    _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
+                    _ => { rp_error!("Unimplemented checkeddAdd right-hand operand type") }
                 },
                 value: 0
             }))
@@ -265,9 +275,8 @@ pub fn gen_div_zero_check(wp: Expression, ty: String, exp: Expression) -> Expres
 
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
-pub fn gen_stmt(mut wp: Expression, stmt: Statement,
-                data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
-                        Vec<&TempDecl>, Vec<&VarDecl>, String))
+fn gen_stmt(mut wp: Expression, stmt: Statement,
+                data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
                 -> Option<Expression>  {
     // FIXME: Remove debug print statement
     if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
@@ -290,6 +299,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
     match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
+            var.name = var.name+".0";
             let ty = gen_ty(roperand, data);
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
@@ -316,16 +326,10 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
                     wp = gen_div_zero_check(wp, ty.clone(), rvalue.clone());
                     BinaryOperator::Division
                 },
-                &BinOp::Shl => {
-                    BinaryOperator::BitwiseLeftShift
-                },
-                &BinOp::Shr => {
-                    BinaryOperator::BitwiseRightShift
-                },
-                _ => {rp_error!("Unsupported checked binary operation!");}
+                &BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
+                &BinOp::Shr => { BinaryOperator::BitwiseRightShift },
+                _ => { rp_error!("Unsupported checked binary operation!"); }
             };
-
-            var.name = var.name+".0";
 
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
@@ -342,17 +346,17 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
                     // Add the overflow and undeflow expression checks
                     wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
                     BinaryOperator::Addition
-                }
+                },
                 &BinOp::Sub => {
                     // Add the overflow and undeflow expression checks
                     wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
                     BinaryOperator::Subtraction
-                }
+                },
                 &BinOp::Mul => {
                     // Add the overflow and undeflow expression checks
                     wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
                     BinaryOperator::Multiplication
-                }
+                },
                 &BinOp::Div => {
                     // Add the overflow and undeflow expression checks
                     wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
@@ -365,39 +369,17 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
                     wp = gen_div_zero_check(wp, ty, rvalue.clone());
                     BinaryOperator::Modulo
                 },
-                &BinOp::BitOr => {
-                    BinaryOperator::BitwiseOr
-                },
-                &BinOp::BitAnd => {
-                    BinaryOperator::BitwiseAnd
-                },
-                &BinOp::BitXor => {
-                    BinaryOperator::BitwiseXor
-                },
-                &BinOp::Shl => {
-                    BinaryOperator::BitwiseLeftShift
-                },
-                &BinOp::Shr => {
-                    BinaryOperator::BitwiseRightShift
-                },
-                &BinOp::Lt => {
-                    BinaryOperator::LessThan
-                },
-                &BinOp::Le => {
-                    BinaryOperator::LessThanOrEqual
-                },
-                &BinOp::Gt => {
-                    BinaryOperator::GreaterThan
-                },
-                &BinOp::Ge => {
-                    BinaryOperator::GreaterThanOrEqual
-                },
-                &BinOp::Eq => {
-                    BinaryOperator::Equal
-                },
-                &BinOp::Ne => {
-                    BinaryOperator::NotEqual
-                }
+                &BinOp::BitOr => { BinaryOperator::BitwiseOr },
+                &BinOp::BitAnd => { BinaryOperator::BitwiseAnd },
+                &BinOp::BitXor => { BinaryOperator::BitwiseXor },
+                &BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
+                &BinOp::Shr => { BinaryOperator::BitwiseRightShift },
+                &BinOp::Lt => { BinaryOperator::LessThan },
+                &BinOp::Le => { BinaryOperator::LessThanOrEqual },
+                &BinOp::Gt => { BinaryOperator::GreaterThan },
+                &BinOp::Ge => { BinaryOperator::GreaterThanOrEqual },
+                &BinOp::Eq => { BinaryOperator::Equal },
+                &BinOp::Ne => { BinaryOperator::NotEqual },
             };
 
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
@@ -408,12 +390,8 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
         },
         Rvalue::UnaryOp(ref unop, ref val) => {
             let op: UnaryOperator = match unop {
-                &UnOp::Not => {
-                    UnaryOperator::BitwiseNot
-                },
-                &UnOp::Neg => {
-                    UnaryOperator::Negation
-                }
+                &UnOp::Not => { UnaryOperator::BitwiseNot },
+                &UnOp::Neg => { UnaryOperator::Negation },
             };
 
             let value: Expression = gen_operand(&val, data);
@@ -423,9 +401,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
                 e: Box::new(value)
             } ));
         },
-        Rvalue::Use(ref operand) => {
-            expression.push(gen_operand(operand, data));
-        },
+        Rvalue::Use(ref operand) => { expression.push(gen_operand(operand, data)); },
         Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
             match ag_kind {
                 &AggregateKind::Tuple => {
@@ -440,23 +416,15 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
                 },
                 // FIXME: Vectors are weird. let's not bother with them yet
                 /*
-                &AggregateKind::Vec => {
-                    unimplemented!()
-                },
+                &AggregateKind::Vec => { unimplemented!() },
                 */
                 _ => { rp_error!("Unsupported aggregate: only tuples are supported"); }
             }
         },
         Rvalue::Cast(ref cast_kind, ref cast_operand, ref cast_ty) => {
-            // FIXME: doesnt do anything
-            //println!("cast {:?} {:?} {:?} ", cast_kind, cast_operand, cast_ty);
-            //unimplemented!();
             expression.push(Expression::VariableMapping(var.clone()));
         },
         Rvalue::Ref(ref ref_region, ref ref_borrow_kind, ref ref_lvalue) => {
-            // FIXME: doesnt do anything
-            //println!("ref {:?} {:?} {:?} ", ref_region, ref_borrow_kind, ref_lvalue);
-            //unimplemented!();
             expression.push(Expression::VariableMapping(var.clone()));
         },
         Rvalue::Box(..) => { unimplemented!(); },
@@ -473,47 +441,47 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement,
 }
 
 // Generates an appropriate variable mapping based on whatever variable, temp, or field is found
-pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> VariableMappingData {
+fn gen_lvalue(lvalue: Lvalue,
+                  data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
+                  -> VariableMappingData {
     match lvalue {
         // Function argument
         Lvalue::Arg(ref arg) => {
             // Find the name and type in the declaration
-            VariableMappingData{ name: data.0[arg.index()].debug_name.as_str().to_string(), var_type: data.0[arg.index()].ty.clone().to_string() }
+            VariableMappingData{name: data.0[arg.index()].debug_name.as_str().to_string(),
+                                var_type: data.0[arg.index()].ty.clone().to_string()
+            }
         },
         // Temporary variable
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
             let mut ty = data.2[temp.index()].ty.clone().to_string();
             match data.2[temp.index()].ty.sty {
-                TypeVariants::TyTuple(ref t) => {
-                    ty = t[0].to_string();
-                },
+                TypeVariants::TyTuple(ref t) => { ty = t[0].to_string(); },
                 _ => { }
             }
-            VariableMappingData{ name: "tmp".to_string() + temp.index().to_string().as_str(), var_type: ty }
+            VariableMappingData{name: "tmp".to_string() + temp.index().to_string().as_str(),
+                                var_type: ty
+            }
         },
         // Local variable
         Lvalue::Var(ref var) => {
             // FIXME: fix comment
             // Find the name and type in the declaration
-            VariableMappingData{ name: "var".to_string() + var.index().to_string().as_str(), var_type: data.3[var.index()].ty.clone().to_string() }
+            VariableMappingData{name: "var".to_string() + var.index().to_string().as_str(),
+                                var_type: data.3[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {
-
-            VariableMappingData{ name: "return".to_string(), var_type : data.4.clone() }
+            VariableMappingData{name: "return".to_string(), var_type : data.4.clone() }
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
             // FIXME: Lots of intermediaries, should be condensed
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
-                ProjectionElem::Index(ref o) => {
-                    unimplemented!();
-                },
-                ProjectionElem::Field(ref field, ref ty) => {
-                    (field.index() as i32).to_string()
-                }
+                ProjectionElem::Index(ref o) => { unimplemented!(); },
+                ProjectionElem::Field(ref field, ref ty) => { (field.index() as i32).to_string() }
                 _ => { unimplemented!(); }
             };
 
@@ -534,10 +502,8 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                     lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
                     lvalue_type = data.2[temp.index()].ty.clone().to_string();
                     match data.2[temp.index()].ty.sty {
-                        TypeVariants::TyTuple(ref t) => {
-                            lvalue_type = t[0].to_string();
-                        },
-                        _ => { unimplemented!() }
+                        TypeVariants::TyTuple(ref t) => { lvalue_type = t[0].to_string(); },
+                        _ => { unimplemented!() },
                     }
                 },
                 // Local variable
@@ -550,29 +516,19 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
                         TypeVariants::TyTuple(ref t) => {
                             lvalue_type = t[i].to_string();
                         },
-                        _ => { unimplemented!() }
+                        _ => { unimplemented!() },
                     }
                 },
-                Lvalue::ReturnPointer => {
-                    unimplemented!();
-                }
-                Lvalue::Static(ref stat) => {
-                    unimplemented!();
-                }
+                Lvalue::ReturnPointer => { unimplemented!(); },
+                Lvalue::Static(ref stat) => { unimplemented!(); },
                 // Multiply-nested projection
-                Lvalue::Projection(ref proj) => {
-                    unimplemented!();
-                }
+                Lvalue::Projection(ref proj) => { unimplemented!(); },
             };
 
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
-                ProjectionElem::Index(ref o) => {
-                    unimplemented!();
-                },
-                ProjectionElem::Field(ref field, ref ty) => {
-                    (field.index() as i32).to_string()
-                }
+                ProjectionElem::Index(ref o) => { unimplemented!(); },
+                ProjectionElem::Field(ref field, ref ty) => { (field.index() as i32).to_string() },
                 _ => { unimplemented!(); }
             };
 
@@ -584,7 +540,9 @@ pub fn gen_lvalue(lvalue : Lvalue, data : &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
 }
 
 // Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field
-pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> Expression {
+fn gen_operand(operand: &Operand,
+               data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
+               -> Expression {
     match operand {
         // A variable/temp/field
         &Operand::Consume (ref l) => {
@@ -593,34 +551,57 @@ pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData
         // A literal value
         &Operand::Constant (ref c) => {
             match c.literal {
-                Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
                 Literal::Value {ref value} => {
                     match value {
                         &ConstVal::Integral(ref const_int) => {
                             match const_int {
                                 &ConstInt::I8(i) => {
-                                    Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i as i64 } )
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: 8,
+                                        value: i as i64
+                                    } )
                                 },
                                 &ConstInt::I16(i) => {
-                                    Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i as i64 } )
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: 16,
+                                        value: i as i64
+                                    } )
                                 },
                                 &ConstInt::I32(i) => {
-                                    Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i as i64 } )
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: 32,
+                                        value: i as i64
+                                    } )
                                 },
                                 &ConstInt::I64(i) => {
-                                    Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i as i64 } )
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: 64,
+                                        value: i as i64
+                                    } )
                                 },
                                 &ConstInt::U8(u) => {
-                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u as u64 } )
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData {
+                                        size: 8,
+                                        value: u as u64
+                                    } )
                                 },
                                 &ConstInt::U16(u) => {
-                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u as u64 } )
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData {
+                                        size: 16,
+                                        value: u as u64
+                                    } )
                                 },
                                 &ConstInt::U32(u) => {
-                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u as u64 } )
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData {
+                                        size: 32,
+                                        value: u as u64
+                                    } )
                                 },
                                 &ConstInt::U64(u) => {
-                                    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u as u64 } )
+                                    Expression::UnsignedBitVector( UnsignedBitVectorData {
+                                        size: 64,
+                                        value: u as u64
+                                    } )
                                 },
                                 _ => { unimplemented!(); }
                             }
@@ -628,6 +609,7 @@ pub fn gen_operand(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData
                         _ => { unimplemented!(); },
                     }
                 },
+                Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
                 Literal::Promoted {ref index} => { unimplemented!(); },
             }
         },
