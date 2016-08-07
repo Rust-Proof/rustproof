@@ -39,7 +39,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         },
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
-            return builder.post_expr.clone();
+            return post_expr.clone();
         },
         TerminatorKind::Goto{target} => {
             // Retrieve the weakest precondition from the following block
