@@ -1,0 +1,4 @@
+(declare-fun x () (_ BitVec 64))
+(assert (not (=> (bvsgt x (_ bv0 64)) (bvsge (bvadd x (_ bv6 64)) (_ bv5 64)))))
+(check-sat)
+(get-model)
