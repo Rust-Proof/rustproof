@@ -445,7 +445,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
 
             let op: UnaryOperator = match unop {
                 &UnOp::Not => {
-                    if determine_evaluation_type(&gen_operand(&val, data)) == "bool" {
+                    if determine_evaluation_type(&value) == "bool" {
                         UnaryOperator::Not
                     } else {
                         UnaryOperator::BitwiseNot
