@@ -9,7 +9,11 @@ fn main() {
 	foo(x);
 }
 
-#[condition(pre="x:i32 > 0:i32 AND x:i32 < 5:i32", post="return:i32 < 10:i32")]
-fn foo(x: i32) -> i32 {
-	x + 5
+#[condition(pre="x:u64 <= u64::MAX AND x:u64 >= u64::MIN", post="return:u64 == x:u64 + 5:u64")]
+fn foo(x: u64) -> u64 {
+	if (true) {
+		x + 5
+	} else {
+		x + 5
+	}
 }
