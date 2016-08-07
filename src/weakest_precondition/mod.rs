@@ -143,87 +143,134 @@ pub fn gen_ty(operand: &Operand, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Ve
     }
 }
 
-//generates an overflow_predicate.
-//Option is decided by op.
-//If it is BinaryOperator::GreaterThan, it checks the lower bounds
-//if it is BinaryOperator::LessThan, it checks the upper bounds
-    // FIXME: More types may be required
-pub fn gen_overflow_predicate(icop: &BinaryOperator, var: &VariableMappingData ,ty: String) -> Expression {
-    Expression::BinaryExpression( BinaryExpressionData {
-        op: icop.clone(),
-        // Variable we are checking overflow on
-        left: Box::new(Expression::VariableMapping( VariableMappingData {
-            name: var.clone().name,
-            var_type: var.clone().var_type,
-        })),
-        // Overflow
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            // The bit-vector size of the given type
-            size: match ty.as_str() {
-                "i8" => { 8 },
-                "i16" => { 16 },
-                "i32" => { 32 },
-                "i64" => { 64 },
-                "u8" => { 8 },
-                "u16" => { 16 },
-                "u32" => { 32 },
-                "u64" => { 64 },
-                _ => { rp_error!("unimplemented checkeddAdd right-hand operand type") }
-            },
-        //match on op to see which direction you are detecting overflow in
-        value: match icop {
-            // if op is GreaterThan check for uppper bounds
-            &BinaryOperator::GreaterThan => {
-                // The maximum value for the given type
-                match ty.as_str() {
-                    "i8" => { i8::min_value() as i64 },
-                    "i16" => { i16::min_value() as i64 },
-                    "i32" => { i32::min_value() as i64 },
-                    "i64" => { i64::min_value() as i64 },
-                    "u8" => { u8::min_value() as i64 },
-                    "u16" => { u16::min_value() as i64 },
-                    "u32" => { u32::min_value() as i64 },
-                    "u64" => { u64::min_value() as i64 },
-                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                }
-            },
-            // The maximum value for the given type
-            &BinaryOperator::LessThan => {
-                match ty.as_str() {
-                    "i8" => { i8::max_value() as i64 },
-                    "i16" => { i16::max_value() as i64 },
-                    "i32" => { i32::max_value() as i64 },
-                    "i64" => { i64::max_value() as i64 },
-                    "u8" => { u8::max_value() as i64 },
-                    "u16" => { u16::max_value() as i64 },
-                    "u32" => { u32::max_value() as i64 },
-                    "u64" => { u64::max_value() as i64 },
-                    _ => { panic!("unimplemented checkeddAdd right-hand operand type") }
-                }
-            },
-            // 0 for a div by zero check
-            &BinaryOperator::Equal => { 0 },
-            _ => { unimplemented!(); }
-        }
-        }))
+// Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
+pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
+    Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::And,
+        left: Box::new(wp.clone()),
+        right: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData {
+                op: BinaryOperator::LessThan,
+                left: Box::new(Expression::VariableMapping(var.clone())),
+                right: Box::new(match var.var_type.as_str() {
+                    "i8" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 8u8,
+                            value: i8::max_value() as i64
+                        })
+                    },
+                    "i16" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 16u8,
+                            value: i16::max_value() as i64
+                        })
+                    },
+                    "i32" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 32u8,
+                            value: i32::max_value() as i64
+                        })
+                    },
+                    "i64" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 64u8,
+                            value: i64::max_value() as i64
+                        })
+                    },
+                    "u8" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 8u8,
+                            value: u8::max_value() as u64
+                        })
+                    },
+                    "u16" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 16u8,
+                            value: u16::max_value() as u64
+                        })
+                    },
+                    "u32" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 32u8,
+                            value: u32::max_value() as u64
+                        })
+                    },
+                    "u64" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 64u8,
+                            value: u64::max_value() as u64
+                        })
+                    },
+                    _ => { panic!("Unsupported return type of binary operation: {}", var.var_type); }
+                })
+            })
+        )
     })
 }
 
-//generates the upper and lower bounds for overflow check
-pub fn gen_overflow_predicate_upper_and_lower(mut wp: Expression, ty: String, var: VariableMappingData) -> Expression {
-    let mut v = var;
-    v.name = v.name+".0";
-    wp = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::And,
-        left: Box::new(wp),
-        right: Box::new(gen_overflow_predicate(&BinaryOperator::GreaterThan, &v, ty.clone()))
-    } );
-    //check the upper bound of overflow
+// Generates a version of wp "And"ed together with a conditional expression that mimics a check for underflow for the type of var.
+pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
-        left: Box::new(wp),
-        right: Box::new(gen_overflow_predicate(&BinaryOperator::LessThan, &v, ty.clone()))
-    } )
+        left: Box::new(wp.clone()),
+        right: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData {
+                op: BinaryOperator::GreaterThan,
+                left: Box::new(Expression::VariableMapping(var.clone())),
+                right: Box::new(match var.var_type.as_str() {
+                    "i8" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 8u8,
+                            value: i8::min_value() as i64
+                        })
+                    },
+                    "i16" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 16u8,
+                            value: i16::min_value() as i64
+                        })
+                    },
+                    "i32" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 32u8,
+                            value: i32::min_value() as i64
+                        })
+                    },
+                    "i64" => {
+                        Expression::SignedBitVector( SignedBitVectorData{
+                            size: 64u8,
+                            value: i64::min_value() as i64
+                        })
+                    },
+                    "u8" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 8u8,
+                            value: u8::min_value() as u64
+                        })
+                    },
+                    "u16" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 16u8,
+                            value: u16::min_value() as u64
+                        })
+                    },
+                    "u32" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 32u8,
+                            value: u32::min_value() as u64
+                        })
+                    },
+                    "u64" => {
+                        Expression::UnsignedBitVector( UnsignedBitVectorData{
+                            size: 64u8,
+                            value: u64::min_value() as u64
+                        })
+                    },
+                    _ => { panic!("Unsupported return type of binary operation: {}", var.var_type); }
+                })
+            })
+        )
+    })
 }
 
 //generates a check to make sure that the wp is not divided by 0
@@ -284,23 +331,27 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             let rvalue: Expression = gen_operand(&roperand, data);
             let op: BinaryOperator = match binop {
                 &BinOp::Add => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     BinaryOperator::Addition
                 },
                 &BinOp::Sub => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     BinaryOperator::Subtraction
                 },
                 &BinOp::Mul => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     BinaryOperator::Multiplication
                 },
                 &BinOp::Div => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     // Add the division by 0 expression check
                     wp = gen_div_zero_check(wp, ty.clone(), rvalue.clone());
                     BinaryOperator::Division
@@ -328,29 +379,33 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             let rvalue: Expression = gen_operand(&rval, data);
             let op: BinaryOperator = match binop {
                 &BinOp::Add => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     BinaryOperator::Addition
                 }
                 &BinOp::Sub => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     BinaryOperator::Subtraction
                 }
                 &BinOp::Mul => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     BinaryOperator::Multiplication
                 }
                 &BinOp::Div => {
-                    // Add the overflow and undeflow expression checks
-                    wp = gen_overflow_predicate_upper_and_lower(wp, ty.clone(), var.clone());
+                    // Add the overflow and underflow expression checks
+                    wp = add_overflow(&wp, &var);
+                    wp = add_underflow(&wp, &var);
                     // add the division by 0 expression check
                     wp = gen_div_zero_check(wp, ty.clone(), rvalue.clone());
                     BinaryOperator::Division
                 },
                 &BinOp::Rem => {
-                    // add the division by 0 expression check
+                    // Add the division by 0 expression check
                     wp = gen_div_zero_check(wp, ty, rvalue.clone());
                     BinaryOperator::Modulo
                 },
