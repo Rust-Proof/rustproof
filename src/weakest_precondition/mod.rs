@@ -441,12 +441,21 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
             } ));
         },
         Rvalue::UnaryOp(ref unop, ref val) => {
+            let value: Expression = gen_operand(&val, data);
+
             let op: UnaryOperator = match unop {
-                &UnOp::Not => { UnaryOperator::Not },
+                &UnOp::Not => {
+                    if determine_evaluation_type(&gen_operand(&val, data)) == "bool" {
+                        UnaryOperator::Not
+                    } else {
+                        UnaryOperator::BitwiseNot
+                    }
+
+                },
                 &UnOp::Neg => { UnaryOperator::Negation },
             };
 
-            let value: Expression = gen_operand(&val, data);
+
 
             expression.push(Expression::UnaryExpression( UnaryExpressionData {
                 op: op,
