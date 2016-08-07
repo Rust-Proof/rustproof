@@ -441,12 +441,21 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
             } ));
         },
         Rvalue::UnaryOp(ref unop, ref val) => {
+            let value: Expression = gen_operand(&val, data);
+
             let op: UnaryOperator = match unop {
-                &UnOp::Not => { UnaryOperator::BitwiseNot },
+                &UnOp::Not => {
+                    if determine_evaluation_type(&value) == "bool" {
+                        UnaryOperator::Not
+                    } else {
+                        UnaryOperator::BitwiseNot
+                    }
+
+                },
                 &UnOp::Neg => { UnaryOperator::Negation },
             };
 
-            let value: Expression = gen_operand(&val, data);
+
 
             expression.push(Expression::UnaryExpression( UnaryExpressionData {
                 op: op,
@@ -488,9 +497,6 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
 
     // Replace any appearance of var in the weakest precondition with the expression
     for i in 0..expression.len() {
-        println!("substituting: {}", var);
-        println!("with: {}", expression[i]);
-        println!("in: {}", wp);
         substitute_variable_with_expression( &mut wp, &var, &expression[i] );
     }
     if DEBUG { println!("new expression\t\t{:?}\n---------------------", wp.clone());}
