@@ -316,9 +316,6 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
                 _ => {rp_error!("Unsupported checked binary operation!");}
             };
 
-
-
-
             var.name = var.name+".0";
 
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
@@ -393,7 +390,6 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
                     BinaryOperator::NotEqual
                 }
             };
-
 
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
