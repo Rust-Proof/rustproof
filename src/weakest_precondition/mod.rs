@@ -39,8 +39,7 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
         },
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
-            wp = post_expr.clone();
-            return wp;
+            return builder.post_expr.clone();
         },
         TerminatorKind::Goto{target} => {
             // Retrieve the weakest precondition from the following block
@@ -89,12 +88,23 @@ pub fn gen(index: usize, data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDe
                 },
             };
             // Negate the conditional expression
-            let not_condition = Expression::UnaryExpression(UnaryExpressionData {op : UnaryOperator::Not, e: Box::new(condition.clone())});
+            let not_condition = Expression::UnaryExpression(UnaryExpressionData {
+                op: UnaryOperator::Not,
+                e: Box::new(condition.clone())
+            });
             // wp(If c x else y) = (c -> x) AND ((NOT c) -> y)
             wp = Some(Expression::BinaryExpression(BinaryExpressionData {
                 op: BinaryOperator::And,
-                left: Box::new(Expression::BinaryExpression(BinaryExpressionData {op: BinaryOperator::Implication, left: Box::new(condition.clone()), right: Box::new(wp_if.unwrap())})),
-                right: Box::new(Expression::BinaryExpression(BinaryExpressionData {op: BinaryOperator::Implication, left: Box::new(not_condition.clone()), right: Box::new(wp_else.unwrap())}))
+                left: Box::new(Expression::BinaryExpression(BinaryExpressionData {
+                    op: BinaryOperator::Implication,
+                    left: Box::new(condition.clone()),
+                    right: Box::new(wp_if.unwrap())
+                })),
+                right: Box::new(Expression::BinaryExpression(BinaryExpressionData {
+                    op: BinaryOperator::Implication,
+                    left: Box::new(not_condition.clone()),
+                    right: Box::new(wp_else.unwrap())
+                }))
             }));
         },
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
@@ -255,7 +265,10 @@ pub fn gen_div_zero_check(wp: Expression, ty: String, exp: Expression) -> Expres
 
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
-pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String)) -> Option<Expression>  {
+pub fn gen_stmt(mut wp: Expression, stmt: Statement,
+                data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>,
+                        Vec<&TempDecl>, Vec<&VarDecl>, String))
+                -> Option<Expression>  {
     // FIXME: Remove debug print statement
     if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
 
@@ -277,8 +290,6 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
     match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
-            // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
-            var = VariableMappingData { name: var.name + ".0", var_type: var.var_type };
             let ty = gen_ty(roperand, data);
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
