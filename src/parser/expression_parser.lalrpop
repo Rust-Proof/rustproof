@@ -3,135 +3,135 @@ use expression::{Expression, BinaryExpressionData, UnaryExpressionData, Variable
 grammar;
 
 pub E1: Expression = {
-	<left: E1> <op: BOP1> <right: E2> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E2,
+    <left: E1> <op: BOP1> <right: E2> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E2,
 };
 
 E2: Expression = {
-	<left: E2> <op: BOP2> <right: E3> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E3,
+    <left: E2> <op: BOP2> <right: E3> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E3,
 };
 
 E3: Expression = {
-	<left: E3> <op: BOP3> <right: E4> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E4,
+    <left: E3> <op: BOP3> <right: E4> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E4,
 };
 
 E4: Expression = {
-	<left: E4> <op: BOP4> <right: E5> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E5,
+    <left: E4> <op: BOP4> <right: E5> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E5,
 };
 
 E5: Expression = {
-	<left: E5> <op: BOP5> <right: E6> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E6,
+    <left: E5> <op: BOP5> <right: E6> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E6,
 };
 
 E6: Expression = {
-	<left: E6> <op: BOP6> <right: E7> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E7,
+    <left: E6> <op: BOP6> <right: E7> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E7,
 };
 
 E7: Expression = {
-	<left: E7> <op: BOP7> <right: E8> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E8,
+    <left: E7> <op: BOP7> <right: E8> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E8,
 };
 
 E8: Expression = {
-	<left: E8> <op: BOP8> <right: E9> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
-	E9,
+    <left: E8> <op: BOP8> <right: E9> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    E9,
 };
 
 E9: Expression = {
-	<op: UOP> <e: E9> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
-	E10,
+    <op: UOP> <e: E9> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
+    E10,
 };
 
 E10: Expression = {
-	"true" => Expression::BooleanLiteral(true),
-	"false" => Expression::BooleanLiteral(false),
-	<i:r"[-][0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
-	<i:r"[-][0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
-	<i:r"[-][0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ), 
-	<i:r"[-][0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "u8" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "u16" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "u32" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u64::from_str(i).unwrap() } ),
-	<i:r"[0-9]+"> ":" "u64" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(i).unwrap() } ),
-	<n: IDENTIFIER> ":" <t: TYPE> => Expression::VariableMapping( VariableMappingData { name: n, var_type: t } ),
-	"(" <e: E1> ")" => e,
+    "true" => Expression::BooleanLiteral(true),
+    "false" => Expression::BooleanLiteral(false),
+    <i:r"[-][0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
+    <i:r"[-][0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
+    <i:r"[-][0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ), 
+    <i:r"[-][0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "i8" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "i16" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "i32" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "i64" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "u8" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "u16" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "u32" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u64::from_str(i).unwrap() } ),
+    <i:r"[0-9]+"> ":" "u64" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::from_str(i).unwrap() } ),
+    <n: IDENTIFIER> ":" <t: TYPE> => Expression::VariableMapping( VariableMappingData { name: n, var_type: t } ),
+    "(" <e: E1> ")" => e,
 };
 
 UOP: UnaryOperator = {
-	"-" => UnaryOperator::Negation,
-	"!" => UnaryOperator::BitwiseNot,
-	"NOT" => UnaryOperator::Not,
+    "-" => UnaryOperator::Negation,
+    "!" => UnaryOperator::BitwiseNot,
+    "NOT" => UnaryOperator::Not,
 };
 
 BOP1: BinaryOperator = {
-	"&&" => BinaryOperator::And,
-	"||" => BinaryOperator::Or,
-	"AND" => BinaryOperator::And,
-	"OR" => BinaryOperator::Or,
-	"XOR" => BinaryOperator::Xor,
-	"IMPLIES" => BinaryOperator::Implication,
-	"EQUIV" => BinaryOperator::BiImplication,
+    "&&" => BinaryOperator::And,
+    "||" => BinaryOperator::Or,
+    "AND" => BinaryOperator::And,
+    "OR" => BinaryOperator::Or,
+    "XOR" => BinaryOperator::Xor,
+    "IMPLIES" => BinaryOperator::Implication,
+    "EQUIV" => BinaryOperator::BiImplication,
 };
 
 BOP2: BinaryOperator = {
-	"<" => BinaryOperator::LessThan,
-	"<=" => BinaryOperator::LessThanOrEqual,
-	">" => BinaryOperator::GreaterThan,
-	">=" => BinaryOperator::GreaterThanOrEqual,
-	"==" => BinaryOperator::Equal,
-	"!=" => BinaryOperator::NotEqual,
+    "<" => BinaryOperator::LessThan,
+    "<=" => BinaryOperator::LessThanOrEqual,
+    ">" => BinaryOperator::GreaterThan,
+    ">=" => BinaryOperator::GreaterThanOrEqual,
+    "==" => BinaryOperator::Equal,
+    "!=" => BinaryOperator::NotEqual,
 };
 
 BOP3: BinaryOperator = {
-	"|" => BinaryOperator::BitwiseOr,
+    "|" => BinaryOperator::BitwiseOr,
 };
 
 BOP4: BinaryOperator = {
-	"^" => BinaryOperator::BitwiseXor,
+    "^" => BinaryOperator::BitwiseXor,
 };
 
 BOP5: BinaryOperator = {
-	"&" => BinaryOperator::BitwiseAnd,
+    "&" => BinaryOperator::BitwiseAnd,
 };
 
 BOP6: BinaryOperator = {
-	"<<" => BinaryOperator::BitwiseLeftShift,
-	">>" => BinaryOperator::BitwiseRightShift,
+    "<<" => BinaryOperator::BitwiseLeftShift,
+    ">>" => BinaryOperator::BitwiseRightShift,
 };
 
 BOP7: BinaryOperator = {
-	"+" => BinaryOperator::Addition,
-	"-" => BinaryOperator::Subtraction,
+    "+" => BinaryOperator::Addition,
+    "-" => BinaryOperator::Subtraction,
 };
 
 BOP8: BinaryOperator = {
-	"*" => BinaryOperator::Multiplication,
-	"/" => BinaryOperator::Division,
-	"%" => BinaryOperator::Modulo,
+    "*" => BinaryOperator::Multiplication,
+    "/" => BinaryOperator::Division,
+    "%" => BinaryOperator::Modulo,
 };
 
 IDENTIFIER: String = {
-	<i:r"_[a-zA-Z0-9_]+"> => i.to_string(),
-	<i:r"[a-zA-Z][a-zA-Z0-9_]*"> => i.to_string(),
+    <i:r"_[a-zA-Z0-9_]+"> => i.to_string(),
+    <i:r"[a-zA-Z][a-zA-Z0-9_]*"> => i.to_string(),
 };
 
 TYPE: String = {
-	"bool" => "bool".to_string(),
-	"i8" => "i8".to_string(),
-	"i16" => "i16".to_string(),
-	"i32" => "i32".to_string(),
-	"i64" => "i64".to_string(),
-	"u8" => "u8".to_string(),
-	"u16" => "u16".to_string(),
-	"u32" => "u32".to_string(),
-	"u64" => "u64".to_string(),
+    "bool" => "bool".to_string(),
+    "i8" => "i8".to_string(),
+    "i16" => "i16".to_string(),
+    "i32" => "i32".to_string(),
+    "i64" => "i64".to_string(),
+    "u8" => "u8".to_string(),
+    "u16" => "u16".to_string(),
+    "u32" => "u32".to_string(),
+    "u64" => "u64".to_string(),
 };

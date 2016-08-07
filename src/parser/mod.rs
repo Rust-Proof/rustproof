@@ -15,13 +15,11 @@ mod expression_parser;
 
 use syntax::ast::{MetaItemKind, Attribute_};
 use syntax::codemap::Spanned;
-
-use super::Attr;
 use expression::{Expression, ty_check};
 use std::process;
 
 // Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
-pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
+pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: &Spanned<Attribute_>) {
     match attr.node.value.node {
         MetaItemKind::List(ref attribute_name, ref args) => {
             // Ignore if not a condition attribute
@@ -37,12 +35,10 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
-                                builder.pre_string = i_string.to_string();
+                                *pre_string = i_string.to_string();
                             }
                             _ => {}
                         }
-                        // Get the span
-                        builder.pre_span = Some(literal.span);
                     },
                     _ => {},
                 }
@@ -53,12 +49,10 @@ pub fn parse_attribute(builder: &mut Attr, attr: &Spanned<Attribute_>) {
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
-                                builder.post_string = i_string.to_string();
+                                *post_string = i_string.to_string();
                             }
                             _ => {}
                         }
-                        // Get the span
-                        builder.post_span = Some(literal.span);
                     },
                     _ => {},
                 }
