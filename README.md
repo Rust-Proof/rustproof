@@ -2,14 +2,13 @@
 
 [![Build Status](https://travis-ci.org/Rust-Proof/rustproof.svg?branch=master)](https://travis-ci.org/Rust-Proof/rustproof)
 
-
 Rustproof is a compiler plugin for the Rust programming language. It is designed
 to generate verification conditions for their code. It will ensure that the program can be formally verified, thereby reducing the potential of bugs in the code and provide a level of guarantee about the behavior of the software.
 
 
 # How to
 
-To use rustproof:  
+To call rustproof:  
 
 `#[condition(pre="", post="")]`
 
@@ -17,11 +16,11 @@ Where the "pre" and "post" conditions are logical expressions.
 
 For example:
 
-`#[condition(pre="x>0", post="x>=5")]`
+`#[condition(pre=" x:i32 > 0:i32 ", post=" x:i32 >= 5:i32 ")]`
 
 A complete example of how to format:
 
-    #[condition(pre="x > 0", post="x >= 5")]
+    #[condition(pre=" x:i32 < 10:i32 && x:i32 > 0:i32", post=" return:i32 < 5:i32 ")]
 	fn add_five_or_three(x: i32)-> i32  {
         if x > 3 {  
             x + 5  
@@ -31,12 +30,26 @@ A complete example of how to format:
         }  
     }
 
+To use rustproof and ensure a clean build on your code:
+
+`cargo build`
+
+# Dependencies
+
 Add the following lines to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
 rustproof = { git = "https://github.com/Rust-Proof/rustproof.git"}
 ```
+
+The following are outside dependencies required for rustproof. Please refer to the following links for proper build instructions.
+
+[Z3Prover][z3]
+[z3]:https://github.com/Z3Prover/z3
+
+Your installation of Z3 needs to be set in your PATH for proper usage.
+
 
 
 # Motivation
