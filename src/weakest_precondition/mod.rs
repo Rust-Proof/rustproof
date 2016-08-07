@@ -497,9 +497,6 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
 
     // Replace any appearance of var in the weakest precondition with the expression
     for i in 0..expression.len() {
-        println!("substituting: {}", var);
-        println!("with: {}", expression[i]);
-        println!("in: {}", wp);
         substitute_variable_with_expression( &mut wp, &var, &expression[i] );
     }
     if DEBUG { println!("new expression\t\t{:?}\n---------------------", wp.clone());}
