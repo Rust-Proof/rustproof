@@ -160,7 +160,7 @@ pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
         left: Box::new(wp.clone()),
         right: Box::new(
             Expression::BinaryExpression( BinaryExpressionData {
-                op: BinaryOperator::LessThan,
+                op: BinaryOperator::LessThanOrEqual,
                 left: Box::new(Expression::VariableMapping(var.clone())),
                 right: Box::new(match var.var_type.as_str() {
                     "i8" => {
@@ -225,7 +225,7 @@ pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
         left: Box::new(wp.clone()),
         right: Box::new(
             Expression::BinaryExpression( BinaryExpressionData {
-                op: BinaryOperator::GreaterThan,
+                op: BinaryOperator::GreaterThanOrEqual,
                 left: Box::new(Expression::VariableMapping(var.clone())),
                 right: Box::new(match var.var_type.as_str() {
                     "i8" => {
