@@ -208,7 +208,7 @@ pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     })
 }
 
-// Generates a version of wp "And"ed together with a conditional expression that mimics a check for underflow for the type of var.
+// Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
 pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
@@ -273,17 +273,17 @@ pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     })
 }
 
-//generates a check to make sure that the wp is not divided by 0
-pub fn gen_div_zero_check(wp: Expression, ty: String, exp: Expression) -> Expression {
+// Generates a version of wp "And"ed together with a conditional expression that mimics a check to ensure division by 0 does not occur.
+pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
-        left: Box::new(wp),
+        left: Box::new(wp.clone()),
         right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
             op: BinaryOperator::NotEqual,
-            left: Box::new(exp),
+            left: Box::new(exp.clone()),
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
                 // The bit-vector size of the given type
-                size: match ty.as_str() {
+                size: match determine_evaluation_type(exp).as_str() {
                     "i8" => { 8 },
                     "i16" => { 16 },
                     "i32" => { 32 },
@@ -326,7 +326,6 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             // FIXME: This probably works for the MIR we encounter, but only time (and testing) will tell
             // Although the checked operators will return a tuple, we will only want to replace the first field of that tuple
             var = VariableMappingData { name: var.name + ".0", var_type: var.var_type };
-            let ty = gen_ty(roperand, data);
             let lvalue: Expression = gen_operand(&loperand, data);
             let rvalue: Expression = gen_operand(&roperand, data);
             let op: BinaryOperator = match binop {
@@ -353,7 +352,7 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
                     wp = add_overflow(&wp, &var);
                     wp = add_underflow(&wp, &var);
                     // Add the division by 0 expression check
-                    wp = gen_div_zero_check(wp, ty.clone(), rvalue.clone());
+                    wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
                 },
                 &BinOp::Shl => {
@@ -374,7 +373,6 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
             } ));
         },
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
-            let ty = gen_ty(rval, data);
             let lvalue: Expression = gen_operand(&lval, data);
             let rvalue: Expression = gen_operand(&rval, data);
             let op: BinaryOperator = match binop {
@@ -401,12 +399,12 @@ pub fn gen_stmt(mut wp: Expression, stmt: Statement, data: &(Vec<&ArgDecl>, Vec<
                     wp = add_overflow(&wp, &var);
                     wp = add_underflow(&wp, &var);
                     // add the division by 0 expression check
-                    wp = gen_div_zero_check(wp, ty.clone(), rvalue.clone());
+                    wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
                 },
                 &BinOp::Rem => {
                     // Add the division by 0 expression check
-                    wp = gen_div_zero_check(wp, ty, rvalue.clone());
+                    wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Modulo
                 },
                 &BinOp::BitOr => {
