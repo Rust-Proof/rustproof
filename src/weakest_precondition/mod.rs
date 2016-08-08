@@ -23,22 +23,39 @@ use std::rt::begin_panic_fmt;
 use term;
 
 
-// Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
+/// Computes the weakest precondition for a given post-condition and series of statments over one or more BasicBlocks from MIR.
+///
+/// # Arguments:
+/// * `index` - Index of the ArgDecl,TempDecl, OR VarDecl within the respective Vec<>
+/// * `mir_data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+/// * `post_expr` - Contains the post-condition in expression form
+///
+/// # Return Value:
+/// * returns the weakest precondtion in the form of an expression within an Option. This is sent to FIXME
+///
+/// # Remarks:
+/// * This is the main generator for the weakest precondtion and is called to generate the weakest precondition
+///
+/// # Debug:
+/// * to find debugging statments, grep for "DEBUG PURPOSE:"
+///
 pub fn gen(index: usize,
-           data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String),
+           mir_data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String),
            post_expr: &Option<Expression>)
            -> Option<Expression> {
     // FIXME: Debug should not be a const; it must be user-facing
-    if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.1[index]); }
+    // DEBUG PURPOSE:
+    // Shows the current BasicBlock index and the BasicBLockData associated with that index
+    if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, mir_data.1[index]); }
 
     let mut wp: Option<Expression> = None;
 
     // Parse terminator data
-    let terminator = data.1[index].terminator.clone().unwrap().kind;
+    let terminator = mir_data.1[index].terminator.clone().unwrap().kind;
     match terminator {
         TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
             // Retrieve the weakest precondition from the following block
-            wp = gen(target.index(), data, post_expr);
+            wp = gen(target.index(), mir_data, post_expr);
         },
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
@@ -46,7 +63,7 @@ pub fn gen(index: usize,
         },
         TerminatorKind::Goto{target} => {
             // Retrieve the weakest precondition from the following block
-            wp = gen(target.index(), data, post_expr);
+            wp = gen(target.index(), mir_data, post_expr);
         },
         TerminatorKind::Call{func, args, destination, cleanup} => {
             // Determine if this is the end of a panic. (assumed false branch of assertion, so return a precondition of false [this path will never be taken])
@@ -60,16 +77,15 @@ pub fn gen(index: usize,
                 },
                 Operand::Consume (ref l) => { unimplemented!() },
             }
+            //FIXME: Is this unimplemented!() needed?
             unimplemented!();
         },
-        TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
-        TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
-        TerminatorKind::Unreachable => unimplemented!(),
-        TerminatorKind::Resume => unimplemented!(),
+        // TerminatorKind::If requires special generation of wp.
+        // wp(if c x else y) = (c -> x) AND ((NOT c) -> y)
         TerminatorKind::If{cond, targets} => {
             // Generate weakest precondition for if and else clause
-            let wp_if = gen(targets.0.index(), data, post_expr);
-            let wp_else = gen(targets.1.index(), data, post_expr);
+            let wp_if = gen(targets.0.index(), mir_data, post_expr);
+            let wp_else = gen(targets.1.index(), mir_data, post_expr);
 
             // Generate the conditional expression
             let condition = match cond {
@@ -86,9 +102,7 @@ pub fn gen(index: usize,
                         _ => unimplemented!(),
                     }
                 },
-                Operand::Consume(c) => {
-                    Expression::VariableMapping(gen_lvalue(c, data))
-                },
+                Operand::Consume(c) => { Expression::VariableMapping(gen_lvalue(c, mir_data)) },
             };
             // Negate the conditional expression
             let not_condition = Expression::UnaryExpression(UnaryExpressionData {
@@ -110,29 +124,48 @@ pub fn gen(index: usize,
                 }))
             }));
         },
+        // Unimplemented TerminatorKinds
+        TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
+        TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
+        TerminatorKind::Unreachable => unimplemented!(),
+        TerminatorKind::Resume => unimplemented!(),
         TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
         TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
     }
 
     // Examine statements in reverse order
-    let mut stmts = data.1[index].statements.clone();
+    let mut stmts = mir_data.1[index].statements.clone();
     stmts.reverse();
+    // DEBUG PURPOSE:
+    // displays the current BasicBlock index
     if DEBUG { println!("bb{:?}", index);}
     for stmt in stmts {
         // Modify the weakest precondition based on the statement
-        wp = gen_stmt(wp.unwrap(), stmt, data);
+        wp = gen_stmt(wp.unwrap(), stmt, mir_data);
     }
 
     // FIXME: Remove debug print statement
+    // DEBUG PURPOSE:
+    // shows the result to be returned to the proceeding block
     if DEBUG { println!("wp returned as\t{:?}\n", wp.clone().unwrap()); }
 
     // Return the weakest precondition to the preceeding block, or to control
-    return wp;
+    wp
 }
 
-// Returns the type of an operand as a String
+
+/// Returns the type of an operand as a String
+///
+/// # Arguments:
+/// * `oeprand` - Index of the ArgDecl,TempDecl, OR VarDecl within the respective Vec<>
+/// * `mir_data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+///
+/// # Remarks:
+/// * This is the main generator for the weakest precondtion and is called to generate the weakest precondition
+/// * May be depercated in the near future
+///
 fn gen_ty(operand: &Operand,
-          data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
+          mir_data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
           -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
@@ -140,15 +173,15 @@ fn gen_ty(operand: &Operand,
             match lvalue {
                 // Function argument
                 &Lvalue::Arg(ref arg) => {
-                    data.0[arg.index()].ty.to_string()
+                    mir_data.0[arg.index()].ty.to_string()
                 },
                 // Temporary variable
                 &Lvalue::Temp(ref temp) => {
-                    data.2[temp.index()].ty.to_string()
+                    mir_data.2[temp.index()].ty.to_string()
                 },
                 // Local variable
                 &Lvalue::Var(ref var) => {
-                    data.3[var.index()].ty.to_string()
+                    mir_data.3[var.index()].ty.to_string()
                 },
                 _ => {
                     unimplemented!();
@@ -158,17 +191,35 @@ fn gen_ty(operand: &Operand,
     }
 }
 
-// Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
+
+/// Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
+///
+/// # Arguments:
+/// * `wp` - The current weakest precondition that the overflow is to be "And"ed to
+/// * `var` - VariableMappingData that determines size and value of the overflow value as well as
+///           The left hand operand information of the overflow check
+///
+/// # Return Value:
+/// * Returns the modified weakest precondition with overflow check
+///
+/// # Remarks:
+/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+/// * WARNING: If var.clone() does not happen, it will break tuple support within the current code
+///
 pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     let mut v = var.clone();
     v.name = v.name + ".0";
+    // "And" together the current wp to the overflowcheck
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
+        // Creates the righthand side of the "And" Expression which is the overflow check
         right: Box::new(
             Expression::BinaryExpression( BinaryExpressionData {
                 op: BinaryOperator::LessThanOrEqual,
+                // left hand side is the VariableMapping v data
                 left: Box::new(Expression::VariableMapping(v.clone())),
+                // Right hand side is the max value allowed by the VariableMapping v type
                 right: Box::new(match v.var_type.as_str() {
                     "i8" => {
                         Expression::SignedBitVector( SignedBitVectorData{
@@ -225,17 +276,35 @@ pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     })
 }
 
-// Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
+
+/// Generates a version of wp "And"ed together with a conditional expression that mimics a check for underflow for the type of var.
+///
+/// # Arguments:
+/// * `wp` - The current weakest precondition that the underflow is to be "And"ed to
+/// * `var` - VariableMappingData that determines size and value of the underflow value as well as
+///           The left hand operand information of the overflow check
+///
+/// # Return Value:
+/// * Returns the modified weakest precondition with underflow check
+///
+/// # Remarks:
+/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+/// * WARNING: If var.clone() does not happen, it will break tuple support within the current code
+///
 pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     let mut v = var.clone();
     v.name = v.name + ".0";
+    // "And" together the current wp to the underflow check
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
+        // Creates the righthand side of the "And" Expression which is the overflow check
         right: Box::new(
             Expression::BinaryExpression( BinaryExpressionData {
                 op: BinaryOperator::GreaterThanOrEqual,
+                // left hand side is the VariableMapping v data
                 left: Box::new(Expression::VariableMapping(v.clone())),
+                // Right hand side is the max value allowed by the VariableMapping v type
                 right: Box::new(match v.var_type.as_str() {
                     "i8" => {
                         Expression::SignedBitVector( SignedBitVectorData{
@@ -292,14 +361,29 @@ pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
     })
 }
 
-// Generates a version of wp "And"ed together with a conditional expression that mimics a check to ensure division by 0 does not occur.
+
+/// Generates a version of wp "And"ed together with a conditional expression that mimics a check to ensure division by 0 does not occur.
+///
+/// # Arguments:
+/// * `wp` - The current weakest precondition that the "div by 0" is to be "And"ed to
+/// * `exp` - The expression to check to make sure it is not divided by 0
+///
+/// # Return Value:
+/// * Returns the modified weakest precondition with "div by 0" Expression "And"ed
+///
+/// # Remarks:
+/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+///
 pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
+        // And weakest precondtion and ovflow check
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
         right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
             op: BinaryOperator::NotEqual,
+            // left side of new Expression to check for divided by 0
             left: Box::new(exp.clone()),
+            // Need to set appropriate type with value of 0
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
                 // The bit-vector size of the given type
                 size: match determine_evaluation_type(exp).as_str() {
@@ -320,11 +404,26 @@ pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
 }
 
 
-// Returns a (possibly) modified weakest precondition based on the content of a statement
+/// Returns a (possibly) modified weakest precondition based on the content of a statement
+///
+/// # Arguments:
+/// * `wp` - The current weakest precondition
+/// * `stmt` - The Statment to be processed into wp
+/// * `mir_data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+///
+/// # Return Value:
+/// * Returns the modified weakest precondition with underflow check
+///
+/// # Remarks:
+///
+/// # Debug:
+/// * to find debugging statments, grep for "DEBUG PURPOSE:
+///
 fn gen_stmt(mut wp: Expression, stmt: Statement,
-                data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
-                -> Option<Expression>  {
-    // FIXME: Remove debug print statement
+            mir_data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
+            -> Option<Expression>  {
+    // DEBUG PURPOSE:
+    // uncomment out this line for debug purposes. It will show the current statement it is processing
     if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
 
     let mut lvalue: Option<Lvalue> = None;
@@ -338,14 +437,14 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
         }
     }
     // The variable or temp on the left-hand side of the assignment
-    let mut var = gen_lvalue(lvalue.unwrap(), data);
+    let mut var = gen_lvalue(lvalue.unwrap(), mir_data);
 
     // The expression on the right-hand side of the assignment
     let mut expression = Vec::new();
     match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
-            let lvalue: Expression = gen_operand(&loperand, data);
-            let rvalue: Expression = gen_operand(&roperand, data);
+            let lvalue: Expression = gen_expression(&loperand, mir_data);
+            let rvalue: Expression = gen_expression(&roperand, mir_data);
             let op: BinaryOperator = match binop {
                 &BinOp::Add => {
                     // Add the overflow and underflow expression checks
@@ -373,6 +472,11 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
                 },
+                &BinOp::Rem => {
+                    // Add the division by 0 expression check
+                    wp = add_zero_check(&wp, &rvalue);
+                    BinaryOperator::Modulo
+                },
                 &BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
                 &BinOp::Shr => { BinaryOperator::BitwiseRightShift },
                 _ => { rp_error!("Unsupported checked binary operation!"); }
@@ -380,15 +484,17 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
 
             var.name = var.name + ".0";
 
+            // add the new BinaryExpressionData on to the expression: Vec<>
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
                 left: Box::new(lvalue),
                 right: Box::new(rvalue)
             } ));
         },
+
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
-            let lvalue: Expression = gen_operand(&lval, data);
-            let rvalue: Expression = gen_operand(&rval, data);
+            let lvalue: Expression = gen_expression(&lval, mir_data);
+            let rvalue: Expression = gen_expression(&rval, mir_data);
             let op: BinaryOperator = match binop {
                 &BinOp::Add => {
                     // Add the overflow and underflow expression checks
@@ -433,38 +539,38 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
                 &BinOp::Eq => { BinaryOperator::Equal },
                 &BinOp::Ne => { BinaryOperator::NotEqual },
             };
-
+            // adds the new BinaryExpression to the expression: Vec<>
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
                 left: Box::new(lvalue),
                 right: Box::new(rvalue)
             } ));
         },
+        // Generates Rvalue to a UnaryOp
         Rvalue::UnaryOp(ref unop, ref val) => {
-            let value: Expression = gen_operand(&val, data);
+            let exp: Expression = gen_expression(&val, mir_data);
 
             let op: UnaryOperator = match unop {
                 &UnOp::Not => {
-                    if determine_evaluation_type(&value) == "bool" {
+                    if determine_evaluation_type(&exp) == "bool" {
                         UnaryOperator::Not
                     } else {
                         UnaryOperator::BitwiseNot
                     }
-
                 },
                 &UnOp::Neg => { UnaryOperator::Negation },
             };
-
-
-
+            // push the ne new exp onto the expression: Vec<>
             expression.push(Expression::UnaryExpression( UnaryExpressionData {
                 op: op,
-                e: Box::new(value)
+                e: Box::new(exp)
             } ));
         },
+        //  FIXME: need def
         Rvalue::Use(ref operand) => {
-            expression.push(gen_operand(operand, data));
+            expression.push(gen_expression(operand, mir_data));
         },
+        //  FIXME: need def
         Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
             match ag_kind {
                 &AggregateKind::Tuple => {
@@ -472,24 +578,25 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
                         let e = Expression::VariableMapping( VariableMappingData {
                             //name: var.name.as_str().to_string() + "." + i.to_string().as_str(),
                             name: format!("{:?}", vec_operand[i]),
-                            var_type: gen_ty(&vec_operand[i], data)
+                            var_type: gen_ty(&vec_operand[i], mir_data)
                         } );
                         expression.push(e);
                     }
                 },
                 // FIXME: Vectors are weird. let's not bother with them yet
-                /*
-                &AggregateKind::Vec => { unimplemented!() },
-                */
+                // &AggregateKind::Vec => { unimplemented!() },
                 _ => { rp_error!("Unsupported aggregate: only tuples are supported"); }
             }
         },
+        // FIXME: need def
         Rvalue::Cast(ref cast_kind, ref cast_operand, ref cast_ty) => {
             expression.push(Expression::VariableMapping(var.clone()));
         },
+        // FIXME: need def
         Rvalue::Ref(ref ref_region, ref ref_borrow_kind, ref ref_lvalue) => {
             expression.push(Expression::VariableMapping(var.clone()));
         },
+        // Unimplemented Rvalues
         Rvalue::Box(..) => { unimplemented!(); },
         Rvalue::Len(..) => { unimplemented!(); },
         _ => { unimplemented!(); }
@@ -499,27 +606,42 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
     for i in 0..expression.len() {
         substitute_variable_with_expression( &mut wp, &var, &expression[i] );
     }
-    if DEBUG { println!("new expression\t\t{:?}\n---------------------", wp.clone());}
+    // DEBUG PURPOSE:
+    // prints out the new weakest precondtion expression
+    if DEBUG { println!("new expression\t\t{:?}\n--------------------------------", wp.clone());}
     return Some(wp);
 }
 
-// Generates an appropriate variable mapping based on whatever variable, temp, or field is found
+
+/// Generates an appropriate variable mapping based on whatever variable, temp, or field is found
+///
+/// # Arguments:
+/// * `lvalue` - The Lvalue to be generated into a VariableMapping
+/// * `mir_data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+///
+/// # Return Value:
+/// * Returns a VariableMappingData that is built from the mir_data and lvalue
+///
+/// # Remarks:
+///
+///
 fn gen_lvalue(lvalue: Lvalue,
-                  data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
+                  mir_data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
                   -> VariableMappingData {
     match lvalue {
         // Function argument
         Lvalue::Arg(ref arg) => {
             // Find the name and type in the declaration
-            VariableMappingData{name: data.0[arg.index()].debug_name.as_str().to_string(),
-                                var_type: data.0[arg.index()].ty.clone().to_string()
+            // FIXME: debug_name should not be used for VariableMappingData if it isn't for debug use only
+            VariableMappingData{name: mir_data.0[arg.index()].debug_name.as_str().to_string(),
+                                var_type: mir_data.0[arg.index()].ty.clone().to_string()
             }
         },
         // Temporary variable
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
-            let mut ty = data.2[temp.index()].ty.clone().to_string();
-            match data.2[temp.index()].ty.sty {
+            let mut ty = mir_data.2[temp.index()].ty.clone().to_string();
+            match mir_data.2[temp.index()].ty.sty {
                 TypeVariants::TyTuple(ref t) => { ty = t[0].to_string(); },
                 _ => { }
             }
@@ -532,11 +654,11 @@ fn gen_lvalue(lvalue: Lvalue,
             // FIXME: fix comment
             // Find the name and type in the declaration
             VariableMappingData{name: "var".to_string() + var.index().to_string().as_str(),
-                                var_type: data.3[var.index()].ty.clone().to_string() }
+                                var_type: mir_data.3[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {
-            VariableMappingData{name: "return".to_string(), var_type : data.4.clone() }
+            VariableMappingData{name: "return".to_string(), var_type : mir_data.4.clone() }
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
@@ -556,15 +678,16 @@ fn gen_lvalue(lvalue: Lvalue,
                 // Argument
                 Lvalue::Arg(ref arg) => {
                     // Return the name of the argument
-                    lvalue_name = data.0[arg.index()].debug_name.as_str().to_string();
-                    lvalue_type = data.0[arg.index()].ty.clone().to_string();
+                    // FIXME: debug_name should not be used for VariableMappingData if it isn't for debug use only
+                    lvalue_name = mir_data.0[arg.index()].debug_name.as_str().to_string();
+                    lvalue_type = mir_data.0[arg.index()].ty.clone().to_string();
                 },
                 // Temporary variable
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
                     lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
-                    lvalue_type = data.2[temp.index()].ty.clone().to_string();
-                    match data.2[temp.index()].ty.sty {
+                    lvalue_type = mir_data.2[temp.index()].ty.clone().to_string();
+                    match mir_data.2[temp.index()].ty.sty {
                         TypeVariants::TyTuple(ref t) => { lvalue_type = t[0].to_string(); },
                         _ => { unimplemented!() },
                     }
@@ -575,13 +698,14 @@ fn gen_lvalue(lvalue: Lvalue,
                     let i = index.parse::<usize>().unwrap();
                     lvalue_name = "var".to_string() + var.index().to_string().as_str();
 
-                    match data.3[var.index()].ty.sty {
+                    match mir_data.3[var.index()].ty.sty {
                         TypeVariants::TyTuple(ref t) => {
                             lvalue_type = t[i].to_string();
                         },
                         _ => { unimplemented!() },
                     }
                 },
+                // Unimplemented Lvalue
                 Lvalue::ReturnPointer => { unimplemented!(); },
                 Lvalue::Static(ref stat) => { unimplemented!(); },
                 // Multiply-nested projection
@@ -590,26 +714,40 @@ fn gen_lvalue(lvalue: Lvalue,
 
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
-                ProjectionElem::Index(ref o) => { unimplemented!(); },
+
                 ProjectionElem::Field(ref field, ref ty) => { (field.index() as i32).to_string() },
+                ProjectionElem::Index(ref o) => { unimplemented!(); },
                 _ => { unimplemented!(); }
             };
 
             // Get the index int from index_operand, then stick it in the VariableMappingData
             VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: lvalue_type }
         },
-        _=> {unimplemented!();}
+        _=> { unimplemented!(); }
     }
 }
 
-// Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field
-fn gen_operand(operand: &Operand,
-               data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
+
+/// Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field
+///
+/// # Arguments:
+/// * `operand` - The Operand to generate a new expression from.
+/// * `mir_data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+///
+/// # Return Value:
+/// * Returns a new expression generated from an operand
+///
+/// # Remarks:
+/// * Current Supported Consval: Bool, Integral
+/// * Current supported Integral: I8, I16, I32, I64, U8, U16, U32, U64
+///
+fn gen_expression(operand: &Operand,
+               mir_data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
                -> Expression {
     match operand {
         // A variable/temp/field
         &Operand::Consume (ref l) => {
-            Expression::VariableMapping( gen_lvalue(l.clone(), data) )
+            Expression::VariableMapping( gen_lvalue(l.clone(), mir_data) )
         },
         // A literal value
         &Operand::Constant (ref c) => {
@@ -620,6 +758,7 @@ fn gen_operand(operand: &Operand,
                             Expression::BooleanLiteral(*const_bool)
                         }
                         &ConstVal::Integral(ref const_int) => {
+                            // get the correct time of the Integral
                             match const_int {
                                 &ConstInt::I8(i) => {
                                     Expression::SignedBitVector( SignedBitVectorData {
@@ -675,6 +814,7 @@ fn gen_operand(operand: &Operand,
                         _ => { unimplemented!(); },
                     }
                 },
+                // unimplemented Literals
                 Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
                 Literal::Promoted {ref index} => { unimplemented!(); },
             }

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `weakest_precondition` mod in crate `rustproof`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, weakest_precondition">
+
+    <title>rustproof::weakest_precondition - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>rustproof</a></p><script>window.sidebarCurrent = {name: 'weakest_precondition', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>rustproof</a>::<wbr><a class='mod' href=''>weakest_precondition</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-9632' class='srclink' href='../../src/rustproof/src/weakest_precondition/mod.rs.html#11-820' title='goto source code'>[src]</a></span></h1>
+<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>extern crate <a class='mod' href='https://doc.rust-lang.org/nightly/rustc_const_math/index.html' title='rustc_const_math'>rustc_const_math</a>;</code></td></tr><tr><td><code>use super::<a class='mod' href='../../rustproof/dev_tools/index.html' title='rustproof::dev_tools'>dev_tools</a>;</code></td></tr><tr><td><code>use super::<a class='constant' href='../../rustproof/constant.DEBUG.html' title='rustproof::DEBUG'>DEBUG</a>;</code></td></tr><tr><td><code>use std::<a class='mod' href='https://doc.rust-lang.org/nightly/std/process/index.html' title='std::process'>process</a>;</code></td></tr><tr><td><code>use <a class='mod' href='../../rustproof/expression/index.html' title='rustproof::expression'>expression</a>::*;</code></td></tr><tr><td><code>use rustc::mir::<a class='mod' href='https://doc.rust-lang.org/nightly/rustc/mir/repr/index.html' title='rustc::mir::repr'>repr</a>::*;</code></td></tr><tr><td><code>use rustc::middle::const_val::<a class='enum' href='https://doc.rust-lang.org/nightly/rustc/middle/const_val/enum.ConstVal.html' title='rustc::middle::const_val::ConstVal'>ConstVal</a>;</code></td></tr><tr><td><code>use rustc_const_math::<a class='enum' href='https://doc.rust-lang.org/nightly/rustc_const_math/int/enum.ConstInt.html' title='rustc_const_math::int::ConstInt'>ConstInt</a>;</code></td></tr><tr><td><code>use rustc_data_structures::indexed_vec::<a class='trait' href='https://doc.rust-lang.org/nightly/rustc_data_structures/indexed_vec/trait.Idx.html' title='rustc_data_structures::indexed_vec::Idx'>Idx</a>;</code></td></tr><tr><td><code>use rustc::ty::{<a class='type' href='https://doc.rust-lang.org/nightly/rustc/ty/type.Ty.html' title='rustc::ty::Ty'>Ty</a>, <a class='enum' href='https://doc.rust-lang.org/nightly/rustc/ty/sty/enum.TypeVariants.html' title='rustc::ty::sty::TypeVariants'>TypeVariants</a>};</code></td></tr><tr><td><code>use std::rt::begin_panic_fmt;</code></td></tr><tr><td><code>use <a class='mod' href='https://stebalien.github.io/doc/term/term/term/index.html' title='term'>term</a>;</code></td></tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.add_overflow.html'
+                                  title='rustproof::weakest_precondition::add_overflow'>add_overflow</a></td>
+                           <td class='docblock short'>
+                                <p>Generates a version of wp &quot;And&quot;ed together with a conditional expression that mimics a check for overflow for the type of var.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.add_underflow.html'
+                                  title='rustproof::weakest_precondition::add_underflow'>add_underflow</a></td>
+                           <td class='docblock short'>
+                                <p>Generates a version of wp &quot;And&quot;ed together with a conditional expression that mimics a check for underflow for the type of var.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.add_zero_check.html'
+                                  title='rustproof::weakest_precondition::add_zero_check'>add_zero_check</a></td>
+                           <td class='docblock short'>
+                                <p>Generates a version of wp &quot;And&quot;ed together with a conditional expression that mimics a check to ensure division by 0 does not occur.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen.html'
+                                  title='rustproof::weakest_precondition::gen'>gen</a></td>
+                           <td class='docblock short'>
+                                <p>Computes the weakest precondition for a given post-condition and series of statments over one or more BasicBlocks from MIR.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_expression.html'
+                                  title='rustproof::weakest_precondition::gen_expression'>gen_expression</a></td>
+                           <td class='docblock short'>
+                                <p>Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_lvalue.html'
+                                  title='rustproof::weakest_precondition::gen_lvalue'>gen_lvalue</a></td>
+                           <td class='docblock short'>
+                                <p>Generates an appropriate variable mapping based on whatever variable, temp, or field is found</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_stmt.html'
+                                  title='rustproof::weakest_precondition::gen_stmt'>gen_stmt</a></td>
+                           <td class='docblock short'>
+                                <p>Returns a (possibly) modified weakest precondition based on the content of a statement</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_ty.html'
+                                  title='rustproof::weakest_precondition::gen_ty'>gen_ty</a></td>
+                           <td class='docblock short'>
+                                <p>Returns the type of an operand as a String</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "rustproof";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>
