@@ -738,7 +738,8 @@ fn gen_lvalue(lvalue: Lvalue,
 /// * Returns a new expression generated from an operand
 ///
 /// # Remarks:
-/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+/// * Current Supported Consval: Bool, Integral
+/// * Current supported Integral: I8, I16, I32, I64, U8, U16, U32, U64
 ///
 fn gen_expression(operand: &Operand,
                mir_data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
@@ -753,7 +754,9 @@ fn gen_expression(operand: &Operand,
             match c.literal {
                 Literal::Value {ref value} => {
                     match value {
-                        // only ConstVal::Integral are supported at this time
+                        &ConstVal::Bool(ref const_bool) => {
+                            Expression::BooleanLiteral(*const_bool)
+                        }
                         &ConstVal::Integral(ref const_int) => {
                             // get the correct time of the Integral
                             match const_int {
