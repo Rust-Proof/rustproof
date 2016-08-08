@@ -616,6 +616,9 @@ fn gen_operand(operand: &Operand,
             match c.literal {
                 Literal::Value {ref value} => {
                     match value {
+                        &ConstVal::Bool(ref const_bool) => {
+                            Expression::BooleanLiteral(*const_bool)
+                        }
                         &ConstVal::Integral(ref const_int) => {
                             match const_int {
                                 &ConstInt::I8(i) => {
