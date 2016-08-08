@@ -50,18 +50,18 @@
                </span><a id='src-9563' class='srclink' href='../../src/rustproof/src/smt_output/mod.rs.html#75-80' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait Pred2SMT {
     type <a href='#associatedtype.Idx' class='type'>Idx</a>: <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a>;
-    type <a href='#associatedtype.Logic' class='type'>Logic</a>: <a class='trait' href='../../libsmt/backends/backend/trait.Logic.html' title='libsmt::backends::backend::Logic'>Logic</a>;
+    type <a href='#associatedtype.Logic' class='type'>Logic</a>: Logic;
     fn <a href='#tymethod.expr2smtlib' class='fnname'>expr2smtlib</a>(&amp;mut self, &amp;<a class='enum' href='../../rustproof/expression/enum.Expression.html' title='rustproof::expression::Expression'>Expression</a>) -&gt; Self::<a class='trait' href='../../rustproof/smt_output/trait.Pred2SMT.html' title='rustproof::smt_output::Pred2SMT'>Idx</a>;
 }</pre>
             <h2 id='associated-types'>Associated Types</h2>
             <div class='methods'>
-        <h3 id='associatedtype.Idx' class='method stab '><code>type <a href='#associatedtype.Idx' class='type'>Idx</a>: <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a></code></h3><h3 id='associatedtype.Logic' class='method stab '><code>type <a href='#associatedtype.Logic' class='type'>Logic</a>: <a class='trait' href='../../libsmt/backends/backend/trait.Logic.html' title='libsmt::backends::backend::Logic'>Logic</a></code></h3></div>
+        <h3 id='associatedtype.Idx' class='method stab '><code>type <a href='#associatedtype.Idx' class='type'>Idx</a>: <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> + <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a></code></h3><h3 id='associatedtype.Logic' class='method stab '><code>type <a href='#associatedtype.Logic' class='type'>Logic</a>: Logic</code></h3></div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
         <h3 id='tymethod.expr2smtlib' class='method stab '><code>fn <a href='#tymethod.expr2smtlib' class='fnname'>expr2smtlib</a>(&amp;mut self, &amp;<a class='enum' href='../../rustproof/expression/enum.Expression.html' title='rustproof::expression::Expression'>Expression</a>) -&gt; Self::<a class='trait' href='../../rustproof/smt_output/trait.Pred2SMT.html' title='rustproof::smt_output::Pred2SMT'>Idx</a></code></h3></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl Pred2SMT for <a class='struct' href='../../libsmt/backends/smtlib2/struct.SMTLib2.html' title='libsmt::backends::smtlib2::SMTLib2'>SMTLib2</a>&lt;<a class='struct' href='../../libsmt/logics/qf_abv/struct.QF_ABV.html' title='libsmt::logics::qf_abv::QF_ABV'>QF_ABV</a>&gt;</code></li>
+    <li><code>impl Pred2SMT for SMTLib2&lt;QF_ABV&gt;</code></li>
 </ul><script type="text/javascript" async
                          src="../../implementors/rustproof/smt_output/trait.Pred2SMT.js">
                  </script></section>

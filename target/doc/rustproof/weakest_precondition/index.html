@@ -48,7 +48,8 @@
                        [<span class='inner'>&#x2212;</span>]
                    </a>
                </span><a id='src-9632' class='srclink' href='../../src/rustproof/src/weakest_precondition/mod.rs.html#11-820' title='goto source code'>[src]</a></span></h1>
-<h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>extern crate <a class='mod' href='https://doc.rust-lang.org/nightly/rustc_const_math/index.html' title='rustc_const_math'>rustc_const_math</a>;</code></td></tr><tr><td><code>use super::<a class='mod' href='../../rustproof/dev_tools/index.html' title='rustproof::dev_tools'>dev_tools</a>;</code></td></tr><tr><td><code>use super::<a class='constant' href='../../rustproof/constant.DEBUG.html' title='rustproof::DEBUG'>DEBUG</a>;</code></td></tr><tr><td><code>use std::<a class='mod' href='https://doc.rust-lang.org/nightly/std/process/index.html' title='std::process'>process</a>;</code></td></tr><tr><td><code>use <a class='mod' href='../../rustproof/expression/index.html' title='rustproof::expression'>expression</a>::*;</code></td></tr><tr><td><code>use rustc::mir::<a class='mod' href='https://doc.rust-lang.org/nightly/rustc/mir/repr/index.html' title='rustc::mir::repr'>repr</a>::*;</code></td></tr><tr><td><code>use rustc::middle::const_val::<a class='enum' href='https://doc.rust-lang.org/nightly/rustc/middle/const_val/enum.ConstVal.html' title='rustc::middle::const_val::ConstVal'>ConstVal</a>;</code></td></tr><tr><td><code>use rustc_const_math::<a class='enum' href='https://doc.rust-lang.org/nightly/rustc_const_math/int/enum.ConstInt.html' title='rustc_const_math::int::ConstInt'>ConstInt</a>;</code></td></tr><tr><td><code>use rustc_data_structures::indexed_vec::<a class='trait' href='https://doc.rust-lang.org/nightly/rustc_data_structures/indexed_vec/trait.Idx.html' title='rustc_data_structures::indexed_vec::Idx'>Idx</a>;</code></td></tr><tr><td><code>use rustc::ty::{<a class='type' href='https://doc.rust-lang.org/nightly/rustc/ty/type.Ty.html' title='rustc::ty::Ty'>Ty</a>, <a class='enum' href='https://doc.rust-lang.org/nightly/rustc/ty/sty/enum.TypeVariants.html' title='rustc::ty::sty::TypeVariants'>TypeVariants</a>};</code></td></tr><tr><td><code>use std::rt::begin_panic_fmt;</code></td></tr><tr><td><code>use <a class='mod' href='https://stebalien.github.io/doc/term/term/term/index.html' title='term'>term</a>;</code></td></tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
                        <tr class=' module-item'>
                            <td><a class='fn' href='fn.add_overflow.html'
@@ -76,6 +77,34 @@
                                   title='rustproof::weakest_precondition::gen'>gen</a></td>
                            <td class='docblock short'>
                                 <p>Computes the weakest precondition for a given post-condition and series of statments over one or more BasicBlocks from MIR.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_expression.html'
+                                  title='rustproof::weakest_precondition::gen_expression'>gen_expression</a></td>
+                           <td class='docblock short'>
+                                <p>Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_lvalue.html'
+                                  title='rustproof::weakest_precondition::gen_lvalue'>gen_lvalue</a></td>
+                           <td class='docblock short'>
+                                <p>Generates an appropriate variable mapping based on whatever variable, temp, or field is found</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_stmt.html'
+                                  title='rustproof::weakest_precondition::gen_stmt'>gen_stmt</a></td>
+                           <td class='docblock short'>
+                                <p>Returns a (possibly) modified weakest precondition based on the content of a statement</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.gen_ty.html'
+                                  title='rustproof::weakest_precondition::gen_ty'>gen_ty</a></td>
+                           <td class='docblock short'>
+                                <p>Returns the type of an operand as a String</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>
