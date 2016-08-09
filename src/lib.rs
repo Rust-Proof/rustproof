@@ -145,14 +145,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             self.pre_expr = Some(parser::parse_condition(self.pre_string.as_str()));
             self.post_expr = Some(parser::parse_condition(self.post_string.as_str()));
 
-            // Begin examining the MIR code
-            //MirVisitor::visit_mir(self, mir);
-            /*
-            let mut arg_data = Vec::new();
-            let mut block_data = Vec::new();
-            let mut temp_data = Vec::new();
-            let mut var_data = Vec::new();
-            */
 
             let mut data = MirData {
                 block_data: Vec::new(),
@@ -197,9 +189,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
                 },
                 _ => { unimplemented!(); }
             };
-
-            // Store all the data
-            //let data = (arg_data, block_data, temp_data, var_data, func_return_type);
 
             // Generate the weakest precondition
             let weakest_precondition = gen(0, &mut data, &self.post_expr);
