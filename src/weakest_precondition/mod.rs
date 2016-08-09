@@ -41,6 +41,8 @@ use term;
 ///
 pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> Option<Expression> {
     // FIXME: Debug should not be a const; it must be user-facing
+    // DEBUG PURPOSE:
+    // Shows the current BasicBlock index and the BasicBLockData associated with that index
     if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]); }
     let mut wp: Option<Expression> = None;
 
@@ -537,7 +539,6 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
         // Generates Rvalue to a UnaryOp
         Rvalue::UnaryOp(ref unop, ref val) => {
             let exp: Expression = gen_expression(&val, data);
-
             let op: UnaryOperator = match unop {
                 &UnOp::Not => {
                     if determine_evaluation_type(&exp) == "bool" {
@@ -681,8 +682,6 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                     // Return the name of the variable
                     let i = index.parse::<usize>().unwrap();
                     lvalue_name = "var".to_string() + var.index().to_string().as_str();
-
-
                     match data.var_data[var.index()].ty.sty {
                         TypeVariants::TyTuple(ref t) => {
                             lvalue_type = t[i].to_string();
