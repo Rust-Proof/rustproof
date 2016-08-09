@@ -91,12 +91,7 @@ pub fn registrar(reg: &mut Registry) {
 	// This initializes the Reporting Module to Add the environment to the logger
 	reporting::init();
 
-    let visitor = MirVisitor {
-        pre_string: "".to_string(),
-        post_string: "".to_string(),
-        pre_expr: None,
-        post_expr: None,
-    };
+    let visitor = MirVisitor{};
 
     reg.register_mir_pass(Box::new(visitor));
 }
@@ -109,12 +104,7 @@ pub struct MirData<'tcx> {
     func_return_type: String,
 }
 
-struct MirVisitor {
-    pre_string: String,
-    post_string: String,
-    pre_expr: Option<Expression>,
-    post_expr: Option<Expression>,
-}
+struct MirVisitor {}
 
 // This must be here, and it must be blank
 impl <'tcx> Pass for MirVisitor {}
@@ -123,10 +113,10 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
     // Visit the MIR of the entire program
     fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
         // Clear the stored attributes in the builder
-        self.pre_string = "".to_string();
-        self.post_string = "".to_string();
-        self.pre_expr = None;
-        self.post_expr = None;
+        let mut pre_string = "".to_string();
+        let mut post_string = "".to_string();
+        let mut pre_expr = None;
+        let mut post_expr = None;
 
         // Store relevant data
         let item_id = src.item_id();
@@ -136,14 +126,14 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
         // TODO: Find a better way to do this
         for attr in attrs {
-            parse_attribute(&mut self.pre_string, &mut self.post_string, attr);
+            parse_attribute(&mut pre_string, &mut post_string, attr);
         }
 
         // TODO: Find a better condition check
-        if self.pre_string != "" {
+        if pre_string != "" {
             // Parse the pre- and postcondition arguments
-            self.pre_expr = Some(parser::parse_condition(self.pre_string.as_str()));
-            self.post_expr = Some(parser::parse_condition(self.post_string.as_str()));
+            pre_expr = Some(parser::parse_condition(pre_string.as_str()));
+            post_expr = Some(parser::parse_condition(post_string.as_str()));
 
             // Struct to carry MIR data to later stages
             let mut data = MirData {
@@ -191,12 +181,12 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             };
 
             // Generate the weakest precondition
-            let weakest_precondition = gen(0, &mut data, &self.post_expr);
+            let weakest_precondition = gen(0, &mut data, &post_expr);
 
             // Create the verification condition, P -> WP
             let verification_condition: Expression = Expression::BinaryExpression( BinaryExpressionData{
                 op: BinaryOperator::Implication,
-                left: Box::new(self.pre_expr.as_ref().unwrap().clone()),
+                left: Box::new(pre_expr.as_ref().unwrap().clone()),
                 right: Box::new(weakest_precondition.as_ref().unwrap().clone())
             } );
 
