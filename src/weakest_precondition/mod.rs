@@ -12,6 +12,7 @@ extern crate rustc_const_math;
 
 use super::dev_tools;
 use super::DEBUG;
+use super::MirData;
 use std::process;
 use expression::*;
 use rustc::mir::repr::*;
@@ -24,17 +25,14 @@ use term;
 
 
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
-pub fn gen(index: usize,
-           data:&(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String),
-           post_expr: &Option<Expression>)
-           -> Option<Expression> {
+pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> Option<Expression> {
     // FIXME: Debug should not be a const; it must be user-facing
-    if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.1[index]); }
+    if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]); }
 
     let mut wp: Option<Expression> = None;
 
     // Parse terminator data
-    let terminator = data.1[index].terminator.clone().unwrap().kind;
+    let terminator = data.block_data[index].terminator.clone().unwrap().kind;
     match terminator {
         TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
             // Retrieve the weakest precondition from the following block
@@ -115,7 +113,7 @@ pub fn gen(index: usize,
     }
 
     // Examine statements in reverse order
-    let mut stmts = data.1[index].statements.clone();
+    let mut stmts = data.block_data[index].statements.clone();
     stmts.reverse();
     if DEBUG { println!("bb{:?}", index);}
     for stmt in stmts {
@@ -131,24 +129,22 @@ pub fn gen(index: usize,
 }
 
 // Returns the type of an operand as a String
-fn gen_ty(operand: &Operand,
-          data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
-          -> String {
+fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
         Operand::Consume(ref lvalue) => {
             match lvalue {
                 // Function argument
                 &Lvalue::Arg(ref arg) => {
-                    data.0[arg.index()].ty.to_string()
+                    data.arg_data[arg.index()].ty.to_string()
                 },
                 // Temporary variable
                 &Lvalue::Temp(ref temp) => {
-                    data.2[temp.index()].ty.to_string()
+                    data.temp_data[temp.index()].ty.to_string()
                 },
                 // Local variable
                 &Lvalue::Var(ref var) => {
-                    data.3[var.index()].ty.to_string()
+                    data.var_data[var.index()].ty.to_string()
                 },
                 _ => {
                     unimplemented!();
@@ -321,9 +317,7 @@ pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
 
 
 // Returns a (possibly) modified weakest precondition based on the content of a statement
-fn gen_stmt(mut wp: Expression, stmt: Statement,
-                data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
-                -> Option<Expression>  {
+fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<Expression>  {
     // FIXME: Remove debug print statement
     if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
 
@@ -504,22 +498,20 @@ fn gen_stmt(mut wp: Expression, stmt: Statement,
 }
 
 // Generates an appropriate variable mapping based on whatever variable, temp, or field is found
-fn gen_lvalue(lvalue: Lvalue,
-                  data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
-                  -> VariableMappingData {
+fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
     match lvalue {
         // Function argument
         Lvalue::Arg(ref arg) => {
             // Find the name and type in the declaration
-            VariableMappingData{name: data.0[arg.index()].debug_name.as_str().to_string(),
-                                var_type: data.0[arg.index()].ty.clone().to_string()
+            VariableMappingData{name: data.arg_data[arg.index()].debug_name.as_str().to_string(),
+                                var_type: data.arg_data[arg.index()].ty.clone().to_string()
             }
         },
         // Temporary variable
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
-            let mut ty = data.2[temp.index()].ty.clone().to_string();
-            match data.2[temp.index()].ty.sty {
+            let mut ty = data.temp_data[temp.index()].ty.clone().to_string();
+            match data.temp_data[temp.index()].ty.sty {
                 TypeVariants::TyTuple(ref t) => { ty = t[0].to_string(); },
                 _ => { }
             }
@@ -532,11 +524,11 @@ fn gen_lvalue(lvalue: Lvalue,
             // FIXME: fix comment
             // Find the name and type in the declaration
             VariableMappingData{name: "var".to_string() + var.index().to_string().as_str(),
-                                var_type: data.3[var.index()].ty.clone().to_string() }
+                                var_type: data.var_data[var.index()].ty.clone().to_string() }
         },
         // The returned value
         Lvalue::ReturnPointer => {
-            VariableMappingData{name: "return".to_string(), var_type : data.4.clone() }
+            VariableMappingData{name: "return".to_string(), var_type : data.func_return_type.clone() }
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
@@ -556,15 +548,15 @@ fn gen_lvalue(lvalue: Lvalue,
                 // Argument
                 Lvalue::Arg(ref arg) => {
                     // Return the name of the argument
-                    lvalue_name = data.0[arg.index()].debug_name.as_str().to_string();
-                    lvalue_type = data.0[arg.index()].ty.clone().to_string();
+                    lvalue_name = data.arg_data[arg.index()].debug_name.as_str().to_string();
+                    lvalue_type = data.arg_data[arg.index()].ty.clone().to_string();
                 },
                 // Temporary variable
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
                     lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
-                    lvalue_type = data.2[temp.index()].ty.clone().to_string();
-                    match data.2[temp.index()].ty.sty {
+                    lvalue_type = data.temp_data[temp.index()].ty.clone().to_string();
+                    match data.temp_data[temp.index()].ty.sty {
                         TypeVariants::TyTuple(ref t) => { lvalue_type = t[0].to_string(); },
                         _ => { unimplemented!() },
                     }
@@ -575,7 +567,7 @@ fn gen_lvalue(lvalue: Lvalue,
                     let i = index.parse::<usize>().unwrap();
                     lvalue_name = "var".to_string() + var.index().to_string().as_str();
 
-                    match data.3[var.index()].ty.sty {
+                    match data.var_data[var.index()].ty.sty {
                         TypeVariants::TyTuple(ref t) => {
                             lvalue_type = t[i].to_string();
                         },
@@ -603,9 +595,7 @@ fn gen_lvalue(lvalue: Lvalue,
 }
 
 // Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field
-fn gen_operand(operand: &Operand,
-               data: &(Vec<&ArgDecl>, Vec<&BasicBlockData>, Vec<&TempDecl>, Vec<&VarDecl>, String))
-               -> Expression {
+fn gen_operand(operand: &Operand, data: &mut MirData) -> Expression {
     match operand {
         // A variable/temp/field
         &Operand::Consume (ref l) => {
