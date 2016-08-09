@@ -91,22 +91,20 @@ pub fn registrar(reg: &mut Registry) {
 	// This initializes the Reporting Module to Add the environment to the logger
 	reporting::init();
 
-    let visitor = MirVisitor {
-        pre_string: "".to_string(),
-        post_string: "".to_string(),
-        pre_expr: None,
-        post_expr: None,
-    };
+    let visitor = MirVisitor{};
 
     reg.register_mir_pass(Box::new(visitor));
 }
 
-struct MirVisitor {
-    pre_string: String,
-    post_string: String,
-    pre_expr: Option<Expression>,
-    post_expr: Option<Expression>,
+pub struct MirData<'tcx> {
+    block_data: Vec<&'tcx BasicBlockData<'tcx>>,
+    arg_data: Vec<&'tcx ArgDecl<'tcx>>,
+    var_data: Vec<&'tcx VarDecl<'tcx>>,
+    temp_data: Vec<&'tcx TempDecl<'tcx>>,
+    func_return_type: String,
 }
+
+struct MirVisitor {}
 
 // This must be here, and it must be blank
 impl <'tcx> Pass for MirVisitor {}
@@ -115,10 +113,10 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
     // Visit the MIR of the entire program
     fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
         // Clear the stored attributes in the builder
-        self.pre_string = "".to_string();
-        self.post_string = "".to_string();
-        self.pre_expr = None;
-        self.post_expr = None;
+        let mut pre_string = "".to_string();
+        let mut post_string = "".to_string();
+        let mut pre_expr = None;
+        let mut post_expr = None;
 
         // Store relevant data
         let item_id = src.item_id();
@@ -128,78 +126,75 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
         // TODO: Find a better way to do this
         for attr in attrs {
-            parse_attribute(&mut self.pre_string, &mut self.post_string, attr);
+            parse_attribute(&mut pre_string, &mut post_string, attr);
         }
 
         // TODO: Find a better condition check
-        if self.pre_string != "" {
+        if pre_string != "" {
             // Parse the pre- and postcondition arguments
-            self.pre_expr = Some(parser::parse_condition(self.pre_string.as_str()));
-            self.post_expr = Some(parser::parse_condition(self.post_string.as_str()));
+            pre_expr = Some(parser::parse_condition(pre_string.as_str()));
+            post_expr = Some(parser::parse_condition(post_string.as_str()));
 
-            // Begin examining the MIR code
-            MirVisitor::visit_mir(self, mir);
+            // Struct to carry MIR data to later stages
+            let mut data = MirData {
+                block_data: Vec::new(),
+                arg_data: Vec::new(),
+                var_data: Vec::new(),
+                temp_data: Vec::new(),
+                func_return_type: "".to_string(),
+            };
+
+            // Get the basic block data
+            for index in 0..mir.basic_blocks().len() {
+                let block = BasicBlock::new(index);
+                dev_tools::print_type_of(&block);
+                data.block_data.push(&mir[block]);
+            }
+
+            // Get the function argument declarations
+            for index in 0..mir.arg_decls.len() {
+                let arg = Arg::new(index);
+                dev_tools::print_type_of(&arg);
+                data.arg_data.push(&mir.arg_decls[arg]);
+            }
+
+            // Get the temp declarations
+            for index in 0..mir.temp_decls.len() {
+                let temp = Temp::new(index);
+                dev_tools::print_type_of(&temp);
+                data.temp_data.push(&mir.temp_decls[temp]);
+            }
+
+            // Get the variable declarations
+            for index in 0..mir.var_decls.len() {
+                let var = Var::new(index);
+                dev_tools::print_type_of(&var);
+                data.var_data.push(&mir.var_decls[var]);
+            }
+
+            // Get the return type
+            data.func_return_type = match mir.return_ty {
+                FnOutput::FnConverging(t) => {
+                    t.to_string()
+                },
+                _ => { unimplemented!(); }
+            };
+
+            // Generate the weakest precondition
+            let weakest_precondition = gen(0, &mut data, &post_expr);
+
+            // Create the verification condition, P -> WP
+            let verification_condition: Expression = Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Implication,
+                left: Box::new(pre_expr.as_ref().unwrap().clone()),
+                right: Box::new(weakest_precondition.as_ref().unwrap().clone())
+            } );
+
+            // FIXME: Debug should not be a const; it must be user-facing
+            if DEBUG { println!("vc: {}\n", verification_condition); }
+
+            // Output to SMT-LIB format
+            gen_smtlib(&verification_condition.clone());
         }
-    }
-}
-
-impl<'tcx> Visitor<'tcx> for MirVisitor {
-    // Visit the MIR of a function
-    fn visit_mir(&mut self, mir: &Mir<'tcx>) {
-        let mut arg_data = Vec::new();
-        let mut block_data = Vec::new();
-        let mut temp_data = Vec::new();
-        let mut var_data = Vec::new();
-
-        // Get the basic block data
-        for index in 0..mir.basic_blocks().len() {
-            let block = BasicBlock::new(index);
-            block_data.push(&mir[block]);
-        }
-
-        // Get the function argument declarations
-        for index in 0..mir.arg_decls.len() {
-            let arg = Arg::new(index);
-            arg_data.push(&mir.arg_decls[arg]);
-        }
-
-        // Get the temp declarations
-        for index in 0..mir.temp_decls.len() {
-            let temp = Temp::new(index);
-            temp_data.push(&mir.temp_decls[temp]);
-        }
-
-        // Get the variable declarations
-        for index in 0..mir.var_decls.len() {
-            let var = Var::new(index);
-            var_data.push(&mir.var_decls[var]);
-        }
-
-        // Get the return type
-        let func_return_type: String = match mir.return_ty {
-            FnOutput::FnConverging(t) => {
-                t.to_string()
-            },
-            _ => { unimplemented!(); }
-        };
-
-        // Store all the data
-        let data = (arg_data, block_data, temp_data, var_data, func_return_type);
-
-        // Generate the weakest precondition
-        let weakest_precondition = gen(0, &data, &self.post_expr);
-
-        // Create the verification condition, P -> WP
-        let verification_condition: Expression = Expression::BinaryExpression( BinaryExpressionData{
-            op: BinaryOperator::Implication,
-            left: Box::new(self.pre_expr.as_ref().unwrap().clone()),
-            right: Box::new(weakest_precondition.as_ref().unwrap().clone())
-        } );
-
-        // FIXME: Debug should not be a const; it must be user-facing
-        if DEBUG { println!("vc: {}\n", verification_condition); }
-
-        // Output to SMT-LIB format
-        gen_smtlib(&verification_condition.clone());
     }
 }
