@@ -247,7 +247,7 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         l_type
                     }
                 },
-                BinaryOperator::LessThan | BinaryOperator::LessThanOrEqual | BinaryOperator::GreaterThan | BinaryOperator::GreaterThanOrEqual | BinaryOperator::Equal | BinaryOperator::NotEqual => {
+                BinaryOperator::LessThan | BinaryOperator::LessThanOrEqual | BinaryOperator::GreaterThan | BinaryOperator::GreaterThanOrEqual => {
                     let l_type: String = determine_evaluation_type(&*b.left);
                     let r_type: String = determine_evaluation_type(&*b.right);
                     // Ensure both operands are numeric types
@@ -255,6 +255,16 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
                     // Ensure both operand types match
                     } else if l_type != r_type {
+                        rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                    } else {
+                        "bool".to_string()
+                    }
+                },
+                BinaryOperator::Equal | BinaryOperator::NotEqual => {
+                    let l_type: String = determine_evaluation_type(&*b.left);
+                    let r_type: String = determine_evaluation_type(&*b.right);
+                    // Ensure both operand types match
+                    if l_type != r_type {
                         rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
                     } else {
                         "bool".to_string()
@@ -433,7 +443,7 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                         }
                     }
                 },
-                BinaryOperator::LessThan | BinaryOperator::LessThanOrEqual | BinaryOperator::GreaterThan | BinaryOperator::GreaterThanOrEqual | BinaryOperator::Equal | BinaryOperator::NotEqual => {
+                BinaryOperator::LessThan | BinaryOperator::LessThanOrEqual | BinaryOperator::GreaterThan | BinaryOperator::GreaterThanOrEqual => {
                     match ty_check(&*b.left) {
                         Ok(_) => {
                             match ty_check(&*b.right) {
@@ -445,6 +455,30 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                         Err(format!("Invalid use of binary operator {} on boolean value(s)", b.op))
                                     // Ensure both operand types match
                                     } else if l_type != r_type {
+                                        Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
+                                    } else {
+                                        Ok(true)
+                                    }
+                                },
+                                Err(e) => {
+                                    Err(e)
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            Err(e)
+                        }
+                    }
+                },
+                BinaryOperator::Equal | BinaryOperator::NotEqual => {
+                    match ty_check(&*b.left) {
+                        Ok(_) => {
+                            match ty_check(&*b.right) {
+                                Ok(_) => {
+                                    let l_type: String = determine_evaluation_type(&*b.left);
+                                    let r_type: String = determine_evaluation_type(&*b.right);
+                                    // Ensure both operand types match
+                                    if l_type != r_type {
                                         Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
                                     } else {
                                         Ok(true)
