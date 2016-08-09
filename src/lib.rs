@@ -145,7 +145,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             self.pre_expr = Some(parser::parse_condition(self.pre_string.as_str()));
             self.post_expr = Some(parser::parse_condition(self.post_string.as_str()));
 
-
+            // Struct to carry MIR data to later stages
             let mut data = MirData {
                 block_data: Vec::new(),
                 arg_data: Vec::new(),

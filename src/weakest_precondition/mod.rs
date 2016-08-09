@@ -23,7 +23,6 @@ use rustc::ty::{Ty, TypeVariants};
 use std::rt::begin_panic_fmt;
 use term;
 
-
 // Computes the weakest precondition for a given postcondition and series of statements over one or more BasicBlocks, both stored in builder
 pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> Option<Expression> {
     // FIXME: Debug should not be a const; it must be user-facing
@@ -315,7 +314,6 @@ pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
     })
 }
 
-
 // Returns a (possibly) modified weakest precondition based on the content of a statement
 fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<Expression>  {
     // FIXME: Remove debug print statement
@@ -448,8 +446,6 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 },
                 &UnOp::Neg => { UnaryOperator::Negation },
             };
-
-
 
             expression.push(Expression::UnaryExpression( UnaryExpressionData {
                 op: op,
