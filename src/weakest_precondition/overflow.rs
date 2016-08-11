@@ -1,3 +1,12 @@
+// The Rust-Proof Project is copyright 2016, Sami Sahli,
+// Michael Salter, Matthew Slocum, Vincent Schuster,
+// Bradley Rasmussen, Drew Gohman, and Matthew O'Brien.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
 
 extern crate rustc_const_math;
 
@@ -11,11 +20,12 @@ use rustc::ty::{Ty, TypeVariants};
 use std::rt::begin_panic_fmt;
 use term;
 
+// One catch-all function for overflow checking.
 pub fn overflow_check(wp: &Expression, var: &VariableMappingData, binop: &BinOp, lvalue: &Expression, rvalue: &Expression) -> Expression {
     let mut v = var.clone();
     v.name = v.name + ".0";
 
-    Expression::BinaryExpresson( BinaryExpressionData {
+    Expression::BinaryExpression( BinaryExpressionData {
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
         right: Box::new(
@@ -28,57 +38,203 @@ pub fn overflow_check(wp: &Expression, var: &VariableMappingData, binop: &BinOp,
                 "u16" => { unsigned_overflow(binop, 16u8, lvalue, rvalue) },
                 "u32" => { unsigned_overflow(binop, 32u8, lvalue, rvalue) },
                 "u64" => { unsigned_overflow(binop, 64u8, lvalue, rvalue) },
+                _ => { panic!("Unsupported return type of binary operation: {}", v.var_type); }
             }
         ),
     })
 }
 
-
-
-fn signed_overflow(binop: &Binop, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+// Signed: Match on the type of BinOp and call the correct function
+fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match binop {
-        &BinOp::Add => { },
-        &BinOp::Sub => { },
-        &BinOp::Mul => { },
-        &BinOp::Div => { },
-        &BinOp::Rem => { },
-        &BinOp::Shl => { },
-        &BinOp::Shr => { },
-        &BinOp::BitOr => { },
-        &BinOp::BitAnd => { },
-        &BinOp::BitXor => { },
-        &BinOp::Lt => { },
-        &BinOp::Le => { },
-        &BinOp::Gt => { },
-        &BinOp::Ge => { },
-        &BinOp::Eq => { },
-        &BinOp::Ne => { },
+        &BinOp::Add => { signed_add(size, lvalue, rvalue) },
+        &BinOp::Sub => { unimplemented!() },
+        &BinOp::Mul => { unimplemented!() },
+        &BinOp::Div => { unimplemented!() },
+        &BinOp::Rem => { unimplemented!() },
+        &BinOp::Shl => { unimplemented!() },
+        &BinOp::Shr => { unimplemented!() },
+        &BinOp::BitOr => { unimplemented!() },
+        &BinOp::BitAnd => { unimplemented!() },
+        &BinOp::BitXor => { unimplemented!() },
+        &BinOp::Lt => { unimplemented!() },
+        &BinOp::Le => { unimplemented!() },
+        &BinOp::Gt => { unimplemented!() },
+        &BinOp::Ge => { unimplemented!() },
+        &BinOp::Eq => { unimplemented!() },
+        &BinOp::Ne => { unimplemented!() },
     }
 }
 
-fn unsigned_overflow(binop: &Binop, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+// Since these are honestly unreadable, we should probably have some sort of link to a github wiki
+// on what the logic is behind each.
+fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+    let l3 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::GreaterThanOrEqual,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let r3 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::GreaterThanOrEqual,
+        left: Box::new(rvalue.clone()),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let l2 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::And,
+        left: Box::new(l3),
+        right: Box::new(r3),
+    });
+
+    let l5 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::Addition,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(rvalue.clone()),
+    });
+
+    let l4 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::LessThan,
+        left: Box::new(l5),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let r2 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::Implication,
+        left: Box::new(l4),
+        right: Box::new(Expression::BooleanLiteral(false)),
+    });
+
+    let l1 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::Implication,
+        left: Box::new(l2),
+        right: Box::new(r2),
+    });
+
+    let l7 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::LessThan,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let r7 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::LessThan,
+        left: Box::new(rvalue.clone()),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let l6 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::Or,
+        left: Box::new(l7),
+        right: Box::new(r7),
+    });
+
+    let l9 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::LessThan,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let r9 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::LessThan,
+        left: Box::new(rvalue.clone()),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let l8 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::And,
+        left: Box::new(l9),
+        right: Box::new(r9),
+    });
+
+    let l11 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::Addition,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(rvalue.clone()),
+    });
+
+    let l10 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::GreaterThanOrEqual,
+        left: Box::new(l11),
+        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+            size: size,
+            value: 0i64,
+        })),
+    });
+
+    let r8 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::Implication,
+        left: Box::new(l10),
+        right: Box::new(Expression::BooleanLiteral(false)),
+    });
+
+    let r6 = Expression::BinaryExpression( BinaryExpressionData {
+        op: BinaryOperator::Implication,
+        left: Box::new(l8),
+        right: Box::new(r8),
+    });
+
+    let r1 = Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::Implication,
+        left: Box::new(l6),
+        right: Box::new(r6),
+    });
+
+    Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::And,
+        left: Box::new(l1),
+        right: Box::new(r1),
+    })
+}
+
+// Unsigned: Match on the type of BinOp and call the correct function
+fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match binop {
-        &BinOp::Add => { },
-        &BinOp::Sub => { },
-        &BinOp::Mul => { },
-        &BinOp::Div => { },
-        &BinOp::Rem => { },
-        &BinOp::Shl => { },
-        &BinOp::Shr => { },
-        &BinOp::BitOr => { },
-        &BinOp::BitAnd => { },
-        &BinOp::BitXor => { },
-        &BinOp::Lt => { },
-        &BinOp::Le => { },
-        &BinOp::Gt => { },
-        &BinOp::Ge => { },
-        &BinOp::Eq => { },
-        &BinOp::Ne => { },
+        &BinOp::Add => { unimplemented!() },
+        &BinOp::Sub => { unimplemented!() },
+        &BinOp::Mul => { unimplemented!() },
+        &BinOp::Div => { unimplemented!() },
+        &BinOp::Rem => { unimplemented!() },
+        &BinOp::Shl => { unimplemented!() },
+        &BinOp::Shr => { unimplemented!() },
+        &BinOp::BitOr => { unimplemented!() },
+        &BinOp::BitAnd => { unimplemented!() },
+        &BinOp::BitXor => { unimplemented!() },
+        &BinOp::Lt => { unimplemented!() },
+        &BinOp::Le => { unimplemented!() },
+        &BinOp::Gt => { unimplemented!() },
+        &BinOp::Ge => { unimplemented!() },
+        &BinOp::Eq => { unimplemented!() },
+        &BinOp::Ne => { unimplemented!() },
     }
 }
 
+// --------------------------------------------
+// FIXME: These functions below will eventually
+// be deprecated by the functions above.
+// --------------------------------------------
 
-/*
 /// Generates a version of wp "And"ed together with a conditional expression that mimics a check for overflow for the type of var.
 ///
 /// # Arguments:
@@ -247,4 +403,3 @@ pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
         )
     })
 }
-*/

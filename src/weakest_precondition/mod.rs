@@ -272,8 +272,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
             let op: BinaryOperator = match binop {
                 &BinOp::Add => {
                     // Add the overflow and underflow expression checks
-                    wp = overflow::add_overflow(&wp, &var);
-                    wp = overflow::add_underflow(&wp, &var);
+                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Addition
                 },
                 &BinOp::Sub => {
