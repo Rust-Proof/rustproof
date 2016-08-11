@@ -247,14 +247,14 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
             &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
                     "bool" => { return self.new_var(Some(&v.name), core::Sorts::Bool); },
-                    "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
-                    "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
-                    "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
-                    "i64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
-                    "u8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
-                    "u16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
-                    "u32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
-                    "u64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(128)); },
+                    "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
+                    "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
+                    "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
+                    "i64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)); },
+                    "u8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
+                    "u16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
+                    "u32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
+                    "u64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)); },
                     _ => { rp_error!("Invalid or Unsupported type for variable: \"{}\" : \"{}\"", v.name, v.var_type); },
                 }
             },
@@ -262,10 +262,10 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                 return self.new_const(core::OpCodes::Const(*b));
             },
             &Expression::UnsignedBitVector (ref u) => {
-                return bv_const!(self, u.value, 128 as usize);
+                return bv_const!(self, u.value, u.size as usize);
             },
             &Expression::SignedBitVector (ref s) => {
-                return bv_const!(self, s.value as u64, 128 as usize);
+                return bv_const!(self, s.value as u64, s.size as usize);
             }
         }
     }
