@@ -28,6 +28,10 @@ use libsmt::logics::lia;
 use petgraph::graph::NodeIndex;
 use std::process;
 
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
+
 use expression::*;
 
 // Now that we have a verification condition, we need to verify that it is always true.

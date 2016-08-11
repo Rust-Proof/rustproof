@@ -14,6 +14,42 @@ use log::{LogRecord, LogLevelFilter};
 use env_logger::LogBuilder;
 use term;
 
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
+
+// Warning maco
+macro_rules! rp_warn_test {
+    ($fmt:expr) => ({
+        let codemap = Rc::new(CodeMap::new());
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let str = format!(concat!($fmt, "\n"));
+        handler.warn(&str);
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        let codemap = Rc::new(CodeMap::new());
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let str = format!(concat!($fmt, "\n"), $($arg)*);
+        handler.warn(&str);
+    });
+}
+
+// Error maco
+macro_rules! rp_error_test {
+    ($fmt:expr) => ({
+        let codemap = Rc::new(CodeMap::new());
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let str = format!(concat!($fmt, "\n"));
+        handler.err(&str);
+    });
+    ($fmt:expr, $($arg:tt)*) => ({
+        let codemap = Rc::new(CodeMap::new());
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let str = format!(concat!($fmt, "\n"), $($arg)*);
+        handler.err(&str);
+    });
+}
+
 // The Warning Macro
 macro_rules! rp_warn {
     ($fmt:expr) => ({

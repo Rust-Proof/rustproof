@@ -1,0 +1,1 @@
+{"rustc":6491195480060987559,"target":12645209585860569398,"profile":15288148974678605576,"local":{"variant":"Precalculated","fields":["0ccf4ec748a51af6b777344a00c3cd9620ff9a43"]},"features":"None","deps":[["petgraph v0.2.7",13814734428902219527],["regex v0.1.73",9733291503743906710]],"rustflags":[]}

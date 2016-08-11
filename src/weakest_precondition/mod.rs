@@ -23,6 +23,10 @@ use rustc::ty::{Ty, TypeVariants};
 use std::rt::begin_panic_fmt;
 use term;
 
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
+
 mod overflow;
 
 /// Computes the weakest precondition for a given post-condition and series of statments over one or more BasicBlocks from MIR.
