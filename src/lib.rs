@@ -42,7 +42,6 @@
 const DEBUG: bool = true;
 
 // External crate imports
-extern crate env_logger;
 #[macro_use] extern crate libsmt;
 #[macro_use] extern crate log;
 extern crate petgraph;
@@ -51,12 +50,9 @@ extern crate rustc_plugin;
 extern crate rustc_data_structures;
 extern crate rustc_const_math;
 //extern crate syntax;
-extern crate term;
 extern crate rustc_errors as errors;
 
 // External imports
-use env_logger::LogBuilder;
-use log::{LogRecord, LogLevelFilter};
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_plugin::Registry;
 use rustc::mir::mir_map::MirMap;
@@ -95,10 +91,6 @@ mod tests;
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
-    // This initializes the Reporting Module to Add the environment to the logger
-    reporting::init();
-    rp_warn_test!("This is a test");
-
     let visitor = MirVisitor{};
 
     reg.register_mir_pass(Box::new(visitor));

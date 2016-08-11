@@ -21,7 +21,6 @@ use rustc_const_math::ConstInt;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::{Ty, TypeVariants};
 use std::rt::begin_panic_fmt;
-use term;
 
 use errors::{ColorConfig, Handler};
 use syntax::codemap::CodeMap;
@@ -225,7 +224,7 @@ pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
                     "u16" => { 16 },
                     "u32" => { 32 },
                     "u64" => { 64 },
-                    _ => { rp_error_test!("Unimplemented checkeddAdd right-hand operand type") }
+                    _ => { rp_error!("Unimplemented checkeddAdd right-hand operand type") }
                 },
                 value: 0
             }))
@@ -305,7 +304,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 },
                 &BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
                 &BinOp::Shr => { BinaryOperator::BitwiseRightShift },
-                _ => { rp_error_test!("Unsupported checked binary operation!"); }
+                _ => { rp_error!("Unsupported checked binary operation!"); }
             };
 
             var.name = var.name + ".0";
@@ -408,7 +407,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 },
                 // FIXME: Vectors are weird. let's not bother with them yet
                 // &AggregateKind::Vec => { unimplemented!() },
-                _ => { rp_error_test!("Unsupported aggregate: only tuples are supported"); }
+                _ => { rp_error!("Unsupported aggregate: only tuples are supported"); }
             }
         },
         // FIXME: need def

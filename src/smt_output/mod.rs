@@ -8,13 +8,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate term;
-
 use super::DEBUG;
 
 use std::convert::From;
 use std::fmt;
 use std::fmt::Debug;
+use std::process;
 
 use libsmt;
 use libsmt::backends::smtlib2::*;
@@ -26,7 +25,6 @@ use libsmt::logics::qf_abv;
 use libsmt::logics::lia::*;
 use libsmt::logics::lia;
 use petgraph::graph::NodeIndex;
-use std::process;
 
 use errors::{ColorConfig, Handler};
 use syntax::codemap::CodeMap;
@@ -259,7 +257,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     "u16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
                     "u32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
                     "u64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)); },
-                    _ => { rp_error_test!("Invalid or Unsupported type for variable: \"{}\" : \"{}\"", v.name, v.var_type); },
+                    _ => { rp_error!("Invalid or Unsupported type for variable: \"{}\" : \"{}\"", v.name, v.var_type); },
                 }
             },
             &Expression::BooleanLiteral (ref b) => {
