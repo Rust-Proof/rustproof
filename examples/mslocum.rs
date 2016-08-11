@@ -1,7 +1,7 @@
 #![feature(plugin, custom_attribute)]
 #![plugin(rustproof)]
 #![allow(dead_code)]
-
+#![allow(unused_attributes)]
 fn main() { }
 
 // * * *
