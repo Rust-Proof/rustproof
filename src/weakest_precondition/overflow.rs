@@ -210,116 +210,146 @@ fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 // Since these are honestly unreadable, we should probably have some sort of link to a github wiki
 // on what the logic is behind each.
 fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
-    let d = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::GreaterThanOrEqual,
-        left: Box::new(lvalue.clone()),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let e = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::LessThan,
-        left: Box::new(rvalue.clone()),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let c = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::And,
-        left: Box::new(d),
-        right: Box::new(e),
-    });
-    let g = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::Subtraction,
-        left: Box::new(lvalue.clone()),
-        right: Box::new(rvalue.clone()),
-    });
-    let f = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::GreaterThanOrEqual,
-        left: Box::new(g),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let b = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::Implication,
-        left: Box::new(c),
-        right: Box::new(f),
-    });
-    let j = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::LessThan,
-        left: Box::new(lvalue.clone()),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let k = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::GreaterThanOrEqual,
-        left: Box::new(rvalue.clone()),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let i = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::Or,
-        left: Box::new(j),
-        right: Box::new(k),
-    });
-
-    let n = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::LessThan,
-        left: Box::new(lvalue.clone()),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let o = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::GreaterThanOrEqual,
-        left: Box::new(rvalue.clone()),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let m = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::And,
-        left: Box::new(n),
-        right: Box::new(o),
-    });
-    let q = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::Subtraction,
-        left: Box::new(lvalue.clone()),
-        right: Box::new(rvalue.clone()),
-    });
-    let p = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::LessThan,
-        left: Box::new(q),
-        right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-            size: size,
-            value: 0i64,
-        })),
-    });
-    let l = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::Implication,
-        left: Box::new(m),
-        right: Box::new(p),
-    });
-    let h = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::Implication,
-        left: Box::new(i),
-        right: Box::new(l),
-    });
-
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
-        left: Box::new(b),
-        right: Box::new(h),
+        left: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Implication,
+                left: Box::new(
+                    Expression::BinaryExpression( BinaryExpressionData{
+                        op: BinaryOperator::And,
+                        left: Box::new(
+                            Expression::BinaryExpression( BinaryExpressionData{
+                                op: BinaryOperator::GreaterThanOrEqual,
+                                left: Box::new(lvalue.clone()),
+                                right: Box::new(
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: size,
+                                        value: 0i64,
+                                    })
+                                ),
+                            })
+                        ),
+                        right: Box::new(
+                            Expression::BinaryExpression( BinaryExpressionData{
+                                op: BinaryOperator::LessThan,
+                                left: Box::new(rvalue.clone()),
+                                right: Box::new(
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: size,
+                                        value: 0i64,
+                                    })
+                                ),
+                            })
+                        ),
+                    })
+                ),
+                right: Box::new(
+                    Expression::BinaryExpression( BinaryExpressionData{
+                        op: BinaryOperator::GreaterThanOrEqual,
+                        left: Box::new(
+                            Expression::BinaryExpression( BinaryExpressionData{
+                                op: BinaryOperator::Subtraction,
+                                left: Box::new(lvalue.clone()),
+                                right: Box::new(rvalue.clone()),
+                            })
+                        ),
+                        right: Box::new(
+                            Expression::SignedBitVector( SignedBitVectorData {
+                                size: size,
+                                value: 0i64,
+                            })
+                        ),
+                    })
+                ),
+            })
+        ),
+        right: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Implication,
+                left: Box::new(
+                    Expression::BinaryExpression( BinaryExpressionData{
+                        op: BinaryOperator::Or,
+                        left: Box::new(
+                            Expression::BinaryExpression( BinaryExpressionData{
+                                op: BinaryOperator::LessThan,
+                                left: Box::new(lvalue.clone()),
+                                right: Box::new(
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: size,
+                                        value: 0i64,
+                                    })
+                                ),
+                            })
+                        ),
+                        right: Box::new(
+                            Expression::BinaryExpression( BinaryExpressionData{
+                                op: BinaryOperator::GreaterThanOrEqual,
+                                left: Box::new(rvalue.clone()),
+                                right: Box::new(
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: size,
+                                        value: 0i64,
+                                    })
+                                ),
+                            })
+                        ),
+                    })
+                ),
+                right: Box::new(
+                    Expression::BinaryExpression( BinaryExpressionData{
+                        op: BinaryOperator::Implication,
+                        left: Box::new(
+                            Expression::BinaryExpression( BinaryExpressionData{
+                                op: BinaryOperator::And,
+                                left: Box::new(
+                                    Expression::BinaryExpression( BinaryExpressionData{
+                                        op: BinaryOperator::LessThan,
+                                        left: Box::new(lvalue.clone()),
+                                        right: Box::new(
+                                            Expression::SignedBitVector( SignedBitVectorData {
+                                                size: size,
+                                                value: 0i64,
+                                            })
+                                        ),
+                                    })
+                                ),
+                                right: Box::new(
+                                    Expression::BinaryExpression( BinaryExpressionData{
+                                        op: BinaryOperator::GreaterThanOrEqual,
+                                        left: Box::new(rvalue.clone()),
+                                        right: Box::new(
+                                            Expression::SignedBitVector( SignedBitVectorData {
+                                                size: size,
+                                                value: 0i64,
+                                            })
+                                        ),
+                                    })
+                                ),
+                            })
+                        ),
+                        right: Box::new(
+                            Expression::BinaryExpression( BinaryExpressionData{
+                                op: BinaryOperator::LessThan,
+                                left: Box::new(
+                                    Expression::BinaryExpression( BinaryExpressionData{
+                                        op: BinaryOperator::Subtraction,
+                                        left: Box::new(lvalue.clone()),
+                                        right: Box::new(rvalue.clone()),
+                                    })
+                                ),
+                                right: Box::new(
+                                    Expression::SignedBitVector( SignedBitVectorData {
+                                        size: size,
+                                        value: 0i64,
+                                    })
+                                ),
+                            })
+                        ),
+                    })
+                ),
+            })
+        ),
     })
 }
 
