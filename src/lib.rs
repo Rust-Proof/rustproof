@@ -37,7 +37,7 @@
 #[macro_use] pub mod reporting;
 
 // debug flag
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 // External crate imports
 extern crate env_logger;
@@ -147,28 +147,24 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             // Get the basic block data
             for index in 0..mir.basic_blocks().len() {
                 let block = BasicBlock::new(index);
-                dev_tools::print_type_of(&block);
                 data.block_data.push(&mir[block]);
             }
 
             // Get the function argument declarations
             for index in 0..mir.arg_decls.len() {
                 let arg = Arg::new(index);
-                dev_tools::print_type_of(&arg);
                 data.arg_data.push(&mir.arg_decls[arg]);
             }
 
             // Get the temp declarations
             for index in 0..mir.temp_decls.len() {
                 let temp = Temp::new(index);
-                dev_tools::print_type_of(&temp);
                 data.temp_data.push(&mir.temp_decls[temp]);
             }
 
             // Get the variable declarations
             for index in 0..mir.var_decls.len() {
                 let var = Var::new(index);
-                dev_tools::print_type_of(&var);
                 data.var_data.push(&mir.var_decls[var]);
             }
 
