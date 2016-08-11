@@ -37,7 +37,7 @@
 #[macro_use] pub mod reporting;
 
 // debug flag
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 // External crate imports
 extern crate env_logger;
@@ -194,7 +194,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             if DEBUG { println!("vc: {}\n", verification_condition); }
 
             // Output to SMT-LIB format
-            gen_smtlib(&verification_condition.clone());
+            gen_smtlib(&verification_condition.clone(), name);
         }
     }
 }
