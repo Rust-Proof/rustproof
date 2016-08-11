@@ -357,7 +357,7 @@ fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match binop {
         &BinOp::Add => { unsigned_add(size, lvalue, rvalue) },
-        &BinOp::Sub => { unsigned_add(size, lvalue, rvalue) },
+        &BinOp::Sub => { unsigned_sub(size, lvalue, rvalue) },
         &BinOp::Mul => { unimplemented!() },
         &BinOp::Div => { unimplemented!() },
         &BinOp::Rem => { unimplemented!() },
