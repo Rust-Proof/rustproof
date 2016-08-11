@@ -120,3 +120,13 @@ fn large_branch_literal_if_invalid() {
         assert!(1 < 0)
     }
 }
+
+// * * *
+// Boolean Tests
+// * * *
+
+// FIXME ERROR rustproof crashes
+//#[condition(pre="x:bool == true", post="true")]
+fn boolean_comparison_in_condition(x:bool) -> bool {
+    x
+}
