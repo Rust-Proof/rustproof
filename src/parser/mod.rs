@@ -30,12 +30,12 @@ pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: 
             if attribute_name == "condition" {
                 // Only accept if exactly 2 arguments
                 if args.len() != 2 {
-                    rp_error!("Condition attribute must have exactly 2 arguments.");
+                    rp_error_test!("Condition attribute must have exactly 2 arguments.");
                 }
                 // Parse the first argument
                 match args[0].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "pre" { rp_error!("The first argument must be \"pre\". {} was provided.", i_string); }
+                        if i_string != "pre" { rp_error_test!("The first argument must be \"pre\". {} was provided.", i_string); }
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
@@ -49,7 +49,7 @@ pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: 
                 // Parse the second argument
                 match args[1].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "post" { rp_error!("The second argument must be \"post\". {} was provided.", i_string); }
+                        if i_string != "post" { rp_error_test!("The second argument must be \"post\". {} was provided.", i_string); }
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
@@ -75,12 +75,12 @@ pub fn parse_condition(condition: &str) -> Expression {
                     return e;
                 },
                 Err(s) => {
-                    rp_error!("{}", s);
+                    rp_error_test!("{}", s);
                 }
             }
         },
         Err(e) => {
-            rp_error!("Error parsing condition \"{}\": {:?}", condition, e);
+            rp_error_test!("Error parsing condition \"{}\": {:?}", condition, e);
         }
     }
 }
