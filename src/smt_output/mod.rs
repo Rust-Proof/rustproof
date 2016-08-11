@@ -50,12 +50,12 @@ pub fn gen_smtlib (vc: &Expression, name: String) {
     match res {
         Ok(..) => {
             match check {
-                SMTRes::Sat(..) => { println!("\nfn {}(..)\tVerification Condition is not valid.\n{:?}", name, check); },
-                SMTRes::Unsat(..) => { println!("\nfn {}(..)\tVerification Condition is valid.\n{:?}", name, check); },
+                SMTRes::Sat(..) => { println!("\nfn {}(..)\tVerification Condition is not valid.\n", name); },
+                SMTRes::Unsat(..) => { println!("\nfn {}(..)\tVerification Condition is valid.\n", name); },
                 _ => { unimplemented!() }
             }
         },
-        Err(..) => { println!("\nfn {}(..)\tError in Verification Condition Generation.\n{:?}", name, check); },
+        Err(..) => { println!("\nfn {}(..)g\tError in Verification Condition Generation.\n", name); },
     }
 
     /*
