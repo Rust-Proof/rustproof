@@ -32,7 +32,7 @@ use expression::*;
 
 // Now that we have a verification condition, we need to verify that it is always true.
 // Simply satisfying P->WP isn't enough. We need to verify that !(P->WP) is *unsatisfiable*
-pub fn gen_smtlib (vc: &Expression) {
+pub fn gen_smtlib (vc: &Expression, name: String) {
     // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
 
@@ -50,12 +50,12 @@ pub fn gen_smtlib (vc: &Expression) {
     match res {
         Ok(..) => {
             match check {
-                SMTRes::Sat(..) => { println!("\nVerification Condition is not valid.\n{:?}", check); },
-                SMTRes::Unsat(..) => { println!("\nVerification Condition is valid.\n{:?}", check); },
+                SMTRes::Sat(..) => { println!("\nfn {}(..)\tVerification Condition is not valid.\n", name); },
+                SMTRes::Unsat(..) => { println!("\nfn {}(..)\tVerification Condition is valid.\n", name); },
                 _ => { unimplemented!() }
             }
         },
-        Err(..) => { println!("\nError in Verification Condition Generation.\n{:?}", check); }
+        Err(..) => { println!("\nfn {}(..)g\tError in Verification Condition Generation.\n", name); },
     }
 
     /*
