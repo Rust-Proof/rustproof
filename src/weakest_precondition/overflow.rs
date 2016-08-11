@@ -356,8 +356,8 @@ fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 // Unsigned: Match on the type of BinOp and call the correct function
 fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match binop {
-        &BinOp::Add => { unimplemented!() },
-        &BinOp::Sub => { unimplemented!() },
+        &BinOp::Add => { unsigned_add(size, lvalue, rvalue) },
+        &BinOp::Sub => { unsigned_sub(size, lvalue, rvalue) },
         &BinOp::Mul => { unimplemented!() },
         &BinOp::Div => { unimplemented!() },
         &BinOp::Rem => { unimplemented!() },
@@ -374,6 +374,41 @@ fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expr
         &BinOp::Ne => { unimplemented!() },
     }
 }
+
+// l + r >= l
+fn unsigned_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+    Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::GreaterThanOrEqual,
+        //l + r
+        left: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Addition,
+                left: Box::new(lvalue.clone()),
+                right: Box::new(rvalue.clone()),
+            })
+        ),
+        // l
+        right: Box::new(rvalue.clone()),
+    })
+}
+
+// l - r <= l
+fn unsigned_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+    Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::LessThanOrEqual,
+        //l - r
+        left: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Subtraction,
+                left: Box::new(lvalue.clone()),
+                right: Box::new(rvalue.clone()),
+            })
+        ),
+        // l
+        right: Box::new(rvalue.clone()),
+    })
+}
+
 
 // --------------------------------------------
 // FIXME: These functions below will eventually
