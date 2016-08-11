@@ -22,8 +22,7 @@ use term;
 
 // One catch-all function for overflow checking.
 pub fn overflow_check(wp: &Expression, var: &VariableMappingData, binop: &BinOp, lvalue: &Expression, rvalue: &Expression) -> Expression {
-    let mut v = var.clone();
-    v.name = v.name + ".0";
+    let v = var.clone();
 
     Expression::BinaryExpression( BinaryExpressionData {
         op: BinaryOperator::And,
@@ -250,8 +249,8 @@ fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expr
 /// * WARNING: If var.clone() does not happen, it will break tuple support within the current code
 ///
 pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
-    let mut v = var.clone();
-    v.name = v.name + ".0";
+    let v = var.clone();
+
     // "And" together the current wp to the overflowcheck
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
@@ -335,8 +334,8 @@ pub fn add_overflow(wp: &Expression, var: &VariableMappingData) -> Expression {
 /// * WARNING: If var.clone() does not happen, it will break tuple support within the current code
 ///
 pub fn add_underflow(wp: &Expression, var: &VariableMappingData) -> Expression {
-    let mut v = var.clone();
-    v.name = v.name + ".0";
+    let v = var.clone();
+
     // "And" together the current wp to the underflow check
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
