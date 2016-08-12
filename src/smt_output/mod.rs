@@ -261,7 +261,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
             },
             &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
-                    "bool" => { return self.new_var(Some(&v.name), core::Sorts::Bool); },
+                    "bool" => { return self.new_var(Some(&v.name), bitvec::Sorts::Bool); },
                     "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
                     "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
                     "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
