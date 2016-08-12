@@ -49,7 +49,7 @@ fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expres
         &BinOp::Add => { signed_add(size, lvalue, rvalue) },
         &BinOp::Mul => { signed_mul(size, lvalue, rvalue) },
         &BinOp::Sub => { signed_sub(size, lvalue, rvalue) },
-        &BinOp::Div => { unimplemented!() },
+        &BinOp::Div => { signed_div(size, lvalue, rvalue) },
         &BinOp::Rem => { unimplemented!() },
         &BinOp::Shl => { unimplemented!() },
         &BinOp::Shr => { unimplemented!() },
@@ -408,6 +408,69 @@ fn signed_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
         op: BinaryOperator::And,
         left: Box::new(overflow),
         right: Box::new(underflow),
+    })
+}
+
+fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+    let condition = Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::And,
+        left: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Equal,
+                left: Box::new(lvalue.clone()),
+                right: Box::new(
+                    Expression::SignedBitVector( SignedBitVectorData{
+                        size: size,
+                        value: match size {
+                            8u8 => { i8::min_value() as i64 },
+                            16u8 => { i16::min_value() as i64 },
+                            32u8 => { i32::min_value() as i64 },
+                            64u8 => { i64::min_value() as i64 },
+                            _ => { panic!("unsupported integer type") },
+                        },
+                    })
+                ),
+            })
+        ),
+        right: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Equal,
+                left: Box::new(rvalue.clone()),
+                right: Box::new(
+                    Expression::SignedBitVector( SignedBitVectorData{
+                        size: size,
+                        value: -1i64,
+                    })
+                )
+            })
+        ),
+    });
+
+    Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::And,
+        left: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Implication,
+                left: Box::new(condition.clone()),
+                right: Box::new(
+                    Expression::BooleanLiteral(true)
+                ),
+            })
+        ),
+        right: Box::new(
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::Implication,
+                left: Box::new(
+                    Expression::UnaryExpression( UnaryExpressionData{
+                        op: UnaryOperator::Not,
+                        e: Box::new(condition.clone()),
+                    })
+                ),
+                right: Box::new(
+                    Expression::BooleanLiteral(false)
+                ),
+            })
+        ),
     })
 }
 
