@@ -453,7 +453,7 @@ fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
                 op: BinaryOperator::Implication,
                 left: Box::new(condition.clone()),
                 right: Box::new(
-                    Expression::BooleanLiteral(true)
+                    Expression::BooleanLiteral(false)
                 ),
             })
         ),
@@ -467,7 +467,7 @@ fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
                     })
                 ),
                 right: Box::new(
-                    Expression::BooleanLiteral(false)
+                    Expression::BooleanLiteral(true)
                 ),
             })
         ),
