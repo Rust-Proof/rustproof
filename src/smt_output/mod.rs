@@ -40,7 +40,7 @@ pub fn gen_smtlib (vc: &Expression, name: String) {
     let mut solver = SMTLib2::new(Some(QF_ABV));
 
     // Apply logic to Z3 instance
-    solver.set_logic(&mut z3);
+    // solver.set_logic(&mut z3);
 
     // Check the satisfiability of the solver
     let vcon = solver.expr2smtlib(&vc);
@@ -123,6 +123,21 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         } else {
                             return self.assert(bitvec::OpCodes::BvURem, &[l,r]);
                         }
+                    },
+                    BinaryOperator::SignedMultiplicationDoesOverflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSMulDoesOverflow, &[l,r]);
+                    },
+                    BinaryOperator::SignedMultiplicationDoesUnderflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSMulDoesUnderflow, &[l,r]);
+                    },
+                    BinaryOperator::UnsignedMultiplicationDoesOverflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvUMulDoesOverflow, &[l,r]);
                     },
                     BinaryOperator::BitwiseOr => {
                         let l = self.expr2smtlib(b.left.as_ref());
