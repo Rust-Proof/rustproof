@@ -125,14 +125,40 @@ fn large_branch_literal_if_invalid() {
 // Boolean Tests
 // * * *
 
-// FIXME ERROR rustproof crashes
-//#[condition(pre="x:bool == true", post="true")]
-fn boolean_comparison_in_condition(x:bool) -> bool {
+// Should be valid
+#[condition(pre="x:bool == true", post="true")]
+fn boolean_comparison_in_condition_valid(x:bool) -> bool {
+    x
+}
+
+// Should be invalid
+#[condition(pre="x:bool == true", post="false")]
+fn boolean_comparison_in_condition_invalid(x:bool) -> bool {
     x
 }
 
 // Should be valid
-//#[condition(pre="true", post="return:bool == true")]
+#[condition(pre="true", post="return:bool == true")]
 fn simple_bool_valid(x:bool) -> bool {
     x || true
+}
+
+// Should be valid
+#[condition(pre="x:bool == true", post="return:bool == true")]
+fn boolean_condition_valid(x:bool) -> bool {
+    if x {
+        true
+    } else {
+        false
+    }
+}
+
+// Should be invalid
+#[condition(pre="x:bool == false", post="return:bool == true")]
+fn boolean_condition_invalid(x:bool) -> bool {
+    if x {
+        true
+    } else {
+        false
+    }
 }
