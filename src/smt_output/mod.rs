@@ -40,7 +40,7 @@ pub fn gen_smtlib (vc: &Expression, name: String) {
     let mut solver = SMTLib2::new(Some(QF_ABV));
 
     // Apply logic to Z3 instance
-    solver.set_logic(&mut z3);
+//    solver.set_logic(&mut z3);
 
     // Check the satisfiability of the solver
     let vcon = solver.expr2smtlib(&vc);
@@ -246,7 +246,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
             },
             &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
-                    "bool" => { return self.new_var(Some(&v.name), core::Sorts::Bool); },
+                    "bool" => { return self.new_var(Some(&v.name), bitvec::Sorts::Bool); },
                     "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
                     "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
                     "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
