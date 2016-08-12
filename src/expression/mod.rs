@@ -109,9 +109,9 @@ pub enum BinaryOperator {
     Division,
     Modulo,
     // Overflow operators
-    SignedMultiplicationDoesOverflow,
-    SignedMultiplicationDoesUnderflow,
-    UnsignedMultiplicationDoesOverflow,
+    SignedMultiplicationDoesNotOverflow,
+    SignedMultiplicationDoesNotUnderflow,
+    UnsignedMultiplicationDoesNotOverflow,
     // Bitwise operators
     BitwiseOr,
     BitwiseAnd,
@@ -141,9 +141,9 @@ impl fmt::Display for BinaryOperator {
             &BinaryOperator::Multiplication => { write!(f, "*") },
             &BinaryOperator::Division => { write!(f, "/") },
             &BinaryOperator::Modulo => { write!(f, "%") },
-            &BinaryOperator::SignedMultiplicationDoesOverflow => { write!(f, "smulovfl") },
-            &BinaryOperator::SignedMultiplicationDoesUnderflow => { write!(f, "smuluvfl") },
-            &BinaryOperator::UnsignedMultiplicationDoesOverflow => { write!(f, "umulovfl") },
+            &BinaryOperator::SignedMultiplicationDoesNotOverflow => { write!(f, "s_mul_no_overflow") },
+            &BinaryOperator::SignedMultiplicationDoesNotUnderflow => { write!(f, "s_mul_no_underflow") },
+            &BinaryOperator::UnsignedMultiplicationDoesNotOverflow => { write!(f, "u_mul_no_overflow") },
             &BinaryOperator::BitwiseOr => { write!(f, "|") },
             &BinaryOperator::BitwiseAnd => { write!(f, "&") },
             &BinaryOperator::BitwiseXor => { write!(f, "^") },
@@ -220,8 +220,8 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                 &Expression::BinaryExpression(ref b) => {
                     match b.op {
                         BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication
-                        | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::SignedMultiplicationDoesOverflow
-                        | BinaryOperator::SignedMultiplicationDoesUnderflow | BinaryOperator::UnsignedMultiplicationDoesOverflow => {
+                        | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::SignedMultiplicationDoesNotOverflow
+                        | BinaryOperator::SignedMultiplicationDoesNotUnderflow | BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
                             let l_type: String = determine_evaluation_type(&*b.left);
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operands are numeric types
@@ -382,8 +382,8 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
         &Expression::BinaryExpression(ref b) => {
             match b.op {
                 BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication
-                | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::SignedMultiplicationDoesOverflow
-                | BinaryOperator::SignedMultiplicationDoesUnderflow | BinaryOperator::UnsignedMultiplicationDoesOverflow => {
+                | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::SignedMultiplicationDoesNotOverflow
+                | BinaryOperator::SignedMultiplicationDoesNotUnderflow | BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
                     match ty_check(&*b.left) {
                         Ok(_) => {
                             match ty_check(&*b.right) {

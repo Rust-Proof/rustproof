@@ -287,8 +287,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 },
                 &BinOp::Div => {
                     // Add the overflow and underflow expression checks
-                    wp = overflow::add_overflow(&wp, &var);
-                    wp = overflow::add_underflow(&wp, &var);
+                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
@@ -334,8 +333,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 },
                 &BinOp::Div => {
                     // Add the overflow and underflow expression checks
-                    wp = overflow::add_overflow(&wp, &var);
-                    wp = overflow::add_underflow(&wp, &var);
+                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     // add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division

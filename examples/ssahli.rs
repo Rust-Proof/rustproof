@@ -11,7 +11,7 @@ fn main() {
 */
 fn main() {}
 // This is acceptable: it is placed over a function
-#[condition(pre="x:i32 == 1:i32", post="return:i32 == (x:i32 * 5:i32)")]
+#[condition(pre="x:i32 == 25:i32", post="return:i32 == (x:i32 / 5:i32)")]
 fn add_five_or_three(x: i32) -> i32 {
-    x * 5
+    x / 5
 }

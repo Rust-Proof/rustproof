@@ -124,17 +124,17 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                             return self.assert(bitvec::OpCodes::BvURem, &[l,r]);
                         }
                     },
-                    BinaryOperator::SignedMultiplicationDoesOverflow => {
+                    BinaryOperator::SignedMultiplicationDoesNotOverflow => {
                         let l = self.expr2smtlib(b.left.as_ref());
                         let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvSMulDoesOverflow, &[l,r]);
                     },
-                    BinaryOperator::SignedMultiplicationDoesUnderflow => {
+                    BinaryOperator::SignedMultiplicationDoesNotUnderflow => {
                         let l = self.expr2smtlib(b.left.as_ref());
                         let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvSMulDoesUnderflow, &[l,r]);
                     },
-                    BinaryOperator::UnsignedMultiplicationDoesOverflow => {
+                    BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
                         let l = self.expr2smtlib(b.left.as_ref());
                         let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvUMulDoesOverflow, &[l,r]);
