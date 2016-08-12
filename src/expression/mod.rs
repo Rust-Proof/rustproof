@@ -108,6 +108,10 @@ pub enum BinaryOperator {
     Multiplication,
     Division,
     Modulo,
+    // Overflow operators
+    SignedMultiplicationDoesOverflow,
+    SignedMultiplicationDoesUnderflow,
+    UnsignedMultiplicationDoesOverflow,
     // Bitwise operators
     BitwiseOr,
     BitwiseAnd,
@@ -137,6 +141,9 @@ impl fmt::Display for BinaryOperator {
             &BinaryOperator::Multiplication => { write!(f, "*") },
             &BinaryOperator::Division => { write!(f, "/") },
             &BinaryOperator::Modulo => { write!(f, "%") },
+            &BinaryOperator::SignedMultiplicationDoesOverflow => { write!(f, "smulovfl") },
+            &BinaryOperator::SignedMultiplicationDoesUnderflow => { write!(f, "smuluvfl") },
+            &BinaryOperator::UnsignedMultiplicationDoesOverflow => { write!(f, "umulovfl") },
             &BinaryOperator::BitwiseOr => { write!(f, "|") },
             &BinaryOperator::BitwiseAnd => { write!(f, "&") },
             &BinaryOperator::BitwiseXor => { write!(f, "^") },
@@ -212,7 +219,9 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
             match expression {
                 &Expression::BinaryExpression(ref b) => {
                     match b.op {
-                        BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication | BinaryOperator::Division | BinaryOperator::Modulo => {
+                        BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication
+                        | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::SignedMultiplicationDoesOverflow
+                        | BinaryOperator::SignedMultiplicationDoesUnderflow | BinaryOperator::UnsignedMultiplicationDoesOverflow => {
                             let l_type: String = determine_evaluation_type(&*b.left);
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operands are numeric types
@@ -367,12 +376,14 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
     }
 }
 
-// Recurses through an Expression and returns Ok(true) if all the types seem valid; returns Err(some message) if a type seems invalid. 
+// Recurses through an Expression and returns Ok(true) if all the types seem valid; returns Err(some message) if a type seems invalid.
 pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
     match expression {
         &Expression::BinaryExpression(ref b) => {
             match b.op {
-                BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication | BinaryOperator::Division | BinaryOperator::Modulo => {
+                BinaryOperator::Addition | BinaryOperator::Subtraction | BinaryOperator::Multiplication
+                | BinaryOperator::Division | BinaryOperator::Modulo | BinaryOperator::SignedMultiplicationDoesOverflow
+                | BinaryOperator::SignedMultiplicationDoesUnderflow | BinaryOperator::UnsignedMultiplicationDoesOverflow => {
                     match ty_check(&*b.left) {
                         Ok(_) => {
                             match ty_check(&*b.right) {

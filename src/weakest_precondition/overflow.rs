@@ -47,8 +47,8 @@ pub fn overflow_check(wp: &Expression, var: &VariableMappingData, binop: &BinOp,
 fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match binop {
         &BinOp::Add => { signed_add(size, lvalue, rvalue) },
+        &BinOp::Mul => { signed_mul(size, lvalue, rvalue) },
         &BinOp::Sub => { signed_sub(size, lvalue, rvalue) },
-        &BinOp::Mul => { unimplemented!() },
         &BinOp::Div => { unimplemented!() },
         &BinOp::Rem => { unimplemented!() },
         &BinOp::Shl => { unimplemented!() },
@@ -70,7 +70,7 @@ fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expres
 // The following psuedocode provides a logically equivalent version of what is produced
 // (false is returned if overflow/underflow has occurred, true otherwise)
 //
-// If lvalue >= 0 && rvalue >= 0 
+// If lvalue >= 0 && rvalue >= 0
 //   If lvalue + rvalue < 0
 //     false
 //   Else
@@ -233,7 +233,7 @@ fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 // The following psuedocode provides a logically equivalent version of what is produced
 // (false is returned if overflow/underflow has occurred, true otherwise)
 //
-// If lvalue >= 0 && rvalue < 0 
+// If lvalue >= 0 && rvalue < 0
 //   If lvalue - rvalue < 0
 //     false
 //   Else
@@ -391,12 +391,32 @@ fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
     })
 }
 
+fn signed_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+    let overflow: Expression = Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::SignedMultiplicationDoesOverflow,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(rvalue.clone()),
+    });
+
+    let underflow: Expression = Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::SignedMultiplicationDoesUnderflow,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(rvalue.clone()),
+    });
+
+    Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::And,
+        left: Box::new(overflow),
+        right: Box::new(underflow),
+    })
+}
+
 // Unsigned: Match on the type of BinOp and call the correct function
 fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match binop {
         &BinOp::Add => { unsigned_add(size, lvalue, rvalue) },
         &BinOp::Sub => { unsigned_sub(size, lvalue, rvalue) },
-        &BinOp::Mul => { unimplemented!() },
+        &BinOp::Mul => { unsigned_mul(size, lvalue, rvalue) },
         &BinOp::Div => { unimplemented!() },
         &BinOp::Rem => { unimplemented!() },
         &BinOp::Shl => { unimplemented!() },
@@ -411,6 +431,14 @@ fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expr
         &BinOp::Eq => { unimplemented!() },
         &BinOp::Ne => { unimplemented!() },
     }
+}
+
+fn unsigned_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+    Expression::BinaryExpression( BinaryExpressionData{
+        op: BinaryOperator::UnsignedMultiplicationDoesOverflow,
+        left: Box::new(lvalue.clone()),
+        right: Box::new(rvalue.clone()),
+    })
 }
 
 // l + r >= l
