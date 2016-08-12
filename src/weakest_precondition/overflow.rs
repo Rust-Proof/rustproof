@@ -393,13 +393,13 @@ fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 
 fn signed_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     let overflow: Expression = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::SignedMultiplicationDoesOverflow,
+        op: BinaryOperator::SignedMultiplicationDoesNotOverflow,
         left: Box::new(lvalue.clone()),
         right: Box::new(rvalue.clone()),
     });
 
     let underflow: Expression = Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::SignedMultiplicationDoesUnderflow,
+        op: BinaryOperator::SignedMultiplicationDoesNotUnderflow,
         left: Box::new(lvalue.clone()),
         right: Box::new(rvalue.clone()),
     });
@@ -498,7 +498,7 @@ fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expr
 
 fn unsigned_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::UnsignedMultiplicationDoesOverflow,
+        op: BinaryOperator::UnsignedMultiplicationDoesNotOverflow,
         left: Box::new(lvalue.clone()),
         right: Box::new(rvalue.clone()),
     })
