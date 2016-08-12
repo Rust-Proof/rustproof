@@ -277,15 +277,12 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 },
                 &BinOp::Sub => {
                     // Add the overflow and underflow expression checks
-                    wp = overflow::add_overflow(&wp, &var);
-                    wp = overflow::add_underflow(&wp, &var);
+                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Subtraction
                 },
                 &BinOp::Mul => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
-                    //wp = overflow::add_overflow(&wp, &var);
-                    //wp = overflow::add_underflow(&wp, &var);
                     BinaryOperator::Multiplication
                 },
                 &BinOp::Div => {
@@ -327,14 +324,12 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 },
                 &BinOp::Sub => {
                     // Add the overflow and underflow expression checks
-                    wp = overflow::add_overflow(&wp, &var);
-                    wp = overflow::add_underflow(&wp, &var);
+                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Subtraction
                 },
                 &BinOp::Mul => {
                     // Add the overflow and underflow expression checks
-                    wp = overflow::add_overflow(&wp, &var);
-                    wp = overflow::add_underflow(&wp, &var);
+                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Multiplication
                 },
                 &BinOp::Div => {

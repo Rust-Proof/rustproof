@@ -30,7 +30,7 @@ fn add_five_i64_invalid(x: i64) -> i64 {
 }
 
 // Tests signed integer overflow for 64 bit integers
-// Should be invalid
+// Should be valid
 #[condition(pre="(x: i64 <= i64::MAX - 5:i64) && (x: i64 >= i64::MIN + 5:i64)", post="return: i64 == (x: i64 +5:i64)")]
 fn add_five_i64_valid(x: i64) -> i64 {
     x+5
@@ -119,4 +119,20 @@ fn large_branch_literal_if_invalid() {
     } else {
         assert!(1 < 0)
     }
+}
+
+// * * *
+// Boolean Tests
+// * * *
+
+// FIXME ERROR rustproof crashes
+//#[condition(pre="x:bool == true", post="true")]
+fn boolean_comparison_in_condition(x:bool) -> bool {
+    x
+}
+
+// Should be valid
+//#[condition(pre="true", post="return:bool == true")]
+fn simple_bool_valid(x:bool) -> bool {
+    x || true
 }
