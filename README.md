@@ -8,11 +8,11 @@ Rustproof is a compiler plugin for the Rust programming language. It generates v
 
 * `rustc 1.12.0-nightly (0ef24eed2 2016-08-10)` or later.
 
-It is possible later versions of the rust compiler will deprecate the MIR pass used by rustproof. If rustproof wont compile use the nightly above.
+It is possible later versions of the rust compiler will deprecate the MIR pass used by rustproof. If rustproof won't compile use the nightly above.
 
 * [z3](https://github.com/Z3Prover/z3)
 
-Your installation of Z3 needs to be in your PATH for rustproof to work.
+Your installation of z3 needs to be in your PATH for rustproof to work.
 
 ## Supported Rust Language Features
 
@@ -22,9 +22,12 @@ Your installation of Z3 needs to be in your PATH for rustproof to work.
 ## Usage
 
 Rustproof uses a function attribute `condition` to allow declaring pre/postcondition.
+
 The attribute is supplied as:
 `#[condition(pre=" ", post=" ")]`
+
 See [USAGE](https://github.com/Rust-Proof/rustproof/blob/master/USAGE.md) for a detailed explanation of the attribute system.
+
 See [EXAMPLES](https://github.com/Rust-Proof/rustproof/blob/master/EXAMPLES.md) for example functions with condition attributes.
 
 
