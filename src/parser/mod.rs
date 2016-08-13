@@ -13,7 +13,7 @@ extern crate syntax;
 mod expression_parser;
 
 use syntax::ast::{MetaItemKind, Attribute_};
-use syntax::codemap::{Spanned, Handler};
+use syntax::codemap::{Spanned, CodeMap};
 use expression::{Expression, ty_check};
 use std::process;
 use std::rc::Rc;
