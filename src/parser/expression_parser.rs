@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 use std::str::FromStr;
-use expression::{Expression, BinaryExpressionData, UnaryExpressionData, VariableMappingData, UnsignedBitVectorData, SignedBitVectorData, BinaryOperator, UnaryOperator};
+use expression::*;
 extern crate lalrpop_util as __lalrpop_util;
 use self::__lalrpop_util::ParseError as __ParseError;
 
@@ -9,7 +9,7 @@ mod __parse__E1 {
     #![allow(non_snake_case, non_camel_case_types, unused_mut, unused_variables, unused_imports)]
 
     use std::str::FromStr;
-    use expression::{Expression, BinaryExpressionData, UnaryExpressionData, VariableMappingData, UnsignedBitVectorData, SignedBitVectorData, BinaryOperator, UnaryOperator};
+    use expression::*;
     extern crate lalrpop_util as __lalrpop_util;
     use self::__lalrpop_util::ParseError as __ParseError;
     pub fn parse_E1<
@@ -16915,7 +16915,9 @@ pub fn __action1<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action2<
@@ -16937,7 +16939,9 @@ pub fn __action3<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action4<
@@ -16959,7 +16963,9 @@ pub fn __action5<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action6<
@@ -16981,7 +16987,9 @@ pub fn __action7<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action8<
@@ -17003,7 +17011,9 @@ pub fn __action9<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action10<
@@ -17025,7 +17035,9 @@ pub fn __action11<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action12<
@@ -17047,7 +17059,9 @@ pub fn __action13<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action14<
@@ -17069,7 +17083,9 @@ pub fn __action15<
     (_, right, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } )
+    Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } )
 }
 
 pub fn __action16<
@@ -17090,7 +17106,9 @@ pub fn __action17<
     (_, e, _): (usize, Expression, usize),
 ) -> Expression
 {
-    Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } )
+    Expression::UnaryExpression( UnaryExpressionData {
+        op: op, e: Box::new(e)
+    } )
 }
 
 pub fn __action18<
@@ -17704,7 +17722,9 @@ pub fn __action73<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i8::max_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::max_value() as i64
+    } )
 }
 
 pub fn __action74<
@@ -17714,7 +17734,9 @@ pub fn __action74<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i16::max_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::max_value() as i64
+    } )
 }
 
 pub fn __action75<
@@ -17724,7 +17746,9 @@ pub fn __action75<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i32::max_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::max_value() as i64
+    } )
 }
 
 pub fn __action76<
@@ -17734,7 +17758,9 @@ pub fn __action76<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::max_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::max_value() as i64
+    } )
 }
 
 pub fn __action77<
@@ -17744,7 +17770,9 @@ pub fn __action77<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i8::min_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::min_value() as i64
+    } )
 }
 
 pub fn __action78<
@@ -17754,7 +17782,9 @@ pub fn __action78<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i16::min_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::min_value() as i64
+    } )
 }
 
 pub fn __action79<
@@ -17764,7 +17794,9 @@ pub fn __action79<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i32::min_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::min_value() as i64
+    } )
 }
 
 pub fn __action80<
@@ -17774,7 +17806,9 @@ pub fn __action80<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::min_value() as i64 } )
+    Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::min_value() as i64
+    } )
 }
 
 pub fn __action81<
@@ -17784,7 +17818,9 @@ pub fn __action81<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u8::max_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 8, value: u8::max_value() as u64
+    } )
 }
 
 pub fn __action82<
@@ -17794,7 +17830,9 @@ pub fn __action82<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u16::max_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 16, value: u16::max_value() as u64
+    } )
 }
 
 pub fn __action83<
@@ -17804,7 +17842,9 @@ pub fn __action83<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u32::max_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 32, value: u32::max_value() as u64
+    } )
 }
 
 pub fn __action84<
@@ -17814,7 +17854,9 @@ pub fn __action84<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::max_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 64, value: u64::max_value() as u64
+    } )
 }
 
 pub fn __action85<
@@ -17824,7 +17866,9 @@ pub fn __action85<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u8::min_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 8, value: u8::min_value() as u64
+    } )
 }
 
 pub fn __action86<
@@ -17834,7 +17878,9 @@ pub fn __action86<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u16::min_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 16, value: u16::min_value() as u64
+    } )
 }
 
 pub fn __action87<
@@ -17844,7 +17890,9 @@ pub fn __action87<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u32::min_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 32, value: u32::min_value() as u64
+    } )
 }
 
 pub fn __action88<
@@ -17854,7 +17902,9 @@ pub fn __action88<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Expression
 {
-    Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::min_value() as u64 } )
+    Expression::UnsignedBitVector( UnsignedBitVectorData {
+    size: 64, value: u64::min_value() as u64
+    } )
 }
 
 pub trait __ToTriple<'input, > {

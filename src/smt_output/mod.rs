@@ -8,25 +8,21 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate term;
-
 use super::DEBUG;
 
-use std::convert::From;
-use std::fmt;
 use std::fmt::Debug;
+use std::process;
 
-use libsmt;
 use libsmt::backends::smtlib2::*;
 use libsmt::backends::backend::*;
 use libsmt::backends::z3;
-use libsmt::theories::{array_ex, bitvec, core};
+use libsmt::theories::{bitvec, core};
 use libsmt::logics::qf_abv::*;
-use libsmt::logics::qf_abv;
-use libsmt::logics::lia::*;
-use libsmt::logics::lia;
 use petgraph::graph::NodeIndex;
-use std::process;
+
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
 
 use expression::*;
 
@@ -40,7 +36,7 @@ pub fn gen_smtlib (vc: &Expression, name: String) {
     let mut solver = SMTLib2::new(Some(QF_ABV));
 
     // Apply logic to Z3 instance
-    solver.set_logic(&mut z3);
+    // solver.set_logic(&mut z3);
 
     // Check the satisfiability of the solver
     let vcon = solver.expr2smtlib(&vc);
@@ -123,6 +119,21 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         } else {
                             return self.assert(bitvec::OpCodes::BvURem, &[l,r]);
                         }
+                    },
+                    BinaryOperator::SignedMultiplicationDoesNotOverflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSMulDoesNotOverflow, &[l,r]);
+                    },
+                    BinaryOperator::SignedMultiplicationDoesNotUnderflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSMulDoesNotUnderflow, &[l,r]);
+                    },
+                    BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvUMulDoesNotOverflow, &[l,r]);
                     },
                     BinaryOperator::BitwiseOr => {
                         let l = self.expr2smtlib(b.left.as_ref());
@@ -246,7 +257,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
             },
             &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
-                    "bool" => { return self.new_var(Some(&v.name), core::Sorts::Bool); },
+                    "bool" => { return self.new_var(Some(&v.name), bitvec::Sorts::Bool); },
                     "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
                     "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
                     "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },

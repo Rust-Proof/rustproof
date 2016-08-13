@@ -23,24 +23,18 @@
 //     - Unused attribute warnings since we aren't using register_syntax_extension
 //          internals.rust-lang.org / users.rust-lang.org
 //     - String to expression //libsyntax as parser / parse_exper_from_source_str
-//
+
+#![feature(rustc_private)]
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
-// FIXME: useful for development, delete when project is "complete"
-#![allow(unused_variables)]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-#![feature(core_intrinsics)]
-#![feature(libstd_sys_internals)]
 
+#[macro_use] pub extern crate syntax;
 #[macro_use] pub mod reporting;
 
 // debug flag
 const DEBUG: bool = true;
 
 // External crate imports
-extern crate env_logger;
 #[macro_use] extern crate libsmt;
 #[macro_use] extern crate log;
 extern crate petgraph;
@@ -48,25 +42,18 @@ extern crate rustc;
 extern crate rustc_plugin;
 extern crate rustc_data_structures;
 extern crate rustc_const_math;
-extern crate syntax;
-extern crate term;
+//extern crate syntax;
+extern crate rustc_errors as errors;
 
 // External imports
-use env_logger::LogBuilder;
-use log::{LogRecord, LogLevelFilter};
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_plugin::Registry;
-use rustc::mir::mir_map::MirMap;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, Arg, Temp, Var, ArgDecl, TempDecl, VarDecl};
-use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
-use rustc::mir::visit::Visitor;
+use rustc::mir::transform::{Pass, MirPass, MirSource};
 use rustc::ty::{TyCtxt, FnOutput};
-use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
-use syntax::codemap::Span;
-use syntax::ext::base::{ExtCtxt, Annotatable};
-use syntax::ext::base::SyntaxExtension::MultiDecorator;
-use syntax::parse::token::intern;
-use syntax::ptr::P;
+//  use errors::{ColorConfig, Handler};
+//  use syntax::codemap::CodeMap;
+//  use std::rc::Rc;
 
 // Local imports
 use expression::{Expression, BinaryOperator, BinaryExpressionData};
@@ -75,11 +62,10 @@ use smt_output::*;
 use weakest_precondition::*;
 
 // These are our modules
-pub mod expression;
-pub mod parser;
-pub mod smt_output;
-pub mod weakest_precondition;
-pub mod dev_tools; // FIXME: For debugging information, delete when project is "complete"
+mod expression;
+mod parser;
+mod smt_output;
+mod weakest_precondition;
 #[cfg(test)]
 mod tests;
 
@@ -88,9 +74,6 @@ mod tests;
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
-	// This initializes the Reporting Module to Add the environment to the logger
-	reporting::init();
-
     let visitor = MirVisitor{};
 
     reg.register_mir_pass(Box::new(visitor));
@@ -115,8 +98,8 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         // Clear the stored attributes in the builder
         let mut pre_string = "".to_string();
         let mut post_string = "".to_string();
-        let mut pre_expr = None;
-        let mut post_expr = None;
+        let pre_expr;
+        let post_expr;
 
         // Store relevant data
         let item_id = src.item_id();
