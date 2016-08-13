@@ -12,7 +12,7 @@ foo() { ... }
 Pre- and postconditions are made of boolean logical expressions. These expressions are composed of operands and operators. When all is said and done, the expressions should resolve to a boolean value.
 
 ## Operands
-Currently Rustproof will accept boolean literals (true, false), rust integer types (u8, i64, isize, etc.), and variables of either of those types. Variables are named just like Rust identifiers. Expressions can also be operands, if they resolve to the correct type. 
+Currently Rustproof will accept boolean literals (true, false), rust integer types (u8, i64, isize, etc.), and variables of either of those types. Variables are named just like Rust identifiers. Expressions can also be operands, if they resolve to the correct type.
 You must identify the type of your object with Rust-like syntax (except for "true" or "false"). Casting is not supported.
 In the precondition, the user can only reference variables that are arguments to the function in question. In the postcondition, only the returned value can be referenced, as a special variable called "return".
 
@@ -66,3 +66,5 @@ x: i32 > 5: i32
 (y: u64 <= b: u64) OR ((b: u64 + 4: u64) > 8: u64)
 return: bool AND (!false)
 ```
+
+See [EXAMPLES](https://github.com/Rust-Proof/rustproof/blob/master/EXAMPLES.md) for example functions with condition attributes.
