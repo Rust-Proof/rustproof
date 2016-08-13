@@ -42,7 +42,7 @@ fn demo_ssahli_demo() {
 #[test]
 fn test_many_instances(){
 
-    //let mut flag = true;
+    // Flag checker to make sure it works
     let mut checker = true;
 
     let output = Command::new("cargo")
@@ -55,7 +55,6 @@ fn test_many_instances(){
     let stdout_result = String::from_utf8_lossy(&output.stdout);
     let split = stdout_result.split("\n\n");
     for s in split{
-        //println!("Is this string empty? {:?}", s.is_empty());
         if s.is_empty() == false {
             println!("{:?}", s);
             println!("Starts boolean: {:?}", s.ends_with("not valid."));
