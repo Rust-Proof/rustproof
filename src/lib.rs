@@ -27,7 +27,6 @@
 #![feature(rustc_private)]
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
-#![feature(core_intrinsics)]
 
 #[macro_use] pub extern crate syntax;
 #[macro_use] pub mod reporting;
@@ -67,7 +66,6 @@ mod expression;
 mod parser;
 mod smt_output;
 mod weakest_precondition;
-mod dev_tools; // FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
 mod tests;
 

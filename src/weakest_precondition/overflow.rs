@@ -18,7 +18,12 @@ use rustc::mir::repr::*;
 //  use std::rc::Rc;
 
 // One catch-all function for overflow checking.
-pub fn overflow_check(wp: &Expression, var: &VariableMappingData, binop: &BinOp, lvalue: &Expression, rvalue: &Expression) -> Expression {
+pub fn overflow_check(wp: &Expression,
+                      var: &VariableMappingData,
+                      binop: &BinOp,
+                      lvalue: &Expression,
+                      rvalue: &Expression)
+                      -> Expression {
     let v = var.clone();
 
     Expression::BinaryExpression( BinaryExpressionData {
@@ -30,10 +35,10 @@ pub fn overflow_check(wp: &Expression, var: &VariableMappingData, binop: &BinOp,
                 "i16" => { signed_overflow(binop, 16u8, lvalue, rvalue) },
                 "i32" => { signed_overflow(binop, 32u8, lvalue, rvalue) },
                 "i64" => { signed_overflow(binop, 64u8, lvalue, rvalue) },
-                "u8" => { unsigned_overflow(binop, 8u8, lvalue, rvalue) },
-                "u16" => { unsigned_overflow(binop, 16u8, lvalue, rvalue) },
-                "u32" => { unsigned_overflow(binop, 32u8, lvalue, rvalue) },
-                "u64" => { unsigned_overflow(binop, 64u8, lvalue, rvalue) },
+                "u8" => { unsigned_overflow(binop, lvalue, rvalue) },
+                "u16" => { unsigned_overflow(binop, lvalue, rvalue) },
+                "u32" => { unsigned_overflow(binop, lvalue, rvalue) },
+                "u64" => { unsigned_overflow(binop, lvalue, rvalue) },
                 _ => { panic!("Unsupported return type of binary operation: {}", v.var_type); }
             }
         ),
@@ -41,10 +46,14 @@ pub fn overflow_check(wp: &Expression, var: &VariableMappingData, binop: &BinOp,
 }
 
 // Signed: Match on the type of BinOp and call the correct function
-fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+fn signed_overflow(binop: &BinOp,
+                   size: u8,
+                   lvalue: &Expression,
+                   rvalue: &Expression)
+                   -> Expression {
     match binop {
         &BinOp::Add => { signed_add(size, lvalue, rvalue) },
-        &BinOp::Mul => { signed_mul(size, lvalue, rvalue) },
+        &BinOp::Mul => { signed_mul(lvalue, rvalue) },
         &BinOp::Sub => { signed_sub(size, lvalue, rvalue) },
         &BinOp::Div => { signed_div(size, lvalue, rvalue) },
         &BinOp::Rem => { unimplemented!() },
@@ -388,7 +397,7 @@ fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
     })
 }
 
-fn signed_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+fn signed_mul(lvalue: &Expression, rvalue: &Expression) -> Expression {
     let overflow: Expression = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::SignedMultiplicationDoesNotOverflow,
         left: Box::new(lvalue.clone()),
@@ -472,11 +481,11 @@ fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 }
 
 // Unsigned: Match on the type of BinOp and call the correct function
-fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+fn unsigned_overflow(binop: &BinOp, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match binop {
-        &BinOp::Add => { unsigned_add(size, lvalue, rvalue) },
-        &BinOp::Sub => { unsigned_sub(size, lvalue, rvalue) },
-        &BinOp::Mul => { unsigned_mul(size, lvalue, rvalue) },
+        &BinOp::Add => { unsigned_add(lvalue, rvalue) },
+        &BinOp::Sub => { unsigned_sub(lvalue, rvalue) },
+        &BinOp::Mul => { unsigned_mul(lvalue, rvalue) },
         &BinOp::Div => { unimplemented!() },
         &BinOp::Rem => { unimplemented!() },
         &BinOp::Shl => { unimplemented!() },
@@ -493,7 +502,7 @@ fn unsigned_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expr
     }
 }
 
-fn unsigned_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+fn unsigned_mul(lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::UnsignedMultiplicationDoesNotOverflow,
         left: Box::new(lvalue.clone()),
@@ -502,7 +511,7 @@ fn unsigned_mul(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expressio
 }
 
 // l + r >= l
-fn unsigned_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+fn unsigned_add(lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::GreaterThanOrEqual,
         //l + r
@@ -519,7 +528,7 @@ fn unsigned_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expressio
 }
 
 // l - r <= l
-fn unsigned_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
+fn unsigned_sub(lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::LessThanOrEqual,
         //l - r
