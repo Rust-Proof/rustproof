@@ -18,7 +18,16 @@ use syntax::codemap::Spanned;
 use expression::{Expression, ty_check};
 use std::process;
 
-// Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
+/// Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
+///
+/// # Arguments:
+/// * `pre_string` - The pre-condition given by the user in string form
+/// * `post_string` - The post-condition given by the user in string form
+/// * `attr` - The attribute that calls rustproof to be executed
+///
+/// # Remarks:
+/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+///
 pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: &Spanned<Attribute_>) {
     match attr.node.value.node {
         MetaItemKind::List(ref attribute_name, ref args) => {
@@ -61,8 +70,16 @@ pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: 
         _ => {}
     }
 }
-
-// Calls the predicate parser on a given pre/post condition, and returns a Expression if it is valid.
+/// Calls the predicate parser on a given pre/post condition, and returns a Expression if it is valid.
+///
+/// # Arguments:
+/// * `condition` - The current weakest precondition that the "div by 0" is to be "And"ed to
+///
+/// # Return:
+/// * The pre or post condition in Expression form
+///
+/// # Remarks:
+/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64, Booleans
 pub fn parse_condition(condition: &str) -> Expression {
     match expression_parser::parse_E1(condition) {
         Ok(e) => {
