@@ -1,49 +1,67 @@
 use std::str::FromStr;
-use expression::{Expression, BinaryExpressionData, UnaryExpressionData, VariableMappingData, UnsignedBitVectorData, SignedBitVectorData, BinaryOperator, UnaryOperator};
+use expression::*;
 grammar;
 
 pub E1: Expression = {
-    <left: E1> <op: BOP1> <right: E2> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E1> <op: BOP1> <right: E2> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E2,
 };
 
 E2: Expression = {
-    <left: E2> <op: BOP2> <right: E3> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E2> <op: BOP2> <right: E3> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E3,
 };
 
 E3: Expression = {
-    <left: E3> <op: BOP3> <right: E4> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E3> <op: BOP3> <right: E4> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E4,
 };
     
 E4: Expression = {
-    <left: E4> <op: BOP4> <right: E5> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E4> <op: BOP4> <right: E5> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E5,
 };
 
 E5: Expression = {
-    <left: E5> <op: BOP5> <right: E6> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E5> <op: BOP5> <right: E6> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E6,
 };
 
 E6: Expression = {
-    <left: E6> <op: BOP6> <right: E7> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E6> <op: BOP6> <right: E7> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E7,
 };
 
 E7: Expression = {
-    <left: E7> <op: BOP7> <right: E8> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E7> <op: BOP7> <right: E8> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E8,
 };
 
 E8: Expression = {
-    <left: E8> <op: BOP8> <right: E9> => Expression::BinaryExpression( BinaryExpressionData { op: op, left: Box::new(left), right: Box::new(right) } ),
+    <left: E8> <op: BOP8> <right: E9> => Expression::BinaryExpression( BinaryExpressionData {
+        op: op, left: Box::new(left), right: Box::new(right)
+    } ),
     E9,
 };
 
 E9: Expression = {
-    <op: UOP> <e: E9> => Expression::UnaryExpression( UnaryExpressionData { op: op, e: Box::new(e) } ),
+    <op: UOP> <e: E9> => Expression::UnaryExpression( UnaryExpressionData {
+        op: op, e: Box::new(e)
+    } ),
     E10,
 };
 
@@ -164,20 +182,52 @@ TYPE: String = {
 };
 
 INT_BOUNDS: Expression = {
-    "i8::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i8::max_value() as i64 } ),
-    "i16::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i16::max_value() as i64 } ),
-    "i32::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i32::max_value() as i64 } ),
-    "i64::MAX" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::max_value() as i64 } ),
-    "i8::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 8, value: i8::min_value() as i64 } ),
-    "i16::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 16, value: i16::min_value() as i64 } ),
-    "i32::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 32, value: i32::min_value() as i64 } ),
-    "i64::MIN" => Expression::SignedBitVector( SignedBitVectorData { size: 64, value: i64::min_value() as i64 } ),
-    "u8::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u8::max_value() as u64 } ),
-    "u16::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u16::max_value() as u64 } ),
-    "u32::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u32::max_value() as u64 } ),
-    "u64::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::max_value() as u64 } ),
-    "u8::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 8, value: u8::min_value() as u64 } ),
-    "u16::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 16, value: u16::min_value() as u64 } ),
-    "u32::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 32, value: u32::min_value() as u64 } ),
-    "u64::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData { size: 64, value: u64::min_value() as u64 } ),
+    "i8::MAX" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::max_value() as i64
+    } ),
+    "i16::MAX" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::max_value() as i64
+    } ),
+    "i32::MAX" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::max_value() as i64
+    } ),
+    "i64::MAX" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::max_value() as i64
+    } ),
+    "i8::MIN" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 8, value: i8::min_value() as i64
+    } ),
+    "i16::MIN" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 16, value: i16::min_value() as i64
+    } ),
+    "i32::MIN" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 32, value: i32::min_value() as i64
+    } ),
+    "i64::MIN" => Expression::SignedBitVector( SignedBitVectorData {
+        size: 64, value: i64::min_value() as i64
+    } ),
+    "u8::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 8, value: u8::max_value() as u64
+    } ),
+    "u16::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 16, value: u16::max_value() as u64
+    } ),
+    "u32::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 32, value: u32::max_value() as u64
+    } ),
+    "u64::MAX" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 64, value: u64::max_value() as u64
+    } ),
+    "u8::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 8, value: u8::min_value() as u64
+    } ),
+    "u16::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 16, value: u16::min_value() as u64
+    } ),
+    "u32::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+        size: 32, value: u32::min_value() as u64
+    } ),
+    "u64::MIN" => Expression::UnsignedBitVector( UnsignedBitVectorData {
+    size: 64, value: u64::min_value() as u64
+    } ),
 };

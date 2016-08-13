@@ -9,7 +9,6 @@
 // except according to those terms.
 
 extern crate syntax;
-extern crate term;
 
 mod expression_parser;
 
@@ -18,8 +17,14 @@ use syntax::codemap::Spanned;
 use expression::{Expression, ty_check};
 use std::process;
 
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
+
 // Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
-pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: &Spanned<Attribute_>) {
+pub fn parse_attribute(pre_string: &mut String,
+                       post_string: &mut String,
+                       attr: &Spanned<Attribute_>) {
     match attr.node.value.node {
         MetaItemKind::List(ref attribute_name, ref args) => {
             // Ignore if not a condition attribute
@@ -31,7 +36,9 @@ pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: 
                 // Parse the first argument
                 match args[0].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "pre" { rp_error!("The first argument must be \"pre\". {} was provided.", i_string); }
+                        if i_string != "pre" {
+                            rp_error!("The first argument must be \"pre\". {} was provided.", i_string);
+                        }
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {
@@ -45,7 +52,9 @@ pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: 
                 // Parse the second argument
                 match args[1].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "post" { rp_error!("The second argument must be \"post\". {} was provided.", i_string); }
+                        if i_string != "post" {
+                            rp_error!("The second argument must be \"post\". {} was provided.", i_string);
+                        }
                         // Get the argument
                         match literal.node {
                             syntax::ast::LitKind::Str(ref i_string, _) => {

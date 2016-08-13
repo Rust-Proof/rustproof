@@ -10,7 +10,6 @@
 
 extern crate rustc_const_math;
 
-use super::dev_tools;
 use super::DEBUG;
 use super::MirData;
 use std::process;
@@ -19,9 +18,11 @@ use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_const_math::ConstInt;
 use rustc_data_structures::indexed_vec::Idx;
-use rustc::ty::{Ty, TypeVariants};
-use std::rt::begin_panic_fmt;
-use term;
+use rustc::ty::{TypeVariants};
+
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
 
 mod overflow;
 
@@ -46,12 +47,13 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
     // DEBUG PURPOSE:
     // Shows the current BasicBlock index and the BasicBLockData associated with that index
     if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]); }
-    let mut wp: Option<Expression> = None;
+    let mut wp: Option<Expression>;
 
     // Parse terminator data
     let terminator = data.block_data[index].terminator.clone().unwrap().kind;
     match terminator {
-        TerminatorKind::Assert{cond, expected, msg, target, cleanup} => {
+        // Assert{cond, expected, msg, target, cleanup}
+        TerminatorKind::Assert{target, ..} => {
             // Retrieve the weakest precondition from the following block
             wp = gen(target.index(), data, post_expr);
         },
@@ -63,7 +65,8 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
             // Retrieve the weakest precondition from the following block
             wp = gen(target.index(), data, post_expr);
         },
-        TerminatorKind::Call{func, args, destination, cleanup} => {
+        // Call{func, args, destination, cleanup}
+        TerminatorKind::Call{func, ..} => {
             // Determine if this is the end of a panic. (assumed false branch of assertion, so return a precondition of false [this path will never be taken])
             match func {
                 Operand::Constant (ref c) => {
@@ -73,7 +76,8 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
                     }
 
                 },
-                Operand::Consume (ref l) => { unimplemented!() },
+                // Consume (ref l)
+                Operand::Consume (..) => { unimplemented!() },
             }
             //FIXME: Is this unimplemented!() needed?
             unimplemented!();
@@ -123,12 +127,16 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
             }));
         },
         // Unimplemented TerminatorKinds
-        TerminatorKind::DropAndReplace{location, value, target, unwind} => unimplemented!(),
-        TerminatorKind::Drop{location, target, unwind} => unimplemented!(),
+        // DropAndReplace{location, value, target, unwind}
+        TerminatorKind::DropAndReplace{..} => unimplemented!(),
+        // Drop{location, target, unwind}
+        TerminatorKind::Drop{..} => unimplemented!(),
         TerminatorKind::Unreachable => unimplemented!(),
         TerminatorKind::Resume => unimplemented!(),
-        TerminatorKind::Switch{discr, adt_def, targets} => unimplemented!(),
-        TerminatorKind::SwitchInt{discr, switch_ty, values, targets} => unimplemented!(),
+        // Switch{discr, adt_def, targets}
+        TerminatorKind::Switch{..} => unimplemented!(),
+        // SwitchInt{discr, switch_ty, values, targets}
+        TerminatorKind::SwitchInt{..} => unimplemented!(),
     }
 
     // Examine statements in reverse order
@@ -250,8 +258,8 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
     // uncomment out this line for debug purposes. It will show the current statement it is processing
     if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
 
-    let mut lvalue: Option<Lvalue> = None;
-    let mut rvalue: Option<Rvalue> = None;
+    let lvalue: Option<Lvalue>;
+    let rvalue: Option<Rvalue>;
 
     // Store the values of the statement
     match stmt.kind {
@@ -404,11 +412,13 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
             }
         },
         // FIXME: need def
-        Rvalue::Cast(ref cast_kind, ref cast_operand, ref cast_ty) => {
+        // Cast(ref cast_kind, ref cast_operand, ref cast_ty)
+        Rvalue::Cast(_, _, _) => {
             expression.push(Expression::VariableMapping(var.clone()));
         },
         // FIXME: need def
-        Rvalue::Ref(ref ref_region, ref ref_borrow_kind, ref ref_lvalue) => {
+        // Ref(ref ref_region, ref ref_borrow_kind, ref ref_lvalue) => {
+        Rvalue::Ref(_, _, _) => {
             expression.push(Expression::VariableMapping(var.clone()));
         },
         // Unimplemented Rvalues
@@ -481,15 +491,18 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
             // FIXME: Lots of intermediaries, should be condensed
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
-                ProjectionElem::Index(ref o) => { unimplemented!(); },
-                ProjectionElem::Field(ref field, ref ty) => { (field.index() as i32).to_string() }
+                // Index(ref o)
+                ProjectionElem::Index(_) => { unimplemented!(); },
+                // Field(ref field, ref ty)
+                ProjectionElem::Field(ref field, _) => { (field.index() as i32).to_string() }
                 _ => { unimplemented!(); }
             };
 
             // FIXME: Lots of intermediaries, should be condensed
             // Get the name of the variable being projected
-            let mut lvalue_name = "".to_string();
-            let mut lvalue_type = "".to_string();
+            let lvalue_name;
+            let lvalue_type;
+
             match pro.as_ref().base {
                 // Argument
                 Lvalue::Arg(ref arg) => {
@@ -501,7 +514,8 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
                     lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
-                    lvalue_type = data.temp_data[temp.index()].ty.clone().to_string();
+                    // warning: value assigned to `lvalue_type` is never read
+                    // lvalue_type = data.temp_data[temp.index()].ty.clone().to_string();
                     match data.temp_data[temp.index()].ty.sty {
                         TypeVariants::TyTuple(ref t) => { lvalue_type = t[0].to_string(); },
                         _ => { unimplemented!() },
@@ -521,16 +535,20 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                 },
                 // Unimplemented Lvalue
                 Lvalue::ReturnPointer => { unimplemented!(); },
-                Lvalue::Static(ref stat) => { unimplemented!(); },
+                // Static(ref stat)
+                Lvalue::Static(_) => { unimplemented!(); },
                 // Multiply-nested projection
-                Lvalue::Projection(ref proj) => { unimplemented!(); },
+                // Projection(ref proj) => { unimplemented!(); },
+                Lvalue::Projection(_) => { unimplemented!(); },
             };
 
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
 
-                ProjectionElem::Field(ref field, ref ty) => { (field.index() as i32).to_string() },
-                ProjectionElem::Index(ref o) => { unimplemented!(); },
+                // Field(ref field, ref ty)
+                ProjectionElem::Field(ref field, _) => { (field.index() as i32).to_string() },
+                // Index(ref o)
+                ProjectionElem::Index(_) => { unimplemented!(); },
                 _ => { unimplemented!(); }
             };
 
@@ -627,8 +645,10 @@ fn gen_expression(operand: &Operand, data: &mut MirData) -> Expression {
                     }
                 },
                 // unimplemented Literals
-                Literal::Item {ref def_id, ref substs} => { unimplemented!(); },
-                Literal::Promoted {ref index} => { unimplemented!(); },
+                // Item {ref def_id, ref substs}
+                Literal::Item {..} => { unimplemented!(); },
+                // Promoted {ref index}
+                Literal::Promoted {..} => { unimplemented!(); },
             }
         },
     }
