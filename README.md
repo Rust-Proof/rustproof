@@ -4,20 +4,20 @@
 
 Rustproof is a compiler plugin for the Rust programming language. It generates verification conditions for functions with supplied preconditions(`P`) and postconditions. That is, given a supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics) to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)). This process results in a proof of function correctness.
 
-# Dependencies
+## Dependencies
 
-* *rustc 1.12.0-nightly (0ef24eed2 2016-08-10)* or later.
+* `rustc 1.12.0-nightly (0ef24eed2 2016-08-10)` or later.
 It is possible later versions of the rust compiler will deprecate the MIR pass used by rustproof. If rustproof wont compile use the nightly above.
 
 * [z3](https://github.com/Z3Prover/z3)
 Your installation of Z3 needs to be in your PATH for rustproof to work.
 
-# Supported Rust Language Features
+## Supported Rust Language Features
 
 * Integer Arithmetic
 * Assertions
 
-# Usage
+## Usage
 
 Rustproof uses a function attribute `condition` to allow declaring pre/postcondition.
 The attribute is supplied as:
@@ -26,7 +26,7 @@ See [USAGE](https://github.com/Rust-Proof/rustproof/blob/master/USAGE.md) for a 
 See [EXAMPLES](https://github.com/Rust-Proof/rustproof/blob/master/EXAMPLES.md) for example functions with condition attributes.
 
 
-# Contributors
+## Contributors
 [Matthew Slocum][acro]  
 [Sami Sahli][sahli]  
 [Vincent Schuster][schuster]  
@@ -43,14 +43,14 @@ See [EXAMPLES](https://github.com/Rust-Proof/rustproof/blob/master/EXAMPLES.md) 
 [gohman]:https://github.com/found101
 [obrien]:https://github.com/obriematt
 
-# Reporting Issues
+## Reporting Issues
 
 Please report all issues on the github [issue tracker][issues].
 
 [issues]:https://github.com/Rust-Proof/rustproof/issues
 
 
-# License
+## License
 
 Rustproof is primarily distributed under the terms of both the MIT license and the Apache License (Version 2.0).
 
