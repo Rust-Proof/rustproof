@@ -2,58 +2,29 @@
 
 [![Build Status](https://travis-ci.org/Rust-Proof/rustproof.svg?branch=master)](https://travis-ci.org/Rust-Proof/rustproof)
 
-Rustproof is a compiler plugin for the Rust programming language. It is designed
-to generate verification conditions for their code. It will ensure that the program can be formally verified, thereby reducing the potential of bugs in the code and provide a level of guarantee about the behavior of the software.
-
-
-# How to
-
-To call rustproof:  
-
-`#[condition(pre="", post="")]`
-
-Where the "pre" and "post" conditions are logical expressions.
-
-For example:
-
-`#[condition(pre=" x:i32 > 0:i32 ", post=" x:i32 >= 5:i32 ")]`
-
-A complete example of how to format:
-
-    #[condition(pre=" x:i32 < 10:i32 && x:i32 > 0:i32", post=" return:i32 < 5:i32 ")]
-	fn add_five_or_three(x: i32)-> i32  {
-        if x > 3 {  
-            x + 5  
-        }  
-        else {  
-            x + 3  
-        }  
-    }
-
-To use rustproof and ensure a clean build on your code:
-
-`cargo build`
+Rustproof is a compiler plugin for the Rust programming language. It generates verification conditions for functions with supplied preconditions(`P`) and postconditions. That is, given a supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics) to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)). This process results in a proof of function correctness.
 
 # Dependencies
 
-Add the following lines to your `Cargo.toml` file:
+* *rustc 1.12.0-nightly (0ef24eed2 2016-08-10)* or later.
+It is possible later versions of the rust compiler will deprecate the MIR pass used by rustproof. If rustproof wont compile use the nightly above.
 
-```toml
-[dependencies]
-rustproof = { git = "https://github.com/Rust-Proof/rustproof.git"}
-```
+* [z3](https://github.com/Z3Prover/z3)
+Your installation of Z3 needs to be in your PATH for rustproof to work.
 
-The following are outside dependencies required for rustproof. Please refer to the following links for proper build instructions.
+# Supported Rust Language Features
 
-[Z3Prover][z3]
-[z3]:https://github.com/Z3Prover/z3
+* Integer Arithmetic
+* Assertions
 
-Your installation of Z3 needs to be set in your PATH for proper usage.
+# Usage
 
+Rustproof uses a function attribute `condition` to allow declaring pre/postcondition.
+The attribute is supplied as:
+`#[condition(pre=" ", post=" ")]`
+See [USAGE](https://github.com/Rust-Proof/rustproof/blob/master/USAGE.md) for a detailed explanation of the attribute system.
+See [EXAMPLES](https://github.com/Rust-Proof/rustproof/blob/master/EXAMPLES.md) for example functions with condition attributes.
 
-
-# Motivation
-The purpose of this compiler plugin is to prove program correctness under specific conditions. This will allow for the programmer to ensure greater control over possible bugs within their code.
 
 # Contributors
 [Matthew Slocum][acro]  
