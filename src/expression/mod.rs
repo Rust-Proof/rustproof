@@ -12,10 +12,13 @@
 //extern crate rustc;
 //extern crate syntax;
 //extern crate rustc_plugin;
-extern crate term;
 use rustc_plugin::Registry;
 use std::fmt;
 use std::process;
+
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
 
 #[derive(Clone, PartialEq)]
 pub struct BinaryExpressionData { pub op: BinaryOperator, pub left: Box<Expression>, pub right: Box<Expression> }

@@ -24,6 +24,7 @@
 //          internals.rust-lang.org / users.rust-lang.org
 //     - String to expression //libsyntax as parser / parse_exper_from_source_str
 //
+#![feature(rustc_private)]
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
 // FIXME: useful for development, delete when project is "complete"
@@ -34,13 +35,13 @@
 #![feature(core_intrinsics)]
 #![feature(libstd_sys_internals)]
 
+#[macro_use] pub extern crate syntax;
 #[macro_use] pub mod reporting;
 
 // debug flag
 const DEBUG: bool = true;
 
 // External crate imports
-extern crate env_logger;
 #[macro_use] extern crate libsmt;
 #[macro_use] extern crate log;
 extern crate petgraph;
@@ -48,12 +49,10 @@ extern crate rustc;
 extern crate rustc_plugin;
 extern crate rustc_data_structures;
 extern crate rustc_const_math;
-extern crate syntax;
-extern crate term;
+//extern crate syntax;
+extern crate rustc_errors as errors;
 
 // External imports
-use env_logger::LogBuilder;
-use log::{LogRecord, LogLevelFilter};
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_plugin::Registry;
 use rustc::mir::mir_map::MirMap;
@@ -67,6 +66,10 @@ use syntax::ext::base::{ExtCtxt, Annotatable};
 use syntax::ext::base::SyntaxExtension::MultiDecorator;
 use syntax::parse::token::intern;
 use syntax::ptr::P;
+
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
 
 // Local imports
 use expression::{Expression, BinaryOperator, BinaryExpressionData};
@@ -88,9 +91,6 @@ mod tests;
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
-	// This initializes the Reporting Module to Add the environment to the logger
-	reporting::init();
-
     let visitor = MirVisitor{};
 
     reg.register_mir_pass(Box::new(visitor));

@@ -15,7 +15,6 @@ fn main() {
 	complex_if(z);
 }
 
-/*
 // Invalid
 #[condition(pre="x:u64 <= u64::MAX AND x:u64 >= u64::MIN", post="return:u64 == x:u64 + 5:u64")]
 fn foo(x: u64) -> u64 {
@@ -33,7 +32,6 @@ fn bar(x: u64) -> u64 {
 fn baz(y: i64) -> i64 {
 		y + 5i64
 }
-*/
 
 // Invalid
 #[condition(pre="z: bool == true", post="return: i32 != 1: i32")]

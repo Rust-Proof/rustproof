@@ -21,7 +21,10 @@ use rustc_const_math::ConstInt;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::{Ty, TypeVariants};
 use std::rt::begin_panic_fmt;
-use term;
+
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
 
 mod overflow;
 

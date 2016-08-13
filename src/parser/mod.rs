@@ -9,7 +9,6 @@
 // except according to those terms.
 
 extern crate syntax;
-extern crate term;
 
 mod expression_parser;
 
@@ -17,6 +16,10 @@ use syntax::ast::{MetaItemKind, Attribute_};
 use syntax::codemap::Spanned;
 use expression::{Expression, ty_check};
 use std::process;
+
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
 
 // Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
 pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: &Spanned<Attribute_>) {
