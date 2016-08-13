@@ -454,7 +454,11 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
             // Find the index and type in the declaration
             let mut ty = data.temp_data[temp.index()].ty.clone().to_string();
             match data.temp_data[temp.index()].ty.sty {
-                TypeVariants::TyTuple(ref t) => { ty = t[0].to_string(); },
+                TypeVariants::TyTuple(ref t) => {
+                    if t.len() > 0 {
+                        ty = t[0].to_string();
+                    }
+                },
                 _ => { }
             }
             VariableMappingData{name: "tmp".to_string() + temp.index().to_string().as_str(),
