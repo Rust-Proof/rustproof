@@ -67,4 +67,4 @@ x: i32 > 5: i32
 return: bool AND (!false)
 ```
 
-See [EXAMPLES](https://github.com/Rust-Proof/rustproof/blob/master/EXAMPLES.md) for example functions with condition attributes.
+See [EXAMPLES](EXAMPLES.md) for example functions with condition attributes.

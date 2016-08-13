@@ -28,9 +28,9 @@ Rustproof uses a function attribute `condition` to allow declaring pre/postcondi
 The attribute is supplied as:
 `#[condition(pre=" ", post=" ")]`
 
-See [USAGE](https://github.com/Rust-Proof/rustproof/blob/master/USAGE.md) for a detailed explanation of the attribute system.
+See [USAGE](USAGE.md) for a detailed explanation of the attribute system.
 
-See [EXAMPLES](https://github.com/Rust-Proof/rustproof/blob/master/EXAMPLES.md) for example functions with condition attributes.
+See [EXAMPLES](EXAMPLES.md) for example functions with condition attributes.
 
 
 ## Contributors
