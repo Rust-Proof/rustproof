@@ -8,31 +8,27 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate term;
-
 use super::DEBUG;
 
-use std::convert::From;
-use std::fmt;
 use std::fmt::Debug;
+use std::process;
 
-use libsmt;
 use libsmt::backends::smtlib2::*;
 use libsmt::backends::backend::*;
 use libsmt::backends::z3;
-use libsmt::theories::{array_ex, bitvec, core};
+use libsmt::theories::{bitvec, core};
 use libsmt::logics::qf_abv::*;
-use libsmt::logics::qf_abv;
-use libsmt::logics::lia::*;
-use libsmt::logics::lia;
 use petgraph::graph::NodeIndex;
-use std::process;
+
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
 
 use expression::*;
 
 // Now that we have a verification condition, we need to verify that it is always true.
 // Simply satisfying P->WP isn't enough. We need to verify that !(P->WP) is *unsatisfiable*
-pub fn gen_smtlib (vc: &Expression) {
+pub fn gen_smtlib (vc: &Expression, name: String) {
     // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
 
@@ -40,7 +36,7 @@ pub fn gen_smtlib (vc: &Expression) {
     let mut solver = SMTLib2::new(Some(QF_ABV));
 
     // Apply logic to Z3 instance
-    solver.set_logic(&mut z3);
+    // solver.set_logic(&mut z3);
 
     // Check the satisfiability of the solver
     let vcon = solver.expr2smtlib(&vc);
@@ -50,12 +46,12 @@ pub fn gen_smtlib (vc: &Expression) {
     match res {
         Ok(..) => {
             match check {
-                SMTRes::Sat(..) => { println!("\nVerification Condition is not valid.\n{:?}", check); },
-                SMTRes::Unsat(..) => { println!("\nVerification Condition is valid.\n{:?}", check); },
+                SMTRes::Sat(..) => { println!("\nfn {}(..)\tVerification Condition is not valid.\n", name); },
+                SMTRes::Unsat(..) => { println!("\nfn {}(..)\tVerification Condition is valid.\n", name); },
                 _ => { unimplemented!() }
             }
         },
-        Err(..) => { println!("\nError in Verification Condition Generation.\n{:?}", check); }
+        Err(..) => { println!("\nfn {}(..)g\tError in Verification Condition Generation.\n", name); },
     }
 
     /*
@@ -123,6 +119,21 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         } else {
                             return self.assert(bitvec::OpCodes::BvURem, &[l,r]);
                         }
+                    },
+                    BinaryOperator::SignedMultiplicationDoesNotOverflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSMulDoesNotOverflow, &[l,r]);
+                    },
+                    BinaryOperator::SignedMultiplicationDoesNotUnderflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvSMulDoesNotUnderflow, &[l,r]);
+                    },
+                    BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
+                        let l = self.expr2smtlib(b.left.as_ref());
+                        let r = self.expr2smtlib(b.right.as_ref());
+                        return self.assert(bitvec::OpCodes::BvUMulDoesNotOverflow, &[l,r]);
                     },
                     BinaryOperator::BitwiseOr => {
                         let l = self.expr2smtlib(b.left.as_ref());
@@ -246,7 +257,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
             },
             &Expression::VariableMapping (ref v) => {
                 match v.var_type.as_ref() {
-                    "bool" => { return self.new_var(Some(&v.name), core::Sorts::Bool); },
+                    "bool" => { return self.new_var(Some(&v.name), bitvec::Sorts::Bool); },
                     "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
                     "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
                     "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },

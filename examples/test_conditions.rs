@@ -4,6 +4,8 @@
 #![allow(unused_attributes)]
 fn main() { }
 
+// FIXME: some preconditions are unnecisarilly restricitve ie add_five_i32_invalid does not need x: i32 >= i32::MIN + 5:i32
+
 // * * *
 // Integer Add Tests
 // * * *
@@ -30,7 +32,7 @@ fn add_five_i64_invalid(x: i64) -> i64 {
 }
 
 // Tests signed integer overflow for 64 bit integers
-// Should be invalid
+// Should be valid
 #[condition(pre="(x: i64 <= i64::MAX - 5:i64) && (x: i64 >= i64::MIN + 5:i64)", post="return: i64 == (x: i64 +5:i64)")]
 fn add_five_i64_valid(x: i64) -> i64 {
     x+5
@@ -118,5 +120,47 @@ fn large_branch_literal_if_invalid() {
         assert!(1 > 0)
     } else {
         assert!(1 < 0)
+    }
+}
+
+// * * *
+// Boolean Tests
+// * * *
+
+// Should be valid
+#[condition(pre="x:bool == true", post="true")]
+fn boolean_comparison_in_condition_valid(x:bool) -> bool {
+    x
+}
+
+// Should be invalid
+#[condition(pre="x:bool == true", post="false")]
+fn boolean_comparison_in_condition_invalid(x:bool) -> bool {
+    x
+}
+
+// Should be valid
+#[condition(pre="true", post="return:bool == true")]
+fn simple_bool_valid(x:bool) -> bool {
+    x || true
+}
+
+// Should be valid
+#[condition(pre="x:bool == true", post="return:bool == true")]
+fn boolean_condition_valid(x:bool) -> bool {
+    if x {
+        true
+    } else {
+        false
+    }
+}
+
+// Should be invalid
+#[condition(pre="x:bool == false", post="return:bool == true")]
+fn boolean_condition_invalid(x:bool) -> bool {
+    if x {
+        true
+    } else {
+        false
     }
 }
