@@ -18,13 +18,13 @@ use std::rc::Rc;
 macro_rules! rp_warn {
     ($fmt:expr) => ({
         let codemap = Rc::new(CodeMap::new());
-        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, None, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"));
         handler.warn(&str);
     });
     ($fmt:expr, $($arg:tt)*) => ({
         let codemap = Rc::new(CodeMap::new());
-        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, None, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"), $($arg)*);
         handler.warn(&str);
     });
@@ -34,14 +34,14 @@ macro_rules! rp_warn {
 macro_rules! rp_error {
     ($fmt:expr) => ({
         let codemap = Rc::new(CodeMap::new());
-        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, None, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"));
         handler.err(&str);
 	process::exit(1);
     });
     ($fmt:expr, $($arg:tt)*) => ({
         let codemap = Rc::new(CodeMap::new());
-        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, None, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"), $($arg)*);
         handler.err(&str);
 	process::exit(1);
