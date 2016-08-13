@@ -26,21 +26,18 @@ use std::rc::Rc;
 
 mod overflow;
 
-/// Computes the weakest precondition for a given post-condition and series of statments over one or more BasicBlocks from MIR.
+/// Computes the weakest precondition for a given postcondition and a series of statements over one or more MIR BasicBLocks.
 ///
 /// # Arguments:
-/// * `index` - Index of the ArgDecl,TempDecl, OR VarDecl within the respective Vec<>
-/// * `data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
-/// * `post_expr` - Contains the post-condition in expression form
+/// * `index` - The index of the BasicBlock within MIR.
+/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
+/// * `post_expr` - The current weakest precondition (originally the postcondition) as an Expression.
 ///
 /// # Return Value:
-/// * returns the weakest precondtion in the form of an expression within an Option. This is sent to FIXME
+/// * Returns the weakest precondition generated from the BasicBlock in the form of an Expression.
 ///
 /// # Remarks:
-/// * This is the main generator for the weakest precondtion and is called to generate the weakest precondition
-///
-/// # Debug:
-/// * to find debugging statments, grep for "DEBUG PURPOSE:"
+/// * This is the main generator for the weakest precondition, which evaluates the BasicBLocks recursively.
 ///
 pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> Option<Expression> {
     // FIXME: Debug should not be a const; it must be user-facing
@@ -49,7 +46,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
     if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]); }
     let mut wp: Option<Expression>;
 
-    // Parse terminator data
+    // Parse basic block terminator data
     let terminator = data.block_data[index].terminator.clone().unwrap().kind;
     match terminator {
         // Assert{cond, expected, msg, target, cleanup}
@@ -74,16 +71,15 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
                     if s.contains("begin_panic") {
                         return Some(Expression::BooleanLiteral(false));
                     }
-
                 },
                 // Consume (ref l)
                 Operand::Consume (..) => { unimplemented!() },
-            }
-            //FIXME: Is this unimplemented!() needed?
-            unimplemented!();
+            };
+            // Due to the nature of the limited nature in which we handle Calls, we should never do anything other than an early return or hit the unimplemented!() panic above.
+            unreachable!();
         },
-        // TerminatorKind::If requires special generation of wp.
-        // wp(if c x else y) = (c -> x) AND ((NOT c) -> y)
+        // Conditional statements
+        // wp(if c x else y) => (c -> x) AND ((NOT c) -> y)
         TerminatorKind::If{cond, targets} => {
             // Generate weakest precondition for if and else clause
             let wp_if = gen(targets.0.index(), data, post_expr);
@@ -98,7 +94,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
                                 &ConstVal::Bool (ref boolean) =>{
                                     Expression::BooleanLiteral(*boolean)
                                 },
-                                _ => unimplemented!(),
+                                _ => unreachable!(),
                             }
                         },
                         _ => unimplemented!(),
@@ -111,7 +107,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
                 op: UnaryOperator::Not,
                 e: Box::new(condition.clone())
             });
-            // wp(If c x else y) = (c -> x) AND ((NOT c) -> y)
+            // wp(If c x else y) => (c -> x) AND ((NOT c) -> y)
             wp = Some(Expression::BinaryExpression(BinaryExpressionData {
                 op: BinaryOperator::And,
                 left: Box::new(Expression::BinaryExpression(BinaryExpressionData {
@@ -139,34 +135,31 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
         TerminatorKind::SwitchInt{..} => unimplemented!(),
     }
 
-    // Examine statements in reverse order
+    // Examine the statements in reverse order
     let mut stmts = data.block_data[index].statements.clone();
     stmts.reverse();
     // DEBUG PURPOSE:
-    // displays the current BasicBlock index
+    // Displays the current BasicBlock index
     if DEBUG { println!("bb{:?}", index);}
     for stmt in stmts {
         // Modify the weakest precondition based on the statement
         wp = gen_stmt(wp.unwrap(), stmt, data);
     }
     // DEBUG PURPOSE:
-    // shows the result to be returned to the proceeding block
+    // Shows the result to be returned to the proceeding block
     if DEBUG { println!("wp returned as\t{:?}\n", wp.clone().unwrap()); }
 
     // Return the weakest precondition to the preceeding block, or to control
     wp
 }
 
-
-/// Returns the type of an operand as a String
+/// Returns the type of an operand as a String (ie: "i32", "bool", etc.)
 ///
 /// # Arguments:
-/// * `oeprand` - Index of the ArgDecl,TempDecl, OR VarDecl within the respective Vec<>
-/// * `data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+/// * `operand` - The operand whose type is being returned.
+/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
 ///
 /// # Remarks:
-/// * This is the main generator for the weakest precondtion and is called to generate the weakest precondition
-/// * May be depercated in the near future
 ///
 fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
     match operand.clone() {
@@ -193,9 +186,6 @@ fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
     }
 }
 
-
-
-
 /// Generates a version of wp "And"ed together with a conditional expression that mimics a check to ensure division by 0 does not occur.
 ///
 /// # Arguments:
@@ -208,14 +198,14 @@ fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
 /// # Remarks:
 /// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
 ///
-pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
+fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         // And weakest precondtion and ovflow check
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
         right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
             op: BinaryOperator::NotEqual,
-            // left side of new Expression to check for divided by 0
+            // The expresison to be checked
             left: Box::new(exp.clone()),
             // Need to set appropriate type with value of 0
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
@@ -243,15 +233,12 @@ pub fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
 /// # Arguments:
 /// * `wp` - The current weakest precondition
 /// * `stmt` - The Statment to be processed into wp
-/// * `data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
 ///
 /// # Return Value:
 /// * Returns the modified weakest precondition with underflow check
 ///
 /// # Remarks:
-///
-/// # Debug:
-/// * to find debugging statments, grep for "DEBUG PURPOSE:
 ///
 fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<Expression>  {
     // DEBUG PURPOSE:
@@ -342,7 +329,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 &BinOp::Div => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
-                    // add the division by 0 expression check
+                    // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
                 },
@@ -363,7 +350,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                 &BinOp::Eq => { BinaryOperator::Equal },
                 &BinOp::Ne => { BinaryOperator::NotEqual },
             };
-            // adds the new BinaryExpression to the expression: Vec<>
+            // Add the expression to the vector
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
                 left: Box::new(lvalue),
@@ -406,8 +393,6 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
                         expression.push(e);
                     }
                 },
-                // FIXME: Vectors are weird. let's not bother with them yet
-                // &AggregateKind::Vec => { unimplemented!() },
                 _ => { rp_error!("Unsupported aggregate: only tuples are supported"); }
             }
         },
@@ -437,18 +422,16 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
     return Some(wp);
 }
 
-
 /// Generates an appropriate variable mapping based on whatever variable, temp, or field is found
 ///
 /// # Arguments:
 /// * `lvalue` - The Lvalue to be generated into a VariableMapping
-/// * `data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
 ///
 /// # Return Value:
 /// * Returns a VariableMappingData that is built from the data and lvalue
 ///
 /// # Remarks:
-///
 ///
 fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
     match lvalue {
@@ -488,7 +471,7 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
-            // FIXME: Lots of intermediaries, should be condensed
+
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
                 // Index(ref o)
@@ -498,7 +481,6 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                 _ => { unimplemented!(); }
             };
 
-            // FIXME: Lots of intermediaries, should be condensed
             // Get the name of the variable being projected
             let lvalue_name;
             let lvalue_type;
@@ -564,14 +546,13 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
 ///
 /// # Arguments:
 /// * `operand` - The Operand to generate a new expression from.
-/// * `data` - Contains the BasicBlockData and all of the ArgDecls, TempDecls, and VarDecls from the MIR pass
+/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
 ///
 /// # Return Value:
 /// * Returns a new expression generated from an operand
 ///
 /// # Remarks:
-/// * Current Supported ConstVal: Bool, Integral
-/// * Current supported Integral: I8, I16, I32, I64, U8, U16, U32, U64
+/// * Current supported types: i8, i16, i32, i64, u8, u16, u32, u64, bool
 ///
 fn gen_expression(operand: &Operand, data: &mut MirData) -> Expression {
     match operand {
@@ -588,7 +569,6 @@ fn gen_expression(operand: &Operand, data: &mut MirData) -> Expression {
                             Expression::BooleanLiteral(*const_bool)
                         }
                         &ConstVal::Integral(ref const_int) => {
-                            // get the correct time of the Integral
                             match const_int {
                                 &ConstInt::I8(i) => {
                                     Expression::SignedBitVector( SignedBitVectorData {
@@ -644,7 +624,6 @@ fn gen_expression(operand: &Operand, data: &mut MirData) -> Expression {
                         _ => { unimplemented!(); },
                     }
                 },
-                // unimplemented Literals
                 // Item {ref def_id, ref substs}
                 Literal::Item {..} => { unimplemented!(); },
                 // Promoted {ref index}
