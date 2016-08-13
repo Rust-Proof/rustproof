@@ -28,7 +28,6 @@
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
 #![feature(core_intrinsics)]
-#![feature(libstd_sys_internals)]
 
 #[macro_use] pub extern crate syntax;
 #[macro_use] pub mod reporting;
@@ -53,9 +52,9 @@ use rustc_plugin::Registry;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, Arg, Temp, Var, ArgDecl, TempDecl, VarDecl};
 use rustc::mir::transform::{Pass, MirPass, MirSource};
 use rustc::ty::{TyCtxt, FnOutput};
-use errors::{ColorConfig, Handler};
-use syntax::codemap::CodeMap;
-use std::rc::Rc;
+//  use errors::{ColorConfig, Handler};
+//  use syntax::codemap::CodeMap;
+//  use std::rc::Rc;
 
 // Local imports
 use expression::{Expression, BinaryOperator, BinaryExpressionData};
@@ -64,11 +63,11 @@ use smt_output::*;
 use weakest_precondition::*;
 
 // These are our modules
-pub mod expression;
-pub mod parser;
-pub mod smt_output;
-pub mod weakest_precondition;
-pub mod dev_tools; // FIXME: For debugging information, delete when project is "complete"
+mod expression;
+mod parser;
+mod smt_output;
+mod weakest_precondition;
+mod dev_tools; // FIXME: For debugging information, delete when project is "complete"
 #[cfg(test)]
 mod tests;
 
@@ -101,8 +100,8 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
         // Clear the stored attributes in the builder
         let mut pre_string = "".to_string();
         let mut post_string = "".to_string();
-        let mut pre_expr = None;
-        let mut post_expr = None;
+        let pre_expr;
+        let post_expr;
 
         // Store relevant data
         let item_id = src.item_id();

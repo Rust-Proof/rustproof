@@ -8,13 +8,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::process;
+// Unused, uncomment if they are needed
+// use errors::{ColorConfig, Handler};
+// use syntax::codemap::CodeMap;
+// use std::rc::Rc;
 
-use errors::{ColorConfig, Handler};
-use syntax::codemap::CodeMap;
-use std::rc::Rc;
-
-// Warning maco
+// Warning macro
 macro_rules! rp_warn {
     ($fmt:expr) => ({
         let codemap = Rc::new(CodeMap::new());
@@ -30,7 +29,7 @@ macro_rules! rp_warn {
     });
 }
 
-// Error maco
+// Error macro
 macro_rules! rp_error {
     ($fmt:expr) => ({
         let codemap = Rc::new(CodeMap::new());
