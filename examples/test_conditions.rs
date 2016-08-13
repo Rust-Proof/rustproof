@@ -4,6 +4,8 @@
 #![allow(unused_attributes)]
 fn main() { }
 
+// FIXME: some preconditions are unnecisarilly restricitve ie add_five_i32_invalid does not need x: i32 >= i32::MIN + 5:i32
+
 // * * *
 // Integer Add Tests
 // * * *
