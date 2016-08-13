@@ -53,7 +53,6 @@ use rustc_plugin::Registry;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, Arg, Temp, Var, ArgDecl, TempDecl, VarDecl};
 use rustc::mir::transform::{Pass, MirPass, MirSource};
 use rustc::ty::{TyCtxt, FnOutput};
-
 use errors::{ColorConfig, Handler};
 use syntax::codemap::CodeMap;
 use std::rc::Rc;
