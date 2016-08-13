@@ -10,7 +10,6 @@
 
 extern crate rustc_const_math;
 
-use super::dev_tools;
 use super::DEBUG;
 use super::MirData;
 use std::process;
@@ -19,7 +18,7 @@ use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_const_math::ConstInt;
 use rustc_data_structures::indexed_vec::Idx;
-use rustc::ty::{Ty, TypeVariants};
+use rustc::ty::{TypeVariants};
 use std::rt::begin_panic_fmt;
 
 use errors::{ColorConfig, Handler};

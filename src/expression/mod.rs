@@ -12,7 +12,7 @@
 //extern crate rustc;
 //extern crate syntax;
 //extern crate rustc_plugin;
-use rustc_plugin::Registry;
+extern crate term;
 use std::fmt;
 use std::process;
 
@@ -330,7 +330,7 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                 &Expression::VariableMapping(ref v) => {
                     v.var_type.clone()
                 },
-                &Expression::BooleanLiteral(ref b) => {
+                &Expression::BooleanLiteral(_) => {
                     "bool".to_string()
                 },
                 &Expression::UnsignedBitVector(ref u) => {
@@ -597,7 +597,7 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                 }
             }
         },
-        &Expression::BooleanLiteral(ref b) => {
+        &Expression::BooleanLiteral(_) => {
             Ok(true)
         },
         &Expression::UnsignedBitVector(ref u) => {

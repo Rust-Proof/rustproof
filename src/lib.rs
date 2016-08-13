@@ -23,15 +23,10 @@
 //     - Unused attribute warnings since we aren't using register_syntax_extension
 //          internals.rust-lang.org / users.rust-lang.org
 //     - String to expression //libsyntax as parser / parse_exper_from_source_str
-//
+
 #![feature(rustc_private)]
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
-// FIXME: useful for development, delete when project is "complete"
-#![allow(unused_variables)]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
 #![feature(core_intrinsics)]
 #![feature(libstd_sys_internals)]
 
@@ -55,17 +50,9 @@ extern crate rustc_errors as errors;
 // External imports
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_plugin::Registry;
-use rustc::mir::mir_map::MirMap;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, Arg, Temp, Var, ArgDecl, TempDecl, VarDecl};
-use rustc::mir::transform::{Pass, MirPass, MirMapPass, MirSource, MirPassHook};
-use rustc::mir::visit::Visitor;
+use rustc::mir::transform::{Pass, MirPass, MirSource};
 use rustc::ty::{TyCtxt, FnOutput};
-use syntax::ast::{MetaItem, Item, ItemKind, MetaItemKind};
-use syntax::codemap::Span;
-use syntax::ext::base::{ExtCtxt, Annotatable};
-use syntax::ext::base::SyntaxExtension::MultiDecorator;
-use syntax::parse::token::intern;
-use syntax::ptr::P;
 
 use errors::{ColorConfig, Handler};
 use syntax::codemap::CodeMap;

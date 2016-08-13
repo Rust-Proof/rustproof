@@ -10,7 +10,6 @@
 
 extern crate rustc_const_math;
 
-use std::process;
 use expression::*;
 use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;

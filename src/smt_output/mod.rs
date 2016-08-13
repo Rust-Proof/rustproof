@@ -10,20 +10,14 @@
 
 use super::DEBUG;
 
-use std::convert::From;
-use std::fmt;
 use std::fmt::Debug;
 use std::process;
 
-use libsmt;
 use libsmt::backends::smtlib2::*;
 use libsmt::backends::backend::*;
 use libsmt::backends::z3;
-use libsmt::theories::{array_ex, bitvec, core};
+use libsmt::theories::{bitvec, core};
 use libsmt::logics::qf_abv::*;
-use libsmt::logics::qf_abv;
-use libsmt::logics::lia::*;
-use libsmt::logics::lia;
 use petgraph::graph::NodeIndex;
 
 use errors::{ColorConfig, Handler};
