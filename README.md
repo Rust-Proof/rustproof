@@ -17,7 +17,7 @@ Your installation of z3 needs to be in your PATH for rustproof to work.
 ## Supported Rust Language Features
 
 * Integer Arithmetic
-    * isize and usize are unsupported
+    * `isize` and `usize` are **unsupported**
 * Boolean Statements
 * Assertions (Integer/Boolean)
 * If Statements
