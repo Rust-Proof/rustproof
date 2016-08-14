@@ -13,42 +13,42 @@ fn main() { }
 // Tests signed integer overflow for 32 bit integers
 // Should be invalid
 #[condition(pre="(x: i32 <= i32::MAX - 4:i32) && (x: i32 >= i32::MIN + 5:i32)", post="return: i32 == (x: i32 +5:i32)")]
-fn add_five_i32_invalid(x: i32) -> i32 {
+fn invalid_add_five_i32(x: i32) -> i32 {
     x+5
 }
 
 // Tests signed integer overflow for 32 bit integers
 // Should be valid
 #[condition(pre="(x: i32 <= i32::MAX - 5:i32) && (x: i32 >= i32::MIN + 5:i32)", post="return: i32 == (x: i32 +5:i32)")]
-fn add_five_i32_valid(x: i32) -> i32 {
+fn valid_add_five_i32(x: i32) -> i32 {
     x+5
 }
 
 // Tests signed integer overflow for 64 bit integers
 // Should be invalid
 #[condition(pre="(x: i64 <= i64::MAX - 4:i64) && (x: i64 >= i64::MIN + 5:i64)", post="return: i64 == (x: i64 +5:i64)")]
-fn add_five_i64_invalid(x: i64) -> i64 {
+fn invalid_add_five_i64(x: i64) -> i64 {
     x+5
 }
 
 // Tests signed integer overflow for 64 bit integers
 // Should be valid
 #[condition(pre="(x: i64 <= i64::MAX - 5:i64) && (x: i64 >= i64::MIN + 5:i64)", post="return: i64 == (x: i64 +5:i64)")]
-fn add_five_i64_valid(x: i64) -> i64 {
+fn valid_add_five_i64(x: i64) -> i64 {
     x+5
 }
 
 // Tests unsigned integer overflow for 32 bit integers
 // Should be invalid
 #[condition(pre="x: u32 <= u32::MAX - 4:u32", post="return: u32 == (x: u32 + 5:u32)")]
-fn add_five_u32_invalid(x: u32) -> u32 {
+fn invalid_add_five_u32(x: u32) -> u32 {
     x+5
 }
 
 // Tests unsigned integer overflow for 32 bit integers
 // Should be valid
 #[condition(pre="x: u32 <= u32::MAX - 5:u32", post="return: u32 == (x: u32 + 5:u32)")]
-fn add_five_u32_valid(x: u32) -> u32 {
+fn valid_add_five_u32(x: u32) -> u32 {
     x+5
 }
 
@@ -58,20 +58,20 @@ fn add_five_u32_valid(x: u32) -> u32 {
 
 // Should be valid
 #[condition(pre="true", post="true")]
-fn asrt_basic_valid() {
+fn valid_asrt_basic() {
     assert!(1 > 0)
 }
 
 // Should be invalid
 #[condition(pre="true", post="true")]
-fn asrt_basic_invalid() {
+fn invalid_asrt_basic() {
     assert!(1 < 0)
 }
 
 // FIXME ERROR This test fails to compile.
 // Should be valid
 //#[condition(pre="x:bool == true", post="true")]
-fn asrt_argument_valid(x: bool) {
+fn valid_asrt_argument(x: bool) {
     assert!(x)
 }
 
@@ -81,7 +81,7 @@ fn asrt_argument_valid(x: bool) {
 
 // Should be valid
 #[condition(pre="true", post="true")]
-fn basic_literal_if_valid() {
+fn valid_basic_literal_if() {
     if true {
         assert!(1 > 0)
     } else {
@@ -89,9 +89,19 @@ fn basic_literal_if_valid() {
     }
 }
 
+//Matt's example. Should be invalid. Calling it valid
+#[condition(pre="true",post="true")]
+fn invalid_fake_function(){
+    if true {
+        assert!(1<0)
+    } else {
+        assert!(1>0)
+    }
+}
+
 // Should be invalid
 #[condition(pre="true", post="true")]
-fn basic_literal_if_invalid() {
+fn invalid_basic_literal_if() {
     if true {
         assert!(1 < 0)
     } else {
@@ -101,7 +111,7 @@ fn basic_literal_if_invalid() {
 
 // Should be valid
 #[condition(pre="true", post="true")]
-fn large_branch_literal_if_valid() {
+fn valid_large_branch_literal_if() {
     if false {
         assert!(1 < 0)
     } else if true {
@@ -113,7 +123,7 @@ fn large_branch_literal_if_valid() {
 
 // Should be invalid
 #[condition(pre="true", post="true")]
-fn large_branch_literal_if_invalid() {
+fn invalid_large_branch_literal_if() {
     if false {
         assert!(1 < 0)
     } else if false {
@@ -129,25 +139,25 @@ fn large_branch_literal_if_invalid() {
 
 // Should be valid
 #[condition(pre="x:bool == true", post="true")]
-fn boolean_comparison_in_condition_valid(x:bool) -> bool {
+fn valid_boolean_comparison_in_condition(x:bool) -> bool {
     x
 }
 
 // Should be invalid
 #[condition(pre="x:bool == true", post="false")]
-fn boolean_comparison_in_condition_invalid(x:bool) -> bool {
+fn invalid_boolean_comparison_in_condition(x:bool) -> bool {
     x
 }
 
 // Should be valid
 #[condition(pre="true", post="return:bool == true")]
-fn simple_bool_valid(x:bool) -> bool {
+fn valid_simple_bool(x:bool) -> bool {
     x || true
 }
 
 // Should be valid
 #[condition(pre="x:bool == true", post="return:bool == true")]
-fn boolean_condition_valid(x:bool) -> bool {
+fn valid_boolean_condition(x:bool) -> bool {
     if x {
         true
     } else {
@@ -157,7 +167,7 @@ fn boolean_condition_valid(x:bool) -> bool {
 
 // Should be invalid
 #[condition(pre="x:bool == false", post="return:bool == true")]
-fn boolean_condition_invalid(x:bool) -> bool {
+fn invalid_boolean_condition(x:bool) -> bool {
     if x {
         true
     } else {
