@@ -1,6 +1,6 @@
 language: rust
 
-script: cargo test --lib -- --nocapture
+script: cargo test --lib
 
 rust:
 - nightly
