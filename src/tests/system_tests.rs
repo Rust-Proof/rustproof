@@ -20,7 +20,7 @@ fn test_example_file(file: String) -> bool {
         .arg("-p")
         .arg("rustproof")
         .output()
-        .unwrap(); 
+        .unwrap();
 
     // Flag to set false when a test fails
     let mut no_failure = true;
@@ -41,8 +41,7 @@ fn test_example_file(file: String) -> bool {
     for s in split{
         if !s.is_empty() {
             // If the output line's starting symbol doesnt match the ending symbol, set failure flag
-            if  !((s.starts_with("\nfn valid") && s.ends_with("valid.")) ||
-                 (s.starts_with("\nfn invalid") && s.ends_with("not valid."))) {
+            if s.ends_with("not valid.") != s.starts_with("\nfn invalid"){
                      println!("{:?} caused failure", s);
                      no_failure = false;
             }
