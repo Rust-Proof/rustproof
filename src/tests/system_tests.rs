@@ -15,13 +15,7 @@ use std::process::Command;
 fn test_example_file(file: String) -> bool {
     // Clean rustproof to ensure this test runs
     // Note: this does not increase test time
-    Command::new("cargo")
-        .arg("clean")
-        .arg("-p")
-        .arg("rustproof")
-        .output()
-        .unwrap();
-
+    
     // Flag to set false when a test fails
     let mut no_failure = true;
 
