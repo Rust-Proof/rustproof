@@ -15,7 +15,13 @@ use std::process::Command;
 fn test_example_file(file: String) -> bool {
     // Clean rustproof to ensure this test runs
     // Note: this does not increase test time
-    
+    Command::new("cargo")
+        .arg("clean")
+        .arg("-p")
+        .arg("rustproof")
+        .output()
+        .unwrap();
+
     // Flag to set false when a test fails
     let mut no_failure = true;
 
@@ -37,7 +43,8 @@ fn test_example_file(file: String) -> bool {
             // If the output line's starting symbol doesnt match the ending symbol, set failure flag
             if  !((s.starts_with("\nfn valid") && s.ends_with("valid.")) ||
                  (s.starts_with("\nfn invalid") && s.ends_with("not valid."))) {
-                    no_failure = false;
+                     println!("{:?} caused failure", s);
+                     no_failure = false;
             }
         }
     }
