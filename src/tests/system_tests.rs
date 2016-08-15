@@ -8,63 +8,50 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//use std::iter;
-//use std::env;
-//use std::path;
 use std::process::Command;
-//use std::process::ExitStatus;
-//use std::thread::spawn;
 
-// skeleton for running rustproof as a test
-// Commented out until I figure out static strings
-//static valid_return : String = "\nVerification Condition is valid.\nUnsat(\"unsat\")\n".to_string();
-//static unsat_return : String = "\nVerification Condition is invalid.\nSat(\"sat\")\n".to_string();
-
-//#[test]
-fn demo_ssahli_demo() {
-    //Creates a new thread to run plugin-examples
-
-    let output = Command::new("cargo")
-        .arg("build")
-        .arg("--example")
-        .arg("ssahli")
+// Uses a /example file as a system test for rustproof
+// returns false on verification condition mismatch from function name prefix
+fn test_example_file(file: String) -> bool {
+    // Clean rustproof to ensure this test runs
+    // Note: this does not increase test time
+    Command::new("cargo")
+        .arg("clean")
+        .arg("-p")
+        .arg("rustproof")
         .output()
         .unwrap();
-    let stdout_result = String::from_utf8_lossy(&output.stdout);
-    let correct_result = "\nfn add_five_or_three(..)\tVerification Condition is valid.\n\n".to_string();
-    println!("The output is: {:?}", stdout_result);
-    println!("The correct output is: {:?}", correct_result);
-    assert_eq!(stdout_result, correct_result);
 
-}
+    // Flag to set false when a test fails
+    let mut no_failure = true;
 
-
-#[test]
-fn test_many_instances(){
-
-    // Flag checker to make sure it works
-    let mut checker = true;
-
+    // Compile the example
     let output = Command::new("cargo")
         .arg("run")
         .arg("--example")
-        .arg("test_conditions")
+        .arg(file.clone())
         .output()
         .unwrap();
 
+    // Process the output
     let stdout_result = String::from_utf8_lossy(&output.stdout);
     let split = stdout_result.split("\n\n");
+
+    // For each function
     for s in split{
-        if s.is_empty() == false {
-            println!("{:?}", s);
-            println!("Starts boolean: {:?}", s.ends_with("not valid."));
-            println!("Ends boolean: {:?}", s.starts_with("\nfn invalid"));
-            //assert_eq!(s.starts_with("\nfn invalid"), s.ends_with("not valid."));
-            if s.ends_with("not valid.") != s.starts_with("\nfn invalid"){
-                checker = false;
+        if !s.is_empty() {
+            // If the output line's starting symbol doesnt match the ending symbol, set failure flag
+            if  !((s.starts_with("\nfn valid") && s.ends_with("valid.")) ||
+                 (s.starts_with("\nfn invalid") && s.ends_with("not valid."))) {
+                    no_failure = false;
             }
         }
     }
-    println!("The flag check is: {:?}", checker);
-    assert!(checker);
+
+    return no_failure;
+}
+
+#[test]
+fn test_examples() {
+    assert!(test_example_file("test_conditions".to_string()));
 }
