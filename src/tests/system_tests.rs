@@ -20,7 +20,7 @@ use std::process::Command;
 //static valid_return : String = "\nVerification Condition is valid.\nUnsat(\"unsat\")\n".to_string();
 //static unsat_return : String = "\nVerification Condition is invalid.\nSat(\"sat\")\n".to_string();
 
-#[test]
+//#[test]
 fn demo_ssahli_demo() {
     //Creates a new thread to run plugin-examples
 

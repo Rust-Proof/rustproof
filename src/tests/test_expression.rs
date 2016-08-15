@@ -31,8 +31,6 @@ fn determine_evaluation_type_comparison_unary(){
     });
     let returned_string = determine_evaluation_type(&to_test);
     let correct_result = "bool";
-    println!("Generated type: {:?}", returned_string);
-    println!("Correct type: {:?}", correct_result);
     assert_eq!(returned_string, correct_result);
 }
 
@@ -55,7 +53,6 @@ fn determine_evaluation_type_comparison_binary(){
 
     let returned_string = determine_evaluation_type(&to_test);
     let correct_result = "i32";
-    println!("Generated type: {:?}", returned_string);
     assert_eq!(returned_string,correct_result);
 }
 
@@ -79,8 +76,6 @@ fn test_all_substitute_unary_operators(){
         e: Box::new(replacement.clone() ),
     });
     substitute_variable_with_expression(&mut p, &target_var, &replacement);
-    println!("Result: {:?}", p);
-    println!("correct_result: {:?}", correct_result);
     assert_eq!(p, correct_result);
 }
 
@@ -111,8 +106,6 @@ fn substitute_variable_with_expression_greater_than_or_equal(){
         right: Box::new( superfluous.clone() ),
     });
     substitute_variable_with_expression(&mut p, &target_var, &replacement);
-    println!("result {:?}", p);
-    println!("correct_result {:?}", correct_result);
     assert_eq!(p, correct_result);
 }
 
@@ -143,8 +136,6 @@ fn substitute_variable_with_expression_less_than() {
         right: Box::new( superfluous.clone() ),
     });
     substitute_variable_with_expression(&mut p, &target_var, &replacement);
-    println!("result {:?}", p);
-    println!("correct_result {:?}", correct_result);
     assert_eq!(p, correct_result);
 }
 
@@ -175,8 +166,6 @@ fn substitute_variable_with_expression_less_than_or_equal() {
         right: Box::new( superfluous.clone() ),
     });
     substitute_variable_with_expression(&mut p, &target_var, &replacement);
-    println!("result {:?}", p);
-    println!("correct_result {:?}", correct_result);
     assert_eq!(p, correct_result);
 }
 
@@ -208,8 +197,6 @@ fn substitute_variable_with_expression_greater_than(){
         right: Box::new( superfluous.clone() ),
     });
     substitute_variable_with_expression(&mut p, &target_var, &replacement);
-    println!("result {:?}", p);
-    println!("correct_result {:?}", correct_result);
     assert_eq!(p, correct_result);
 
 }
@@ -244,7 +231,6 @@ fn variable_mapping_data_equality() {
     assert!(var1 == var1);
     assert!(var1 == var2);
     assert!(var1 != var3);
-    //FIXME: Following line should be included once type information is included in equality checking
     assert!(var1 != var4);
     assert!(var1 != var5);
     assert!(var1 != var6);
