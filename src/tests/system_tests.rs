@@ -20,7 +20,7 @@ fn test_example_file(file: String) -> bool {
         .arg("-p")
         .arg("rustproof")
         .output()
-        .unwrap();
+        .unwrap(); 
 
     // Flag to set false when a test fails
     let mut no_failure = true;
