@@ -55,3 +55,10 @@ fn test_example_file(file: String) -> bool {
 fn test_examples() {
     assert!(test_example_file("test_conditions".to_string()));
 }
+
+#[test]
+#[should_panic]
+fn test_system_test_validity() {
+    assert!(test_example_file("test_fail_valid".to_string()));
+    assert!(test_example_file("test_fail_invalid".to_string()));
+}
