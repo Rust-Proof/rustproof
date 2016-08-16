@@ -34,7 +34,8 @@
 
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
-#![allow(needless_return)]
+//bajr will remove this very soon
+//#![allow(needless_return)]
 
 
 #[macro_use] pub extern crate syntax;
@@ -42,7 +43,8 @@
 
 // External crate imports
 #[macro_use] extern crate libsmt;
-//#[macro_use] extern crate log;
+// The following line is being weird to me sometimes
+#[macro_use] extern crate log;
 extern crate petgraph;
 extern crate rustc;
 extern crate rustc_plugin;
