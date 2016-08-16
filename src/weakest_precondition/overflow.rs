@@ -13,10 +13,6 @@ extern crate rustc_const_math;
 use expression::*;
 use rustc::mir::repr::*;
 
-//  use errors::{ColorConfig, Handler};
-//  use syntax::codemap::CodeMap;
-//  use std::rc::Rc;
-
 // One catch-all function for overflow checking.
 pub fn overflow_check(wp: &Expression,
                       var: &VariableMappingData,
@@ -31,62 +27,62 @@ pub fn overflow_check(wp: &Expression,
         left: Box::new(wp.clone()),
         right: Box::new(
             match v.var_type.as_str() {
-                "i8" => { signed_overflow(binop, 8u8, lvalue, rvalue) },
-                "i16" => { signed_overflow(binop, 16u8, lvalue, rvalue) },
-                "i32" => { signed_overflow(binop, 32u8, lvalue, rvalue) },
-                "i64" => { signed_overflow(binop, 64u8, lvalue, rvalue) },
-                "u8" | "u16" | "u32" | "u64" => { unsigned_overflow(binop, lvalue, rvalue) },
-                _ => { panic!("Unsupported return type of binary operation: {}", v.var_type); }
+                "i8" => signed_overflow(binop, 8u8, lvalue, rvalue),
+                "i16" => signed_overflow(binop, 16u8, lvalue, rvalue),
+                "i32" => signed_overflow(binop, 32u8, lvalue, rvalue),
+                "i64" => signed_overflow(binop, 64u8, lvalue, rvalue),
+                "u8" | "u16" | "u32" | "u64" => {
+                    unsigned_overflow(binop, lvalue, rvalue)
+                },
+                _ => panic!("Unsupported return type of binary operation: {}", v.var_type),
             }
         ),
     })
 }
 
 // Signed: Match on the type of BinOp and call the correct function
-fn signed_overflow(binop: &BinOp,
-                   size: u8,
-                   lvalue: &Expression,
-                   rvalue: &Expression)
+fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression)
                    -> Expression {
     match *binop {
-        BinOp::Add => { signed_add(size, lvalue, rvalue) },
-        BinOp::Mul => { signed_mul(lvalue, rvalue) },
-        BinOp::Sub => { signed_sub(size, lvalue, rvalue) },
-        BinOp::Div => { signed_div(size, lvalue, rvalue) },
-        BinOp::Rem => { unimplemented!() },
-        BinOp::Shl => { unimplemented!() },
-        BinOp::Shr => { unimplemented!() },
-        BinOp::BitOr => { unimplemented!() },
-        BinOp::BitAnd => { unimplemented!() },
-        BinOp::BitXor => { unimplemented!() },
-        BinOp::Lt => { unimplemented!() },
-        BinOp::Le => { unimplemented!() },
-        BinOp::Gt => { unimplemented!() },
-        BinOp::Ge => { unimplemented!() },
-        BinOp::Eq => { unimplemented!() },
-        BinOp::Ne => { unimplemented!() },
+        BinOp::Add => signed_add(size, lvalue, rvalue),
+        BinOp::Mul => signed_mul(lvalue, rvalue),
+        BinOp::Sub => signed_sub(size, lvalue, rvalue),
+        BinOp::Div => signed_div(size, lvalue, rvalue),
+        BinOp::Rem => unimplemented!(),
+        BinOp::Shl => unimplemented!(),
+        BinOp::Shr => unimplemented!(),
+        BinOp::BitOr => unimplemented!(),
+        BinOp::BitAnd => unimplemented!(),
+        BinOp::BitXor => unimplemented!(),
+        BinOp::Lt => unimplemented!(),
+        BinOp::Le => unimplemented!(),
+        BinOp::Gt => unimplemented!(),
+        BinOp::Ge => unimplemented!(),
+        BinOp::Eq => unimplemented!(),
+        BinOp::Ne => unimplemented!(),
     }
 }
 
-// Creates an Expression containing overflow and underflow checks for lvalue + rvalue, assuming they are bitvectors of length "size"
-//
-// The following psuedocode provides a logically equivalent version of what is produced
-// (false is returned if overflow/underflow has occurred, true otherwise)
-//
-// If lvalue >= 0 && rvalue >= 0
-//   If lvalue + rvalue < 0
-//     false
-//   Else
-//     true
-// Else
-//   If lvalue < 0 && rvalue < 0
-//     If lvalue + rvalue >= 0
-//       false
-//     Else
-//       true
-//   Else
-//     true
-//
+/// Creates an Expression containing overflow and underflow checks for lvalue + rvalue, assuming
+/// they are bitvectors of length "size"
+///
+/// The following psuedocode provides a logically equivalent version of what is produced
+/// (false is returned if overflow/underflow has occurred, true otherwise)
+///
+/// If lvalue >= 0 && rvalue >= 0
+///   If lvalue + rvalue < 0
+///     false
+///   Else
+///     true
+/// Else
+///   If lvalue < 0 && rvalue < 0
+///     If lvalue + rvalue >= 0
+///       false
+///     Else
+///       true
+///   Else
+///     true
+///
 fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
@@ -231,25 +227,26 @@ fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
     })
 }
 
-// Creates an Expression containing overflow and underflow checks for lvalue - rvalue, assuming they are bitvectors of length "size"
-//
-// The following psuedocode provides a logically equivalent version of what is produced
-// (false is returned if overflow/underflow has occurred, true otherwise)
-//
-// If lvalue >= 0 && rvalue < 0
-//   If lvalue - rvalue < 0
-//     false
-//   Else
-//     true
-// Else
-//   If lvalue < 0 && rvalue >= 0
-//     If lvalue - rvalue >= 0
-//       false
-//     Else
-//       true
-//   Else
-//     true
-//
+/// Creates an Expression containing overflow and underflow checks for lvalue - rvalue, assuming
+/// they are bitvectors of length "size"
+///
+/// The following psuedocode provides a logically equivalent version of what is produced
+/// (false is returned if overflow/underflow has occurred, true otherwise)
+///
+/// If lvalue >= 0 && rvalue < 0
+///   If lvalue - rvalue < 0
+///     false
+///   Else
+///     true
+/// Else
+///   If lvalue < 0 && rvalue >= 0
+///     If lvalue - rvalue >= 0
+///       false
+///     Else
+///       true
+///   Else
+///     true
+///
 fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
@@ -425,11 +422,11 @@ fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
                     Expression::SignedBitVector( SignedBitVectorData{
                         size: size,
                         value: match size {
-                            8u8 => { i8::min_value() as i64 },
-                            16u8 => { i16::min_value() as i64 },
-                            32u8 => { i32::min_value() as i64 },
-                            64u8 => { i64::min_value() as i64 },
-                            _ => { panic!("unsupported integer type") },
+                            8u8 => i8::min_value() as i64,
+                            16u8 => i16::min_value() as i64,
+                            32u8 => i32::min_value() as i64,
+                            64u8 => i64::min_value() as i64,
+                            _ => panic!("unsupported integer type"),
                         },
                     })
                 ),
@@ -480,22 +477,22 @@ fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 // Unsigned: Match on the type of BinOp and call the correct function
 fn unsigned_overflow(binop: &BinOp, lvalue: &Expression, rvalue: &Expression) -> Expression {
     match *binop {
-        BinOp::Add => { unsigned_add(lvalue, rvalue) },
-        BinOp::Sub => { unsigned_sub(lvalue, rvalue) },
-        BinOp::Mul => { unsigned_mul(lvalue, rvalue) },
-        BinOp::Div => { unimplemented!() },
-        BinOp::Rem => { unimplemented!() },
-        BinOp::Shl => { unimplemented!() },
-        BinOp::Shr => { unimplemented!() },
-        BinOp::BitOr => { unimplemented!() },
-        BinOp::BitAnd => { unimplemented!() },
-        BinOp::BitXor => { unimplemented!() },
-        BinOp::Lt => { unimplemented!() },
-        BinOp::Le => { unimplemented!() },
-        BinOp::Gt => { unimplemented!() },
-        BinOp::Ge => { unimplemented!() },
-        BinOp::Eq => { unimplemented!() },
-        BinOp::Ne => { unimplemented!() },
+        BinOp::Add => unsigned_add(lvalue, rvalue),
+        BinOp::Sub => unsigned_sub(lvalue, rvalue),
+        BinOp::Mul => unsigned_mul(lvalue, rvalue),
+        BinOp::Div => unimplemented!(),
+        BinOp::Rem => unimplemented!(),
+        BinOp::Shl => unimplemented!(),
+        BinOp::Shr => unimplemented!(),
+        BinOp::BitOr => unimplemented!(),
+        BinOp::BitAnd => unimplemented!(),
+        BinOp::BitXor => unimplemented!(),
+        BinOp::Lt => unimplemented!(),
+        BinOp::Le => unimplemented!(),
+        BinOp::Gt => unimplemented!(),
+        BinOp::Ge => unimplemented!(),
+        BinOp::Eq => unimplemented!(),
+        BinOp::Ne => unimplemented!(),
     }
 }
 

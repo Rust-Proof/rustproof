@@ -19,17 +19,20 @@ use std::process;
 use std::rc::Rc;
 use errors::{ColorConfig, Handler};
 
-/// Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
+/// Analyzes an attribute on a function in the compiled code, and if the attribute is "condition",
+/// ensures correct usage. If usage is correct, it stores the argument strings.
 ///
 /// # Arguments:
-/// * `pre_string` - The pre-condition given by the user in string form
-/// * `post_string` - The post-condition given by the user in string form
-/// * `attr` - The attribute that calls rustproof to be executed
+/// * `pre_string` - Empty string. Will contain a user-submitted precondition if found.
+/// * `post_string` - Empty string. Will contain a user-submitted postcondition if found.
+/// * `attr` - The attribute being analyzed.
 ///
 /// # Remarks:
-/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`
+/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool`
 ///
-pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: &Spanned<Attribute_>) {
+pub fn parse_attribute(pre_string: &mut String,
+                       post_string: &mut String,
+                       attr: &Spanned<Attribute_>) {
     if let MetaItemKind::List(ref attribute_name, ref args) = attr.node.value.node {
         // Ignore if not a condition attribute
         if attribute_name == "condition" {
@@ -40,51 +43,57 @@ pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: 
             // Parse the first argument
             if let MetaItemKind::NameValue(ref i_string, ref literal) = args[0].node {
                 if i_string != "pre" {
-                    rp_error!("The first argument must be \"pre\". {} was provided.", i_string);
+                    rp_error!( "The first argument must be named \"pre\". {} was provided.",
+                               i_string);
                 }
                 // Get the argument
                 if let syntax::ast::LitKind::Str(ref i_string, _) = literal.node {
                     *pre_string = i_string.to_string();
+                } else {
+                    rp_error!("Conditions must be strings. \
+                              Try wrapping conditions in quotation marks.");
                 }
+            } else {
+                        rp_error!("The first argument must be named \"pre\".");
             }
             // Parse the second argument
             if let MetaItemKind::NameValue(ref i_string, ref literal) = args[1].node {
                 if i_string != "post" {
-                    rp_error!("The second argument must be \"post\". {} was provided.", i_string);
+                    rp_error!( "The second argument must be named \"post\". {} was provided.",
+                               i_string);
                 }
                 // Get the argument
                 if let syntax::ast::LitKind::Str(ref i_string, _) = literal.node {
                     *post_string = i_string.to_string();
+                } else {
+                    rp_error!("Conditions must be strings. \
+                              Try wrapping conditions in quotation marks.");
                 }
+            } else {
+                rp_error!("The second argument must be named \"post\".");
             }
-        }
+        } // Ignore if not a condition attribute
     }
 }
 
-/// Calls the predicate parser on a given pre/post condition, and returns a Expression if it is valid.
+/// Calls the expression parser on a given precondition or postcondition.
 ///
 /// # Arguments:
-/// * `condition` - The current weakest precondition that the "div by 0" is to be "And"ed to
+/// * `condition` - A user-submitted string
 ///
 /// # Return:
-/// * The pre or post condition in Expression form
+/// * If `condition` is valid, an Expression representing it.
 ///
 /// # Remarks:
-/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool`
+/// * Current supported types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool`
 pub fn parse_condition(condition: &str) -> Expression {
     match expression_parser::parse_E1(condition) {
         Ok(e) => {
             match ty_check(&e) {
-                Ok(_) => {
-                    return e;
-                },
-                Err(s) => {
-                    rp_error!("{}", s);
-                }
+                Ok(_) => return e,
+                Err(s) => rp_error!("{}", s),
             }
         },
-        Err(e) => {
-            rp_error!("Error parsing condition \"{}\": {:?}", condition, e);
-        }
+        Err(e) => rp_error!("Error parsing condition \"{}\": {:?}", condition, e)
     }
 }

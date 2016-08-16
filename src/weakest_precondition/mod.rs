@@ -39,7 +39,6 @@ mod overflow;
 /// * This is the main generator for the weakest precondition, which evaluates the `BasicBlock`s recursively.
 ///
 pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, debug: bool) -> Option<Expression> {
-    // DEBUG PURPOSE:
     // Shows the current BasicBlock index and the BasicBLockData associated with that index
     if debug {
         println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]);
@@ -62,7 +61,8 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
         },
         // Call{func, args, destination, cleanup}
         TerminatorKind::Call{func, ..} => {
-            // Determine if this is the end of a panic. (assumed false branch of assertion, so return a precondition of false [this path will never be taken])
+            // Determine if this is the end of a panic. (assumed false branch of assertion, so
+            // return a precondition of false [this path will never be taken])
             match func {
                 Operand::Constant (ref c) => {
                     let s = format!("{:?}", c.literal);
@@ -71,9 +71,10 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
                     }
                 },
                 // Consume (ref l)
-                Operand::Consume (..) => { unimplemented!() },
+                Operand::Consume (..) => unimplemented!(),
             };
-            // Due to the nature of the limited nature in which we handle Calls, we should never do anything other than an early return or hit the unimplemented!() panic above.
+            // Due to the limited nature in which we handle Calls, we should never do anything
+            // other than return early or hit the unimplemented!() panic above.
             unreachable!();
         },
         // Conditional statements
@@ -89,7 +90,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
                     match constant.literal {
                         Literal::Value {ref value} => {
                             match *value {
-                                ConstVal::Bool (ref boolean) =>{
+                                ConstVal::Bool (ref boolean) => {
                                     Expression::BooleanLiteral(*boolean)
                                 },
                                 _ => unreachable!(),
@@ -136,20 +137,22 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
     // Examine the statements in reverse order
     let mut stmts = data.block_data[index].statements.clone();
     stmts.reverse();
-    // DEBUG PURPOSE:
-    // Displays the current BasicBlock index
+
+    // Prints the current BasicBlock index
     if debug {
         println!("bb{:?}", index);
     }
+
     for stmt in stmts {
         // Modify the weakest precondition based on the statement
         wp = gen_stmt(wp.unwrap(), stmt, data, debug);
     }
-    // DEBUG PURPOSE:
-    // Shows the result to be returned to the proceeding block
+
+    // Prints the result to be returned to the proceeding block
     if debug {
         println!("wp returned as\t{:?}\n", wp.clone().unwrap());
     }
+
     // Return the weakest precondition to the preceeding block, or to control
     wp
 }
@@ -158,13 +161,14 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
 ///
 /// # Arguments:
 /// * `operand` - The operand whose type is being returned.
-/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from
+///            the MIR pass.
 ///
 /// # Remarks:
 ///
 fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
     match operand.clone() {
-        Operand::Constant(ref constant) => { constant.ty.to_string() },
+        Operand::Constant(ref constant) => constant.ty.to_string(),
         Operand::Consume(ref lvalue) => {
             match *lvalue {
                 // Function argument
@@ -179,15 +183,14 @@ fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
                 Lvalue::Var(ref var) => {
                     data.var_data[var.index()].ty.to_string()
                 },
-                _ => {
-                    unimplemented!();
-                }
+                _ => unimplemented!(),
             }
         }
     }
 }
 
-/// Generates a version of wp "And"ed together with a conditional expression that mimics a check to ensure division by 0 does not occur.
+/// Generates a version of wp "And"ed together with a conditional expression that mimics a check
+/// to ensure division by 0 does not occur.
 ///
 /// # Arguments:
 /// * `wp` - The current weakest precondition that the "div by 0" is to be "And"ed to
@@ -212,11 +215,11 @@ fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
                 // The bit-vector size of the given type
                 size: match determine_evaluation_type(exp).as_str() {
-                    "i8" | "u8" => { 8 },
-                    "i16" | "u16" => { 16 },
-                    "i32" | "u32" => { 32 },
-                    "i64" | "u64" => { 64 },
-                    _ => { rp_error!("Unimplemented checkeddAdd right-hand operand type") }
+                    "i8" | "u8" => 8,
+                    "i16" | "u16" => 16,
+                    "i32" | "u32" => 32,
+                    "i64" | "u64" => 64,
+                    _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
                 },
                 value: 0
             }))
@@ -229,17 +232,18 @@ fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
 ///
 /// # Arguments:
 /// * `wp` - The current weakest precondition
-/// * `stmt` - The statement to be processed into `wp`
-/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
+/// * `stmt` - The statement to be processed.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from
+///            the MIR pass.
 ///
 /// # Return Value:
 /// * Returns the modified weakest precondition with underflow check
 ///
 /// # Remarks:
 ///
-fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool) -> Option<Expression>  {
-    // DEBUG PURPOSE:
-    // uncomment out this line for debug purposes. It will show the current statement it is processing
+fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool)
+            -> Option<Expression>  {
+    // Prints the current statement being processed.
     if debug {
         println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp);
     }
@@ -298,7 +302,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
 
             var.name = var.name + ".0";
 
-            // add the new BinaryExpressionData on to the expression: Vec<>
+            // Add the new BinaryExpressionData to the expression vector
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
                 op: op,
                 left: Box::new(lvalue),
@@ -337,17 +341,17 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Modulo
                 },
-                BinOp::BitOr => { BinaryOperator::BitwiseOr },
-                BinOp::BitAnd => { BinaryOperator::BitwiseAnd },
-                BinOp::BitXor => { BinaryOperator::BitwiseXor },
-                BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
-                BinOp::Shr => { BinaryOperator::BitwiseRightShift },
-                BinOp::Lt => { BinaryOperator::LessThan },
-                BinOp::Le => { BinaryOperator::LessThanOrEqual },
-                BinOp::Gt => { BinaryOperator::GreaterThan },
-                BinOp::Ge => { BinaryOperator::GreaterThanOrEqual },
-                BinOp::Eq => { BinaryOperator::Equal },
-                BinOp::Ne => { BinaryOperator::NotEqual },
+                BinOp::BitOr => BinaryOperator::BitwiseOr,
+                BinOp::BitAnd => BinaryOperator::BitwiseAnd,
+                BinOp::BitXor => BinaryOperator::BitwiseXor,
+                BinOp::Shl => BinaryOperator::BitwiseLeftShift,
+                BinOp::Shr => BinaryOperator::BitwiseRightShift,
+                BinOp::Lt => BinaryOperator::LessThan,
+                BinOp::Le => BinaryOperator::LessThanOrEqual,
+                BinOp::Gt => BinaryOperator::GreaterThan,
+                BinOp::Ge => BinaryOperator::GreaterThanOrEqual,
+                BinOp::Eq => BinaryOperator::Equal,
+                BinOp::Ne => BinaryOperator::NotEqual,
             };
             // Add the expression to the vector
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
@@ -367,7 +371,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                         UnaryOperator::BitwiseNot
                     }
                 },
-                UnOp::Neg => { UnaryOperator::Negation },
+                UnOp::Neg => UnaryOperator::Negation,
             };
             // push the ne new exp onto the expression: Vec<>
             expression.push(Expression::UnaryExpression( UnaryExpressionData {
@@ -392,31 +396,30 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                         expression.push(e);
                     }
                 },
-                _ => { rp_error!("Unsupported aggregate: only tuples are supported"); }
+                _ => rp_error!("Unsupported aggregate: only tuples are supported"),
             }
         },
         // FIXME: need def
         // Cast(ref cast_kind, ref cast_operand, ref cast_ty)
-        Rvalue::Cast(_, _, _) => {
+        Rvalue::Cast(..) => {
             expression.push(Expression::VariableMapping(var.clone()));
         },
         // FIXME: need def
         // Ref(ref ref_region, ref ref_borrow_kind, ref ref_lvalue) => {
-        Rvalue::Ref(_, _, _) => {
+        Rvalue::Ref(..) => {
             expression.push(Expression::VariableMapping(var.clone()));
         },
         // Unimplemented Rvalues
-        Rvalue::Box(..) => { unimplemented!(); },
-        Rvalue::Len(..) => { unimplemented!(); },
-        _ => { unimplemented!(); }
+        Rvalue::Box(..) => unimplemented!(),
+        Rvalue::Len(..) => unimplemented!(),
+        _ => unimplemented!(),
     };
 
     // Replace any appearance of var in the weakest precondition with the expression
     for expr in &expression {
         substitute_variable_with_expression( &mut wp, &var, expr );
     }
-    // DEBUG PURPOSE:
-    // prints out the new weakest precondtion expression
+    // Prints the new weakest precondition
     if debug {
         println!("new expression\t\t{:?}\n--------------------------------", wp.clone());
     }
@@ -427,7 +430,8 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
 ///
 /// # Arguments:
 /// * `lvalue` - The left value of an assignment to be generated into a `VariableMapping`
-/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from
+///            the MIR pass.
 ///
 /// # Return Value:
 /// * Returns a `VariableMappingData` that is built from `data` and `lvalue`
@@ -439,8 +443,9 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
         // Function argument
         Lvalue::Arg(ref arg) => {
             // Find the name and type in the declaration
-            VariableMappingData{name: data.arg_data[arg.index()].debug_name.as_str().to_string(),
-                                var_type: data.arg_data[arg.index()].ty.clone().to_string()
+            VariableMappingData{
+                name: data.arg_data[arg.index()].debug_name.as_str().to_string(),
+                var_type: data.arg_data[arg.index()].ty.clone().to_string()
             }
         },
         // Temporary variable
@@ -452,20 +457,25 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                     ty = t[0].to_string();
                 }
             }
-            VariableMappingData{name: "tmp".to_string() + temp.index().to_string().as_str(),
-                                var_type: ty
+            VariableMappingData{
+                name: "tmp".to_string() + temp.index().to_string().as_str(),
+                var_type: ty
             }
         },
         // Local variable
         Lvalue::Var(ref var) => {
-            // FIXME: fix comment
             // Find the name and type in the declaration
-            VariableMappingData{name: "var".to_string() + var.index().to_string().as_str(),
-                                var_type: data.var_data[var.index()].ty.clone().to_string() }
+            VariableMappingData{
+                name: "var".to_string() + var.index().to_string().as_str(),
+                var_type: data.var_data[var.index()].ty.clone().to_string()
+            }
         },
         // The returned value
         Lvalue::ReturnPointer => {
-            VariableMappingData{name: "return".to_string(), var_type : data.func_return_type.clone() }
+            VariableMappingData{
+                name: "return".to_string(),
+                var_type: data.func_return_type.clone()
+            }
         },
         // (Most likely) a field of a tuple from a checked operation
         Lvalue::Projection(pro) => {
@@ -473,10 +483,10 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
                 // Index(ref o)
-                ProjectionElem::Index(_) => { unimplemented!(); },
+                ProjectionElem::Index(_) => unimplemented!(),
                 // Field(ref field, ref ty)
                 ProjectionElem::Field(ref field, _) => { (field.index() as i32).to_string() }
-                _ => { unimplemented!(); }
+                _ => unimplemented!(),
             };
 
             // Get the name of the variable being projected
@@ -498,7 +508,7 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                     // lvalue_type = data.temp_data[temp.index()].ty.clone().to_string();
                     match data.temp_data[temp.index()].ty.sty {
                         TypeVariants::TyTuple(t) => { lvalue_type = t[0].to_string(); },
-                        _ => { unimplemented!() },
+                        _ => unimplemented!(),
                     }
                 },
                 // Local variable
@@ -510,41 +520,42 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                         TypeVariants::TyTuple(t) => {
                             lvalue_type = t[i].to_string();
                         },
-                        _ => { unimplemented!() },
+                        _ => unimplemented!(),
                     }
                 },
                 // Unimplemented Lvalue
-                Lvalue::ReturnPointer => { unimplemented!(); },
+                Lvalue::ReturnPointer => unimplemented!(),
                 // Static(ref stat)
-                Lvalue::Static(_) => { unimplemented!(); },
+                Lvalue::Static(_) => unimplemented!(),
                 // Multiply-nested projection
-                // Projection(ref proj) => { unimplemented!(); },
-                Lvalue::Projection(_) => { unimplemented!(); },
+                Lvalue::Projection(_) => unimplemented!(),
             };
 
             // Get the index
             let index: String = match pro.as_ref().elem.clone() {
 
                 // Field(ref field, ref ty)
-                ProjectionElem::Field(ref field, _) => { (field.index() as i32).to_string() },
+                ProjectionElem::Field(ref field, _) => (field.index() as i32).to_string(),
                 // Index(ref o)
-                ProjectionElem::Index(_) => { unimplemented!(); },
-                _ => { unimplemented!(); }
+                ProjectionElem::Index(_) => unimplemented!(),
+                _ => unimplemented!(),
             };
 
             // Get the index int from index_operand, then stick it in the VariableMappingData
             VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: lvalue_type }
         },
-        _=> { unimplemented!(); }
+        _=> unimplemented!(),
     }
 }
 
 
-/// Generates an Expression based on some operand, either a literal or some kind of variable, temp, or field
+/// Generates an Expression based on some operand, either a literal or some kind of variable, temp,
+/// or field
 ///
 /// # Arguments:
 /// * `operand` - The operand to generate a new expression from.
-/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from
+///            the MIR pass.
 ///
 /// # Return Value:
 /// * Returns a new expression generated from an operand
@@ -616,16 +627,16 @@ fn gen_expression(operand: &Operand, data: &mut MirData) -> Expression {
                                         value: u as u64
                                     } )
                                 },
-                                _ => { unimplemented!(); }
+                                _ => unimplemented!(),
                             }
                         },
-                        _ => { unimplemented!(); },
+                        _ => unimplemented!(),
                     }
                 },
                 // Item {ref def_id, ref substs}
-                Literal::Item {..} => { unimplemented!(); },
+                Literal::Item {..} => unimplemented!(),
                 // Promoted {ref index}
-                Literal::Promoted {..} => { unimplemented!(); },
+                Literal::Promoted {..} => unimplemented!(),
             }
         },
     }
