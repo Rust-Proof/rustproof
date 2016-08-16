@@ -74,10 +74,9 @@ mod expression;
 mod parser;
 mod smt_output;
 mod weakest_precondition;
+#[cfg(test)]
 mod tests;
 
-
-#[cfg(test)]
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
