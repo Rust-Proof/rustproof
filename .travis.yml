@@ -14,7 +14,7 @@ before_install:
   - mkdir -p ~/.local/lib
   - export PATH=~/.local/bin:$PATH
   - export LD_LIBRARY_PATH=~/.local/lib:$LD_LIBRARY_PATH
-  - ./scripts/install-z3.sh
+  - ./scripts/travis-z3.sh
 
 after_success: |
   [ $TRAVIS_BRANCH = master ] &&
