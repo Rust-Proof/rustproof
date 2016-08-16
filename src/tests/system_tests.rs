@@ -27,8 +27,8 @@ fn test_example_file(file: String) -> bool {
 
     // Compile the example
     let output = Command::new("cargo")
-        .arg("run")
-        .arg("--example")
+        .arg("build")
+        .arg("--test")
         .arg(file.clone())
         .output()
         .unwrap();
