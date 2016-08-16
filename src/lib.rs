@@ -24,15 +24,11 @@
 //          internals.rust-lang.org / users.rust-lang.org
 //     - String to expression //libsyntax as parser / parse_exper_from_source_str
 
-#![feature(rustc_private)]
 #![crate_type="dylib"]
-#![feature(plugin_registrar, rustc_private)]
+#![feature(plugin_registrar, rustc_private, stmt_expr_attributes)]
 
 #[macro_use] pub extern crate syntax;
 #[macro_use] pub mod reporting;
-
-// debug flag
-const DEBUG: bool = false;
 
 // External crate imports
 #[macro_use] extern crate libsmt;
@@ -51,9 +47,13 @@ use rustc_plugin::Registry;
 use rustc::mir::repr::{Mir, BasicBlock, BasicBlockData, Arg, Temp, Var, ArgDecl, TempDecl, VarDecl};
 use rustc::mir::transform::{Pass, MirPass, MirSource};
 use rustc::ty::{TyCtxt, FnOutput};
-//  use errors::{ColorConfig, Handler};
-//  use syntax::codemap::CodeMap;
-//  use std::rc::Rc;
+use syntax::feature_gate::AttributeType;
+use syntax::parse::token::InternedString;
+use syntax::ast::MetaItemKind;
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
+use std::process;
 
 // Local imports
 use expression::{Expression, BinaryOperator, BinaryExpressionData};
@@ -61,7 +61,7 @@ use parser::*;
 use smt_output::*;
 use weakest_precondition::*;
 
-// These are our modules
+// rustproof modules
 mod expression;
 mod parser;
 mod smt_output;
@@ -74,8 +74,20 @@ mod tests;
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
-    let visitor = MirVisitor{};
+    // If debug is an argument, set the debug flag to true
+    let mut debug = false;
+    for arg in reg.args() {
+        if arg.clone().unwrap().node == MetaItemKind::Word(InternedString::new("debug")) {
+            debug = true;
+        }
+        else {
+            rp_error!("unrecognized plugin argument");
+        }
+    }
 
+    let visitor = MirVisitor { debug: debug };
+
+    reg.register_attribute("condition".to_string(), AttributeType::Whitelisted);
     reg.register_mir_pass(Box::new(visitor));
 }
 
@@ -87,7 +99,7 @@ pub struct MirData<'tcx> {
     func_return_type: String,
 }
 
-struct MirVisitor {}
+struct MirVisitor { debug: bool }
 
 // This must be here, and it must be blank
 impl <'tcx> Pass for MirVisitor {}
@@ -95,6 +107,7 @@ impl <'tcx> Pass for MirVisitor {}
 impl <'tcx> MirPass<'tcx> for MirVisitor {
     // Visit the MIR of the entire program
     fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
+        let debug = self.debug;
         // Clear the stored attributes in the builder
         let mut pre_string = "".to_string();
         let mut post_string = "".to_string();
@@ -160,7 +173,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             };
 
             // Generate the weakest precondition
-            let weakest_precondition = gen(0, &mut data, &post_expr);
+            let weakest_precondition = gen(0, &mut data, &post_expr, debug);
 
             // Create the verification condition, P -> WP
             let verification_condition: Expression = Expression::BinaryExpression( BinaryExpressionData{
@@ -170,10 +183,12 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             } );
 
             // FIXME: Debug should not be a const; it must be user-facing
-            if DEBUG { println!("vc: {}\n", verification_condition); }
+            if debug {
+                println!("vc: {}\n", verification_condition);
+            }
 
             // Output to SMT-LIB format
-            gen_smtlib(&verification_condition.clone(), name);
+            gen_smtlib(&verification_condition.clone(), name, debug);
         }
     }
 }

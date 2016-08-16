@@ -9,9 +9,10 @@
 // except according to those terms.
 
 // Unused, uncomment if they are needed
-// use errors::{ColorConfig, Handler};
-// use syntax::codemap::CodeMap;
-// use std::rc::Rc;
+use errors::{ColorConfig, Handler};
+use syntax::codemap::CodeMap;
+use std::rc::Rc;
+use std::process;
 
 // Warning macro
 macro_rules! rp_warn {

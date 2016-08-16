@@ -10,7 +10,6 @@
 
 extern crate rustc_const_math;
 
-use super::DEBUG;
 use super::MirData;
 use std::process;
 use expression::*;
@@ -39,11 +38,13 @@ mod overflow;
 /// # Remarks:
 /// * This is the main generator for the weakest precondition, which evaluates the BasicBLocks recursively.
 ///
-pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> Option<Expression> {
-    // FIXME: Debug should not be a const; it must be user-facing
+pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, debug: bool) -> Option<Expression> {
     // DEBUG PURPOSE:
     // Shows the current BasicBlock index and the BasicBLockData associated with that index
-    if DEBUG { println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]); }
+    if debug {
+        println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]);
+    }
+
     let mut wp: Option<Expression>;
 
     // Parse basic block terminator data
@@ -52,7 +53,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
         // Assert{cond, expected, msg, target, cleanup}
         TerminatorKind::Assert{target, ..} => {
             // Retrieve the weakest precondition from the following block
-            wp = gen(target.index(), data, post_expr);
+            wp = gen(target.index(), data, post_expr, debug);
         },
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
@@ -60,7 +61,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
         },
         TerminatorKind::Goto{target} => {
             // Retrieve the weakest precondition from the following block
-            wp = gen(target.index(), data, post_expr);
+            wp = gen(target.index(), data, post_expr, debug);
         },
         // Call{func, args, destination, cleanup}
         TerminatorKind::Call{func, ..} => {
@@ -82,8 +83,8 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
         // wp(if c x else y) => (c -> x) AND ((NOT c) -> y)
         TerminatorKind::If{cond, targets} => {
             // Generate weakest precondition for if and else clause
-            let wp_if = gen(targets.0.index(), data, post_expr);
-            let wp_else = gen(targets.1.index(), data, post_expr);
+            let wp_if = gen(targets.0.index(), data, post_expr, debug);
+            let wp_else = gen(targets.1.index(), data, post_expr, debug);
 
             // Generate the conditional expression
             let condition = match cond {
@@ -140,15 +141,18 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>) -> 
     stmts.reverse();
     // DEBUG PURPOSE:
     // Displays the current BasicBlock index
-    if DEBUG { println!("bb{:?}", index);}
+    if debug {
+        println!("bb{:?}", index);
+    }
     for stmt in stmts {
         // Modify the weakest precondition based on the statement
-        wp = gen_stmt(wp.unwrap(), stmt, data);
+        wp = gen_stmt(wp.unwrap(), stmt, data, debug);
     }
     // DEBUG PURPOSE:
     // Shows the result to be returned to the proceeding block
-    if DEBUG { println!("wp returned as\t{:?}\n", wp.clone().unwrap()); }
-
+    if debug {
+        println!("wp returned as\t{:?}\n", wp.clone().unwrap());
+    }
     // Return the weakest precondition to the preceeding block, or to control
     wp
 }
@@ -240,10 +244,12 @@ fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
 ///
 /// # Remarks:
 ///
-fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<Expression>  {
+fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool) -> Option<Expression>  {
     // DEBUG PURPOSE:
     // uncomment out this line for debug purposes. It will show the current statement it is processing
-    if DEBUG { println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp); }
+    if debug {
+        println!("processing statement\t{:?}\ninto expression\t\t{:?}", stmt, wp);
+    }
 
     let lvalue: Option<Lvalue>;
     let rvalue: Option<Rvalue>;
@@ -418,7 +424,9 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData) -> Option<E
     }
     // DEBUG PURPOSE:
     // prints out the new weakest precondtion expression
-    if DEBUG { println!("new expression\t\t{:?}\n--------------------------------", wp.clone());}
+    if debug {
+        println!("new expression\t\t{:?}\n--------------------------------", wp.clone());
+    }
     return Some(wp);
 }
 

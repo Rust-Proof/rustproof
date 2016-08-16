@@ -8,8 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use super::DEBUG;
-
 use std::fmt::Debug;
 use std::process;
 
@@ -28,7 +26,7 @@ use expression::*;
 
 // Now that we have a verification condition, we need to verify that it is always true.
 // Simply satisfying P->WP isn't enough. We need to verify that !(P->WP) is *unsatisfiable*
-pub fn gen_smtlib (vc: &Expression, name: String) {
+pub fn gen_smtlib (vc: &Expression, name: String, debug: bool) {
     // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
 
@@ -42,7 +40,7 @@ pub fn gen_smtlib (vc: &Expression, name: String) {
     let vcon = solver.expr2smtlib(&vc);
     let _ = solver.assert(core::OpCodes::Not, &[vcon]);
 
-    let (res, check) = solver.solve(&mut z3, DEBUG);
+    let (res, check) = solver.solve(&mut z3, debug);
     match res {
         Ok(..) => {
             match check {
