@@ -17622,7 +17622,20 @@ pub fn __action63<
     (_, i, _): (usize, &'input str, usize),
 ) -> String
 {
-    i.to_string()
+    {
+        match i {
+            "as" | "box" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern" |
+            "false" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "match" | "mod" |
+            "move" | "mut" | "pub" | "ref" | "self" | "Self" | "static" | "struct" |
+            "super" | "trait" | "true" | "type" | "unsafe" | "use" | "where" | "while" |
+            "abstract" | "alignof" | "become" | "do" | "final" | "macro" | "offsetof" |
+            "override" | "priv" | "proc" | "pure" | "sizeof" | "typeof" | "unsized" | "virtual" |
+            "yield" => {
+                panic!("Use of reserved keyword as identifier: {}", i.to_string());
+            },
+            _ => { i.to_string() },
+        }
+    }
 }
 
 pub fn __action64<
