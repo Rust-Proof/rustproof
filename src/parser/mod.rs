@@ -27,56 +27,40 @@ use errors::{ColorConfig, Handler};
 /// * `attr` - The attribute that calls rustproof to be executed
 ///
 /// # Remarks:
-/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`
 ///
-pub fn parse_attribute(pre_string: &mut String,
-                       post_string: &mut String,
-                       attr: &Spanned<Attribute_>) {
-    match attr.node.value.node {
-        MetaItemKind::List(ref attribute_name, ref args) => {
-            // Ignore if not a condition attribute
-            if attribute_name == "condition" {
-                // Only accept if exactly 2 arguments
-                if args.len() != 2 {
-                    rp_error!("Condition attribute must have exactly 2 arguments.");
+pub fn parse_attribute(pre_string: &mut String, post_string: &mut String, attr: &Spanned<Attribute_>) {
+    if let MetaItemKind::List(ref attribute_name, ref args) = attr.node.value.node {
+        // Ignore if not a condition attribute
+        if attribute_name == "condition" {
+            // Only accept if exactly 2 arguments
+            if args.len() != 2 {
+                rp_error!("Condition attribute must have exactly 2 arguments.");
+            }
+            // Parse the first argument
+            if let MetaItemKind::NameValue(ref i_string, ref literal) = args[0].node {
+                if i_string != "pre" {
+                    rp_error!("The first argument must be \"pre\". {} was provided.", i_string);
                 }
-                // Parse the first argument
-                match args[0].node {
-                    MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "pre" {
-                            rp_error!("The first argument must be \"pre\". {} was provided.", i_string);
-                        }
-                        // Get the argument
-                        match literal.node {
-                            syntax::ast::LitKind::Str(ref i_string, _) => {
-                                *pre_string = i_string.to_string();
-                            }
-                            _ => {}
-                        }
-                    },
-                    _ => {},
-                }
-                // Parse the second argument
-                match args[1].node {
-                    MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "post" {
-                            rp_error!("The second argument must be \"post\". {} was provided.", i_string);
-                        }
-                        // Get the argument
-                        match literal.node {
-                            syntax::ast::LitKind::Str(ref i_string, _) => {
-                                *post_string = i_string.to_string();
-                            }
-                            _ => {}
-                        }
-                    },
-                    _ => {},
+                // Get the argument
+                if let syntax::ast::LitKind::Str(ref i_string, _) = literal.node {
+                    *pre_string = i_string.to_string();
                 }
             }
-        },
-        _ => {}
+            // Parse the second argument
+            if let MetaItemKind::NameValue(ref i_string, ref literal) = args[1].node {
+                if i_string != "post" {
+                    rp_error!("The second argument must be \"post\". {} was provided.", i_string);
+                }
+                // Get the argument
+                if let syntax::ast::LitKind::Str(ref i_string, _) = literal.node {
+                    *post_string = i_string.to_string();
+                }
+            }
+        }
     }
 }
+
 /// Calls the predicate parser on a given pre/post condition, and returns a Expression if it is valid.
 ///
 /// # Arguments:
@@ -86,7 +70,7 @@ pub fn parse_attribute(pre_string: &mut String,
 /// * The pre or post condition in Expression form
 ///
 /// # Remarks:
-/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64, Booleans
+/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool`
 pub fn parse_condition(condition: &str) -> Expression {
     match expression_parser::parse_E1(condition) {
         Ok(e) => {

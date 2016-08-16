@@ -25,18 +25,18 @@ use std::rc::Rc;
 
 mod overflow;
 
-/// Computes the weakest precondition for a given postcondition and a series of statements over one or more MIR BasicBLocks.
+/// Computes the weakest precondition for a given postcondition and a series of statements over one or more MIR basic blocks.
 ///
 /// # Arguments:
-/// * `index` - The index of the BasicBlock within MIR.
-/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
+/// * `index` - The index of the `BasicBlock` within MIR.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
 /// * `post_expr` - The current weakest precondition (originally the postcondition) as an Expression.
 ///
 /// # Return Value:
-/// * Returns the weakest precondition generated from the BasicBlock in the form of an Expression.
+/// * Returns the weakest precondition generated from the `BasicBlock` in the form of an Expression.
 ///
 /// # Remarks:
-/// * This is the main generator for the weakest precondition, which evaluates the BasicBLocks recursively.
+/// * This is the main generator for the weakest precondition, which evaluates the `BasicBlock`s recursively.
 ///
 pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, debug: bool) -> Option<Expression> {
     // DEBUG PURPOSE:
@@ -51,17 +51,14 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
     let terminator = data.block_data[index].terminator.clone().unwrap().kind;
     match terminator {
         // Assert{cond, expected, msg, target, cleanup}
-        TerminatorKind::Assert{target, ..} => {
+        TerminatorKind::Assert{target, ..}
+        | TerminatorKind::Goto{target} => {
             // Retrieve the weakest precondition from the following block
             wp = gen(target.index(), data, post_expr, debug);
         },
         TerminatorKind::Return => {
             // Return the post condition to the preceeding block
             return post_expr.clone();
-        },
-        TerminatorKind::Goto{target} => {
-            // Retrieve the weakest precondition from the following block
-            wp = gen(target.index(), data, post_expr, debug);
         },
         // Call{func, args, destination, cleanup}
         TerminatorKind::Call{func, ..} => {
@@ -91,8 +88,8 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
                 Operand::Constant (ref constant) => {
                     match constant.literal {
                         Literal::Value {ref value} => {
-                            match value {
-                                &ConstVal::Bool (ref boolean) =>{
+                            match *value {
+                                ConstVal::Bool (ref boolean) =>{
                                     Expression::BooleanLiteral(*boolean)
                                 },
                                 _ => unreachable!(),
@@ -157,11 +154,11 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
     wp
 }
 
-/// Returns the type of an operand as a String (ie: "i32", "bool", etc.)
+/// Returns the type of an operand as a `String` (ie: `i32`, `bool`, etc.)
 ///
 /// # Arguments:
 /// * `operand` - The operand whose type is being returned.
-/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
 ///
 /// # Remarks:
 ///
@@ -169,17 +166,17 @@ fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
     match operand.clone() {
         Operand::Constant(ref constant) => { constant.ty.to_string() },
         Operand::Consume(ref lvalue) => {
-            match lvalue {
+            match *lvalue {
                 // Function argument
-                &Lvalue::Arg(ref arg) => {
+                Lvalue::Arg(ref arg) => {
                     data.arg_data[arg.index()].ty.to_string()
                 },
                 // Temporary variable
-                &Lvalue::Temp(ref temp) => {
+                Lvalue::Temp(ref temp) => {
                     data.temp_data[temp.index()].ty.to_string()
                 },
                 // Local variable
-                &Lvalue::Var(ref var) => {
+                Lvalue::Var(ref var) => {
                     data.var_data[var.index()].ty.to_string()
                 },
                 _ => {
@@ -200,7 +197,7 @@ fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
 /// * Returns the modified weakest precondition with "div by 0" Expression "And"ed
 ///
 /// # Remarks:
-/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`
 ///
 fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
@@ -215,14 +212,10 @@ fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
             right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
                 // The bit-vector size of the given type
                 size: match determine_evaluation_type(exp).as_str() {
-                    "i8" => { 8 },
-                    "i16" => { 16 },
-                    "i32" => { 32 },
-                    "i64" => { 64 },
-                    "u8" => { 8 },
-                    "u16" => { 16 },
-                    "u32" => { 32 },
-                    "u64" => { 64 },
+                    "i8" | "u8" => { 8 },
+                    "i16" | "u16" => { 16 },
+                    "i32" | "u32" => { 32 },
+                    "i64" | "u64" => { 64 },
                     _ => { rp_error!("Unimplemented checkeddAdd right-hand operand type") }
                 },
                 value: 0
@@ -236,8 +229,8 @@ fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
 ///
 /// # Arguments:
 /// * `wp` - The current weakest precondition
-/// * `stmt` - The Statment to be processed into wp
-/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
+/// * `stmt` - The statement to be processed into `wp`
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
 ///
 /// # Return Value:
 /// * Returns the modified weakest precondition with underflow check
@@ -268,38 +261,38 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
     let mut expression = Vec::new();
     match rvalue.clone().unwrap() {
         Rvalue::CheckedBinaryOp(ref binop, ref loperand, ref roperand) => {
-            let lvalue: Expression = gen_expression(&loperand, data);
-            let rvalue: Expression = gen_expression(&roperand, data);
-            let op: BinaryOperator = match binop {
-                &BinOp::Add => {
+            let lvalue: Expression = gen_expression(loperand, data);
+            let rvalue: Expression = gen_expression(roperand, data);
+            let op: BinaryOperator = match *binop {
+                BinOp::Add => {
                     // Add the overflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Addition
                 },
-                &BinOp::Sub => {
+                BinOp::Sub => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Subtraction
                 },
-                &BinOp::Mul => {
+                BinOp::Mul => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Multiplication
                 },
-                &BinOp::Div => {
+                BinOp::Div => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
                 },
-                &BinOp::Rem => {
+                BinOp::Rem => {
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Modulo
                 },
-                &BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
-                &BinOp::Shr => { BinaryOperator::BitwiseRightShift },
+                BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
+                BinOp::Shr => { BinaryOperator::BitwiseRightShift },
                 _ => { rp_error!("Unsupported checked binary operation!"); }
             };
 
@@ -314,47 +307,47 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
         },
 
         Rvalue::BinaryOp(ref binop, ref lval, ref rval) => {
-            let lvalue: Expression = gen_expression(&lval, data);
-            let rvalue: Expression = gen_expression(&rval, data);
-            let op: BinaryOperator = match binop {
-                &BinOp::Add => {
+            let lvalue: Expression = gen_expression(lval, data);
+            let rvalue: Expression = gen_expression(rval, data);
+            let op: BinaryOperator = match *binop {
+                BinOp::Add => {
                     // Add the overflow expression check
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Addition
                 },
-                &BinOp::Sub => {
+                BinOp::Sub => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Subtraction
                 },
-                &BinOp::Mul => {
+                BinOp::Mul => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     BinaryOperator::Multiplication
                 },
-                &BinOp::Div => {
+                BinOp::Div => {
                     // Add the overflow and underflow expression checks
                     wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
                 },
-                &BinOp::Rem => {
+                BinOp::Rem => {
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Modulo
                 },
-                &BinOp::BitOr => { BinaryOperator::BitwiseOr },
-                &BinOp::BitAnd => { BinaryOperator::BitwiseAnd },
-                &BinOp::BitXor => { BinaryOperator::BitwiseXor },
-                &BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
-                &BinOp::Shr => { BinaryOperator::BitwiseRightShift },
-                &BinOp::Lt => { BinaryOperator::LessThan },
-                &BinOp::Le => { BinaryOperator::LessThanOrEqual },
-                &BinOp::Gt => { BinaryOperator::GreaterThan },
-                &BinOp::Ge => { BinaryOperator::GreaterThanOrEqual },
-                &BinOp::Eq => { BinaryOperator::Equal },
-                &BinOp::Ne => { BinaryOperator::NotEqual },
+                BinOp::BitOr => { BinaryOperator::BitwiseOr },
+                BinOp::BitAnd => { BinaryOperator::BitwiseAnd },
+                BinOp::BitXor => { BinaryOperator::BitwiseXor },
+                BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
+                BinOp::Shr => { BinaryOperator::BitwiseRightShift },
+                BinOp::Lt => { BinaryOperator::LessThan },
+                BinOp::Le => { BinaryOperator::LessThanOrEqual },
+                BinOp::Gt => { BinaryOperator::GreaterThan },
+                BinOp::Ge => { BinaryOperator::GreaterThanOrEqual },
+                BinOp::Eq => { BinaryOperator::Equal },
+                BinOp::Ne => { BinaryOperator::NotEqual },
             };
             // Add the expression to the vector
             expression.push(Expression::BinaryExpression( BinaryExpressionData {
@@ -365,16 +358,16 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
         },
         // Generates Rvalue to a UnaryOp
         Rvalue::UnaryOp(ref unop, ref val) => {
-            let exp: Expression = gen_expression(&val, data);
-            let op: UnaryOperator = match unop {
-                &UnOp::Not => {
+            let exp: Expression = gen_expression(val, data);
+            let op: UnaryOperator = match *unop {
+                UnOp::Not => {
                     if determine_evaluation_type(&exp) == "bool" {
                         UnaryOperator::Not
                     } else {
                         UnaryOperator::BitwiseNot
                     }
                 },
-                &UnOp::Neg => { UnaryOperator::Negation },
+                UnOp::Neg => { UnaryOperator::Negation },
             };
             // push the ne new exp onto the expression: Vec<>
             expression.push(Expression::UnaryExpression( UnaryExpressionData {
@@ -388,13 +381,13 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
         },
         //  FIXME: need def
         Rvalue::Aggregate(ref ag_kind, ref vec_operand) => {
-            match ag_kind {
-                &AggregateKind::Tuple => {
-                    for i in 0..vec_operand.len() {
+            match *ag_kind {
+                AggregateKind::Tuple => {
+                    for operand in vec_operand.iter() {
                         let e = Expression::VariableMapping( VariableMappingData {
                             //name: var.name.as_str().to_string() + "." + i.to_string().as_str(),
-                            name: format!("{:?}", vec_operand[i]),
-                            var_type: gen_ty(&vec_operand[i], data)
+                            name: format!("{:?}", operand),
+                            var_type: gen_ty(operand, data)
                         } );
                         expression.push(e);
                     }
@@ -419,8 +412,8 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
     };
 
     // Replace any appearance of var in the weakest precondition with the expression
-    for i in 0..expression.len() {
-        substitute_variable_with_expression( &mut wp, &var, &expression[i] );
+    for expr in &expression {
+        substitute_variable_with_expression( &mut wp, &var, expr );
     }
     // DEBUG PURPOSE:
     // prints out the new weakest precondtion expression
@@ -433,11 +426,11 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
 /// Generates an appropriate variable mapping based on whatever variable, temp, or field is found
 ///
 /// # Arguments:
-/// * `lvalue` - The Lvalue to be generated into a VariableMapping
-/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
+/// * `lvalue` - The left value of an assignment to be generated into a `VariableMapping`
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
 ///
 /// # Return Value:
-/// * Returns a VariableMappingData that is built from the data and lvalue
+/// * Returns a `VariableMappingData` that is built from `data` and `lvalue`
 ///
 /// # Remarks:
 ///
@@ -454,13 +447,10 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
         Lvalue::Temp(ref temp) => {
             // Find the index and type in the declaration
             let mut ty = data.temp_data[temp.index()].ty.clone().to_string();
-            match data.temp_data[temp.index()].ty.sty {
-                TypeVariants::TyTuple(ref t) => {
-                    if t.len() > 0 {
-                        ty = t[0].to_string();
-                    }
-                },
-                _ => { }
+            if let TypeVariants::TyTuple(t) = data.temp_data[temp.index()].ty.sty {
+                if t.len() > 0 {
+                    ty = t[0].to_string();
+                }
             }
             VariableMappingData{name: "tmp".to_string() + temp.index().to_string().as_str(),
                                 var_type: ty
@@ -507,7 +497,7 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                     // warning: value assigned to `lvalue_type` is never read
                     // lvalue_type = data.temp_data[temp.index()].ty.clone().to_string();
                     match data.temp_data[temp.index()].ty.sty {
-                        TypeVariants::TyTuple(ref t) => { lvalue_type = t[0].to_string(); },
+                        TypeVariants::TyTuple(t) => { lvalue_type = t[0].to_string(); },
                         _ => { unimplemented!() },
                     }
                 },
@@ -517,7 +507,7 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                     let i = index.parse::<usize>().unwrap();
                     lvalue_name = "var".to_string() + var.index().to_string().as_str();
                     match data.var_data[var.index()].ty.sty {
-                        TypeVariants::TyTuple(ref t) => {
+                        TypeVariants::TyTuple(t) => {
                             lvalue_type = t[i].to_string();
                         },
                         _ => { unimplemented!() },
@@ -550,77 +540,77 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
 }
 
 
-/// Generates an appropriate Expression based on whatever is found as an operand, either a literal or some kind of variable/temp/field
+/// Generates an Expression based on some operand, either a literal or some kind of variable, temp, or field
 ///
 /// # Arguments:
-/// * `operand` - The Operand to generate a new expression from.
-/// * `data` - Contains the BasicBlockData and all of the argument/temp/variable declarations from the MIR pass.
+/// * `operand` - The operand to generate a new expression from.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from the MIR pass.
 ///
 /// # Return Value:
 /// * Returns a new expression generated from an operand
 ///
 /// # Remarks:
-/// * Current supported types: i8, i16, i32, i64, u8, u16, u32, u64, bool
+/// * Current supported types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool`
 ///
 fn gen_expression(operand: &Operand, data: &mut MirData) -> Expression {
-    match operand {
+    match *operand {
         // A variable/temp/field
-        &Operand::Consume (ref l) => {
+        Operand::Consume (ref l) => {
             Expression::VariableMapping( gen_lvalue(l.clone(), data) )
         },
         // A literal value
-        &Operand::Constant (ref c) => {
+        Operand::Constant (ref c) => {
             match c.literal {
                 Literal::Value {ref value} => {
-                    match value {
-                        &ConstVal::Bool(ref const_bool) => {
+                    match *value {
+                        ConstVal::Bool(ref const_bool) => {
                             Expression::BooleanLiteral(*const_bool)
                         }
-                        &ConstVal::Integral(ref const_int) => {
-                            match const_int {
-                                &ConstInt::I8(i) => {
+                        ConstVal::Integral(ref const_int) => {
+                            match *const_int {
+                                ConstInt::I8(i) => {
                                     Expression::SignedBitVector( SignedBitVectorData {
                                         size: 8,
                                         value: i as i64
                                     } )
                                 },
-                                &ConstInt::I16(i) => {
+                                ConstInt::I16(i) => {
                                     Expression::SignedBitVector( SignedBitVectorData {
                                         size: 16,
                                         value: i as i64
                                     } )
                                 },
-                                &ConstInt::I32(i) => {
+                                ConstInt::I32(i) => {
                                     Expression::SignedBitVector( SignedBitVectorData {
                                         size: 32,
                                         value: i as i64
                                     } )
                                 },
-                                &ConstInt::I64(i) => {
+                                ConstInt::I64(i) => {
                                     Expression::SignedBitVector( SignedBitVectorData {
                                         size: 64,
                                         value: i as i64
                                     } )
                                 },
-                                &ConstInt::U8(u) => {
+                                ConstInt::U8(u) => {
                                     Expression::UnsignedBitVector( UnsignedBitVectorData {
                                         size: 8,
                                         value: u as u64
                                     } )
                                 },
-                                &ConstInt::U16(u) => {
+                                ConstInt::U16(u) => {
                                     Expression::UnsignedBitVector( UnsignedBitVectorData {
                                         size: 16,
                                         value: u as u64
                                     } )
                                 },
-                                &ConstInt::U32(u) => {
+                                ConstInt::U32(u) => {
                                     Expression::UnsignedBitVector( UnsignedBitVectorData {
                                         size: 32,
                                         value: u as u64
                                     } )
                                 },
-                                &ConstInt::U64(u) => {
+                                ConstInt::U64(u) => {
                                     Expression::UnsignedBitVector( UnsignedBitVectorData {
                                         size: 64,
                                         value: u as u64

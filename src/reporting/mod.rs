@@ -35,7 +35,7 @@ macro_rules! rp_error {
     ($fmt:expr) => ({
         let codemap = Rc::new(CodeMap::new());
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
-        let str = format!(concat!($fmt, "\n"));
+        let str = concat!($fmt, "\n");
         handler.err(&str);
 	process::exit(1);
     });
