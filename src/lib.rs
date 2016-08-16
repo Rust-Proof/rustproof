@@ -14,6 +14,9 @@
 //! to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for
 //! satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
 //! This process results in a proof of function correctness.
+//!
+//! # Remarks:
+//! Current supported types: I8, I16, I32, I64, U8, U16, U32, U64, Booleans
 
 
 // TODO Refactor this code to follow rust guidelines
@@ -74,10 +77,11 @@ mod expression;
 mod parser;
 mod smt_output;
 mod weakest_precondition;
+#[cfg(test)]
 mod tests;
 
 
-#[cfg(test)]
+
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
@@ -88,8 +92,8 @@ pub fn registrar(reg: &mut Registry) {
 
 /// Represents the data from the MirPass and parser_attributes functions
 ///
-/// #Purpose:
-/// *Used to pass data from the MIR and the computed weakest_precondition
+/// # Purpose:
+/// * Used to pass data from the MIR and the computed weakest_precondition
 ///
 pub struct MirData<'tcx> {
     block_data: Vec<&'tcx BasicBlockData<'tcx>>,
@@ -99,10 +103,10 @@ pub struct MirData<'tcx> {
     func_return_type: String,
 }
 
-// required struct for Pass
+/// required struct for Pass function
 struct MirVisitor {}
 
-/// This must exsist and must be blank
+/// This must exist and must be blank
 impl <'tcx> Pass for MirVisitor {}
 
 /// Sets up the compiler to go through MIR code.
