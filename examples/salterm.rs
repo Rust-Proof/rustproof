@@ -7,9 +7,9 @@ extern crate rustproof;
 fn main() {
 	let x: u64 = 4u64;
 	let y: i64 = 4i64;
-//	foo(x);
-//	bar(x);
-//	baz(y);
+	foo(x);
+	bar(x);
+	baz(y);
 
 	let z: bool = true;
 	complex_if(z);
@@ -36,7 +36,7 @@ fn baz(y: i64) -> i64 {
 // Invalid
 #[condition(pre="z: bool == true", post="return: i32 != 1: i32")]
 fn complex_if(z: bool) -> i32 {
-    if (z) {
+    if z {
     	1
     } else {
     	2
