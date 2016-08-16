@@ -9,9 +9,6 @@
 // except according to those terms.
 
 //#[macro_use]
-//extern crate rustc;
-//extern crate syntax;
-//extern crate rustc_plugin;
 extern crate term;
 use std::fmt;
 use std::process;
@@ -36,8 +33,9 @@ pub struct UnaryExpressionData {
 // Boolean Expression type
 #[derive(Clone, PartialEq)]
 pub enum Expression {
-    // Boolean expressions
+    // Two sub-expressions joined by an operator
     BinaryExpression(BinaryExpressionData),
+    // A sub-expression acted upon by an operator
     UnaryExpression(UnaryExpressionData),
     // A variable; should be either one of a function's formal arguments,
     // a special "return" variable, or something from an encapsulating scope.
@@ -56,15 +54,9 @@ impl fmt::Display for Expression {
             &Expression::BinaryExpression (ref b) => {
                 write!(f, "({} {} {})", *b.left, b.op, *b.right)
             },
-            &Expression::UnaryExpression (ref u) => {
-                write!(f, "({} {})", u.op, *u.e)
-            },
-            &Expression::VariableMapping (ref v) => {
-                write!(f, "({} : {})", v.name, v.var_type)
-            }
-            &Expression::BooleanLiteral (ref b) => {
-                write!(f, "({})", b)
-            },
+            &Expression::UnaryExpression (ref u) => write!(f, "({} {})", u.op, *u.e),
+            &Expression::VariableMapping (ref v) => write!(f, "({} : {})", v.name, v.var_type),
+            &Expression::BooleanLiteral (ref b) => write!(f, "({})", b),
             &Expression::UnsignedBitVector(ref u) => {
                 write!(f, "({} : u{})", u.value, u.size.to_string())
             },
@@ -84,12 +76,11 @@ impl fmt::Debug for Expression {
 #[derive(Clone, Debug)]
 pub struct VariableMappingData { pub name: String, pub var_type: String}
 
-// FIXME: Type checking removed, should be returned later!
 // Check equality for VariableMappingData types.
 // Should return true if the name and type of the variables are the same.
 impl PartialEq for VariableMappingData {
     fn eq(&self, _rhs: &VariableMappingData) -> bool {
-        if (self.name == _rhs.name)  && (self.var_type == _rhs.var_type) {
+        if (self.name == _rhs.name) && (self.var_type == _rhs.var_type) {
             true
         } else {
             false
@@ -109,13 +100,13 @@ impl fmt::Display for VariableMappingData {
 #[derive(Clone, PartialEq)]
 pub struct UnsignedBitVectorData {
     pub size: u8,
-    pub value: u64
+    pub value: u64,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct SignedBitVectorData {
     pub size: u8,
-    pub value: i64
+    pub value: i64,
 }
 
 #[derive(Clone, PartialEq)]
@@ -148,17 +139,17 @@ pub enum BinaryOperator {
     Or,
     Xor,
     Implication,
-    BiImplication
+    BiImplication,
 }
 
 impl fmt::Display for BinaryOperator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &BinaryOperator::Addition => { write!(f, "+") },
-            &BinaryOperator::Subtraction => { write!(f, "-") },
-            &BinaryOperator::Multiplication => { write!(f, "*") },
-            &BinaryOperator::Division => { write!(f, "/") },
-            &BinaryOperator::Modulo => { write!(f, "%") },
+            &BinaryOperator::Addition => write!(f, "+"),
+            &BinaryOperator::Subtraction => write!(f, "-"),
+            &BinaryOperator::Multiplication => write!(f, "*"),
+            &BinaryOperator::Division => write!(f, "/"),
+            &BinaryOperator::Modulo => write!(f, "%"),
             &BinaryOperator::SignedMultiplicationDoesNotOverflow => {
                 write!(f, "s_mul_no_overflow")
             },
@@ -168,22 +159,22 @@ impl fmt::Display for BinaryOperator {
             &BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
                 write!(f, "u_mul_no_overflow")
             },
-            &BinaryOperator::BitwiseOr => { write!(f, "|") },
-            &BinaryOperator::BitwiseAnd => { write!(f, "&") },
-            &BinaryOperator::BitwiseXor => { write!(f, "^") },
-            &BinaryOperator::BitwiseLeftShift => { write!(f, "<<") },
-            &BinaryOperator::BitwiseRightShift => { write!(f, ">>") },
-            &BinaryOperator::LessThan => { write!(f, "<") },
-            &BinaryOperator::LessThanOrEqual => { write!(f, "<=") },
-            &BinaryOperator::GreaterThan => { write!(f, ">") },
-            &BinaryOperator::GreaterThanOrEqual => { write!(f, ">=") },
-            &BinaryOperator::Equal => { write!(f, "==") },
-            &BinaryOperator::NotEqual => { write!(f, "!=") },
-            &BinaryOperator::And => { write!(f, "AND") },
-            &BinaryOperator::Or => { write!(f, "OR") },
-            &BinaryOperator::Xor => { write!(f, "XOR") },
-            &BinaryOperator::Implication => { write!(f, "IMPLIES") },
-            &BinaryOperator::BiImplication => { write!(f, "EQUIV") }
+            &BinaryOperator::BitwiseOr => write!(f, "|"),
+            &BinaryOperator::BitwiseAnd => write!(f, "&"),
+            &BinaryOperator::BitwiseXor => write!(f, "^"),
+            &BinaryOperator::BitwiseLeftShift => write!(f, "<<"),
+            &BinaryOperator::BitwiseRightShift => write!(f, ">>"),
+            &BinaryOperator::LessThan => write!(f, "<"),
+            &BinaryOperator::LessThanOrEqual => write!(f, "<="),
+            &BinaryOperator::GreaterThan => write!(f, ">"),
+            &BinaryOperator::GreaterThanOrEqual => write!(f, ">="),
+            &BinaryOperator::Equal => write!(f, "=="),
+            &BinaryOperator::NotEqual => write!(f, "!="),
+            &BinaryOperator::And => write!(f, "AND"),
+            &BinaryOperator::Or => write!(f, "OR"),
+            &BinaryOperator::Xor => write!(f, "XOR"),
+            &BinaryOperator::Implication => write!(f, "IMPLIES"),
+            &BinaryOperator::BiImplication => write!(f, "EQUIV"),
         }
     }
 }
@@ -192,7 +183,7 @@ impl fmt::Display for BinaryOperator {
 pub enum UnaryOperator {
     Negation,
     BitwiseNot,
-    // Boolean logical operators
+    // Boolean logical operator
     Not,
 }
 
@@ -206,10 +197,18 @@ impl fmt::Display for UnaryOperator {
     }
 }
 
-// Recurses through an Expression and replaces any Variable Mapping with the given Expression.
-pub fn substitute_variable_with_expression ( source_expression: &mut Expression,
-                                             target: &VariableMappingData,
-                                             replacement: &Expression ) {
+/// Recurses through an Expression and replaces any instance of a variable with a given Expression.
+///
+/// # Arguments:
+/// * `source_expression` - The Expression to be recursed through.
+/// * `target` - The variable to be replaced.
+/// * `replacement` - The Expression to replace the target, if found.
+///
+/// # Remarks:
+///
+pub fn substitute_variable_with_expression (source_expression: &mut Expression,
+                                            target: &VariableMappingData,
+                                            replacement: &Expression) {
     let mut replace: bool = false;
     match source_expression {
         &mut Expression::BinaryExpression(ref mut b) => {
@@ -223,7 +222,6 @@ pub fn substitute_variable_with_expression ( source_expression: &mut Expression,
         },
         &mut Expression::VariableMapping(ref mut v) => {
             // Substitute the variable if it matches the target
-            // FIXME: hotfix inplace here to allow type inference for return blocks
             if v == target {
                 replace = true;
             }
@@ -233,12 +231,22 @@ pub fn substitute_variable_with_expression ( source_expression: &mut Expression,
         }
     }
 
+    // Substitute the variable after the match to avoid scope issues
     if replace {
         *source_expression = replacement.clone();
     }
 }
 
-// Recurses through an Expression and returns the type it would evaluate to.
+/// Recurses through an Expression and returns the type it would evaluate to.
+///
+/// # Arguments:
+/// * `expression` - An Expression whose evaluation type will be returned.
+///
+/// # Return:
+/// * A String representation of the type that should return from the top level of the Expression.
+///
+/// # Remarks:
+///
 pub fn determine_evaluation_type ( expression: &Expression ) -> String {
     match ty_check(expression) {
         Ok(_) => {
@@ -256,11 +264,19 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                             let l_type: String = determine_evaluation_type(&*b.left);
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operands are numeric types
-                            if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
-                                rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
+                            if (l_type.as_str() == "bool") || (r_type.as_str() == "bool") {
+                                rp_error!(
+                                    "Invalid use of binary operator {} on boolean value(s)",
+                                    b.op
+                                );
                             // Ensure both operand types match
                             } else if l_type != r_type {
-                                rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                                rp_error!(
+                                    "Binary operand types do not match: {} {} {}",
+                                    l_type,
+                                    b.op,
+                                    r_type
+                                );
                             } else {
                                 l_type
                             }
@@ -270,12 +286,19 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                             let r_type: String = determine_evaluation_type(&*b.right);
 
                             // Ensure both operands are numeric types
-                            if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
-                                rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
+                            if (l_type.as_str() == "bool") || (r_type.as_str() == "bool") {
+                                rp_error!(
+                                    "Invalid use of binary operator {} on boolean value(s)",
+                                    b.op
+                                );
                             //Ensure both operand types are of same signedness
                             } else if (l_type.starts_with("i") && r_type.starts_with("i"))
                                        || (l_type.starts_with("u") && r_type.starts_with("u")) {
-                                rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                                rp_error!(
+                                    "Binary operand types do not match: {} {} {}",
+                                    l_type,
+                                    b.op, r_type
+                                );
                             } else {
                                 l_type
                             }
@@ -287,7 +310,12 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operand types match
                             if l_type != r_type {
-                                rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                                rp_error!(
+                                    "Binary operand types do not match: {} {} {}",
+                                    l_type,
+                                    b.op,
+                                    r_type
+                                );
                             } else {
                                 l_type
                             }
@@ -299,11 +327,19 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                             let l_type: String = determine_evaluation_type(&*b.left);
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operands are numeric types
-                            if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
-                                rp_error!("Invalid use of binary operator {} on boolean value(s)", b.op);
+                            if (l_type.as_str() == "bool") || (r_type.as_str() == "bool") {
+                                rp_error!(
+                                    "Invalid use of binary operator {} on boolean value(s)",
+                                    b.op
+                                );
                             // Ensure both operand types match
                             } else if l_type != r_type {
-                                rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                                rp_error!(
+                                    "Binary operand types do not match: {} {} {}",
+                                    l_type,
+                                    b.op,
+                                    r_type
+                                );
                             } else {
                                 "bool".to_string()
                             }
@@ -314,7 +350,12 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operand types match
                             if l_type != r_type {
-                                rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                                rp_error!(
+                                    "Binary operand types do not match: {} {} {}",
+                                    l_type,
+                                    b.op,
+                                    r_type
+                                );
                             } else {
                                 "bool".to_string()
                             }
@@ -327,11 +368,19 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                             let l_type: String = determine_evaluation_type(&*b.left);
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operands are boolean types
-                            if (l_type != "bool".to_string()) || (r_type != "bool".to_string()) {
-                                rp_error!("Invalid use of binary operator {} on numeric value(s)", b.op);
+                            if (l_type.as_str() != "bool") || (r_type.as_str() != "bool") {
+                                rp_error!(
+                                    "Invalid use of binary operator {} on numeric value(s)",
+                                    b.op
+                                );
                             // Ensure both operand types match
                             } else if l_type != r_type {
-                                rp_error!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type);
+                                rp_error!(
+                                    "Binary operand types do not match: {} {} {}",
+                                    l_type,
+                                    b.op,
+                                    r_type
+                                );
                             } else {
                                 "bool".to_string()
                             }
@@ -343,69 +392,86 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         UnaryOperator::Negation => {
                             let e_type: String = determine_evaluation_type(&*u.e);
                             // Ensure operand is a numeric type
-                            if e_type == "bool".to_string() {
-                                rp_error!("Invalid use of operator {} on boolean value {}", u.op, *u.e);
+                            if e_type.as_str() == "bool" {
+                                rp_error!(
+                                    "Invalid use of operator {} on boolean value {}",
+                                    u.op,
+                                    *u.e
+                                );
                             // Ensure operand is not an unsigned type
-                            } else if (e_type == "u8".to_string())
-                                       || (e_type == "u16".to_string())
-                                       || (e_type == "u32".to_string())
-                                       || (e_type == "u64".to_string()) {
-                                rp_error!("Invalid use of operator {} on unsigned value {}", u.op, *u.e);
+                            } else if is_valid_unsigned(e_type.as_str()) {
+                                rp_error!(
+                                    "Invalid use of operator {} on unsigned value {}",
+                                    u.op,
+                                    *u.e
+                                );
                             } else {
                                 e_type
                             }
                         },
-                        UnaryOperator::BitwiseNot => {
-                            determine_evaluation_type(&*u.e)
-                        },
+                        UnaryOperator::BitwiseNot => determine_evaluation_type(&*u.e),
                         UnaryOperator::Not => {
                             let e_type: String = determine_evaluation_type(&*u.e);
                             // Ensure operand is a boolean type
-                            if e_type != "bool".to_string() {
-                                rp_error!("Invalid use of operator {} on non-boolean value {}", u.op, *u.e);
+                            if e_type.as_str() != "bool" {
+                                rp_error!(
+                                    "Invalid use of operator {} on non-boolean value {}",
+                                    u.op,
+                                    *u.e
+                                );
                             } else {
                                 e_type
                             }
                         }
                     }
                 },
-                &Expression::VariableMapping(ref v) => {
-                    v.var_type.clone()
-                },
-                &Expression::BooleanLiteral(_) => {
-                    "bool".to_string()
-                },
+                &Expression::VariableMapping(ref v) => v.var_type.clone(),
+                &Expression::BooleanLiteral(_) => "bool".to_string(),
                 &Expression::UnsignedBitVector(ref u) => {
                     match u.size {
-                        8 => { "u8".to_string() },
-                        16 => { "u16".to_string() },
-                        32 => { "u32".to_string() },
-                        64 => { "u64".to_string() },
+                        8 => "u8".to_string(),
+                        16 => "u16".to_string(),
+                        32 => "u32".to_string(),
+                        64 => "u64".to_string(),
                         _ => {
-                            rp_error!("Invalid or Unsupported integer type: \"u{}\"", u.size.to_string());
+                            rp_error!(
+                                "Invalid or Unsupported integer type: \"u{}\"",
+                                u.size.to_string()
+                            );
                         }
                     }
                 },
                 &Expression::SignedBitVector(ref s) => {
                     match s.size {
-                        8 => { "i8".to_string() },
-                        16 => { "i16".to_string() },
-                        32 => { "i32".to_string() },
-                        64 => { "i64".to_string() },
+                        8 => "i8".to_string(),
+                        16 => "i16".to_string(),
+                        32 => "i32".to_string(),
+                        64 => "i64".to_string(),
                         _ => {
-                            rp_error!("Invalid or Unsupported integer type: \"i{}\"", s.size.to_string());
+                            rp_error!(
+                                "Invalid or Unsupported integer type: \"i{}\"",
+                                s.size.to_string()
+                            );
                         }
                     }
                 }
             }
         },
-        Err(e) => {
-            rp_error!("{}", e);
-        }
+        Err(e) => rp_error!("{}", e),
     }
 }
 
-// Recurses through an Expression and returns Ok(true) if all the types seem valid; returns Err(some message) if a type seems invalid.
+/// Recurses through an Expression and checks for validity of types, operands, and integer bounds.
+///
+/// # Arguments:
+/// * `expression` - An Expression whose type will be checked.
+///
+/// # Return:
+/// * Ok(true) if all seems valid.
+/// * Err(String) otherwise, the String containing a message about the first problem encountered.
+///
+/// # Remarks:
+///
 pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
     match expression {
         &Expression::BinaryExpression(ref b) => {
@@ -425,27 +491,35 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                     let l_type: String = determine_evaluation_type(&*b.left);
                                     let r_type: String = determine_evaluation_type(&*b.right);
                                     // Ensure both operands are numeric types
-                                    if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
-                                        Err(format!("Invalid use of binary operator {} on boolean value(s)", b.op))
+                                    if (l_type.as_str() == "bool") || (r_type.as_str() == "bool") {
+                                        Err(
+                                            format!(
+                                                "Invalid use of binary operator {} on boolean \
+                                                value(s)",
+                                                b.op
+                                            )
+                                        )
                                     // Ensure both operand types match
                                     } else if l_type != r_type {
-                                        Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
+                                        Err(
+                                            format!(
+                                                "Binary operand types do not match: {} {} {}",
+                                                l_type,
+                                                b.op,
+                                                r_type
+                                            )
+                                        )
                                     } else {
                                         Ok(true)
                                     }
                                 },
-                                Err(e) => {
-                                    Err(e)
-                                }
+                                Err(e) => Err(e)
                             }
                         },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Err(e) => Err(e)
                     }
                 },
-                BinaryOperator::BitwiseLeftShift
-                | BinaryOperator::BitwiseRightShift => {
+                BinaryOperator::BitwiseLeftShift | BinaryOperator::BitwiseRightShift => {
                     match ty_check(&*b.left) {
                         Ok(_) => {
                             match ty_check(&*b.right) {
@@ -453,25 +527,34 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                     let l_type: String = determine_evaluation_type(&*b.left);
                                     let r_type: String = determine_evaluation_type(&*b.right);
                                     // Ensure both operands are numeric types
-                                    if (l_type == "bool".to_string())
-                                            || (r_type == "bool".to_string()) {
-                                        Err(format!("Invalid use of binary operator {} on boolean value(s)", b.op))
+                                    if (l_type.as_str() == "bool") || (r_type.as_str() == "bool") {
+                                        Err(
+                                            format!(
+                                                "Invalid use of binary operator {} on boolean \
+                                                value(s)",
+                                                b.op
+                                            )
+                                        )
                                     //Ensure both operand types are of same signedness
                                     } else if (l_type.starts_with("i") && r_type.starts_with("i"))
-                                            || (l_type.starts_with("u") && r_type.starts_with("u")) {
-                                        Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
+                                              || (l_type.starts_with("u")
+                                                  && r_type.starts_with("u")) {
+                                        Err(
+                                            format!(
+                                                "Binary operand types do not match: {} {} {}",
+                                                l_type,
+                                                b.op,
+                                                r_type
+                                            )
+                                        )
                                     } else {
                                         Ok(true)
                                     }
                                 },
-                                Err(e) => {
-                                    Err(e)
-                                }
+                                Err(e) => Err(e)
                             }
                         },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Err(e) => Err(e)
                     }
                 },
                 BinaryOperator::BitwiseOr
@@ -485,19 +568,22 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                     let r_type: String = determine_evaluation_type(&*b.right);
                                     // Ensure both operand types match
                                     if l_type != r_type {
-                                        Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
+                                        Err(
+                                            format!(
+                                                "Binary operand types do not match: {} {} {}",
+                                                l_type,
+                                                b.op,
+                                                r_type
+                                            )
+                                        )
                                     } else {
                                         Ok(true)
                                     }
                                 },
-                                Err(e) => {
-                                    Err(e)
-                                }
+                                Err(e) => Err(e)
                             }
                         },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Err(e) => Err(e)
                     }
                 },
                 BinaryOperator::LessThan
@@ -511,23 +597,32 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                     let l_type: String = determine_evaluation_type(&*b.left);
                                     let r_type: String = determine_evaluation_type(&*b.right);
                                     // Ensure both operands are numeric types
-                                    if (l_type == "bool".to_string()) || (r_type == "bool".to_string()) {
-                                        Err(format!("Invalid use of binary operator {} on boolean value(s)", b.op))
+                                    if (l_type.as_str() == "bool") || (r_type.as_str() == "bool") {
+                                        Err(
+                                            format!(
+                                                "Invalid use of binary operator {} on boolean \
+                                                value(s)",
+                                                b.op
+                                            )
+                                        )
                                     // Ensure both operand types match
                                     } else if l_type != r_type {
-                                        Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
+                                        Err(
+                                            format!(
+                                                "Binary operand types do not match: {} {} {}",
+                                                l_type,
+                                                b.op,
+                                                r_type
+                                            )
+                                        )
                                     } else {
                                         Ok(true)
                                     }
                                 },
-                                Err(e) => {
-                                    Err(e)
-                                }
+                                Err(e) => Err(e)
                             }
                         },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Err(e) => Err(e)
                     }
                 },
                 BinaryOperator::Equal | BinaryOperator::NotEqual => {
@@ -539,22 +634,26 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                     let r_type: String = determine_evaluation_type(&*b.right);
                                     // Ensure both operand types match
                                     if l_type != r_type {
-                                        Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
+                                        Err(
+                                            format!(
+                                                "Binary operand types do not match: {} {} {}",
+                                                l_type,
+                                                b.op,
+                                                r_type
+                                            )
+                                        )
                                     } else {
                                         Ok(true)
                                     }
                                 },
-                                Err(e) => {
-                                    Err(e)
-                                }
+                                Err(e) => Err(e)
                             }
                         },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Err(e) => Err(e)
                     }
                 },
-                BinaryOperator::And | BinaryOperator::Or | BinaryOperator::Xor | BinaryOperator::Implication | BinaryOperator::BiImplication => {
+                BinaryOperator::And | BinaryOperator::Or | BinaryOperator::Xor
+                | BinaryOperator::Implication | BinaryOperator::BiImplication => {
                     match ty_check(&*b.left) {
                         Ok(_) => {
                             match ty_check(&*b.right) {
@@ -562,23 +661,32 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                     let l_type: String = determine_evaluation_type(&*b.left);
                                     let r_type: String = determine_evaluation_type(&*b.right);
                                     // Ensure both operands are boolean types
-                                    if (l_type != "bool".to_string()) || (r_type != "bool".to_string()) {
-                                        Err(format!("Invalid use of binary operator {} on numeric value(s)", b.op))
+                                    if (l_type.as_str() != "bool") || (r_type.as_str() != "bool") {
+                                        Err(
+                                            format!(
+                                                "Invalid use of binary operator {} on numeric \
+                                                value(s)",
+                                                b.op
+                                            )
+                                        )
                                     // Ensure both operand types match
                                     } else if l_type != r_type {
-                                        Err(format!("Binary operand types do not match: {} {} {}", l_type, b.op, r_type))
+                                        Err(
+                                            format!(
+                                                "Binary operand types do not match: {} {} {}",
+                                                l_type,
+                                                b.op,
+                                                r_type
+                                            )
+                                        )
                                     } else {
                                         Ok(true)
                                     }
                                 },
-                                Err(e) => {
-                                    Err(e)
-                                }
+                                Err(e) =>Err(e)
                             }
                         },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Err(e) => Err(e)
                     }
                 }
             }
@@ -591,35 +699,47 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                             let e_type: String = determine_evaluation_type(&*u.e);
 
                             // Ensure operand is a numeric type
-                            if e_type == "bool".to_string() {
-                                Err(format!("Invalid use of operator {} on boolean value {}", u.op, *u.e))
+                            if e_type.as_str() == "bool" {
+                                Err(
+                                    format!(
+                                        "Invalid use of operator {} on boolean value {}",
+                                        u.op,
+                                        *u.e
+                                    )
+                                )
                             // Ensure operand is not an unsigned type
-                            } else if (e_type == "u8".to_string()) || (e_type == "u16".to_string()) || (e_type == "u32".to_string()) || (e_type == "u64".to_string()) {
-                                Err(format!("Invalid use of operator {} on unsigned value {}", u.op, *u.e))
+                            } else if is_valid_unsigned(e_type.as_str()) {
+                                Err(
+                                    format!(
+                                        "Invalid use of operator {} on unsigned value {}",
+                                        u.op,
+                                        *u.e
+                                    )
+                                )
                             } else {
                                 Ok(true)
                             }
                         },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Err(e) => Err(e)
                     }
                 },
                 UnaryOperator::BitwiseNot => {
                     match ty_check(&*u.e) {
-                        Ok(_) => {
-                            Ok(true)
-                        },
-                        Err(e) => {
-                            Err(e)
-                        }
+                        Ok(_) => Ok(true),
+                        Err(e) => Err(e)
                     }
                 },
                 UnaryOperator::Not => {
                     let e_type: String = determine_evaluation_type(&*u.e);
                     // Ensure operand is a boolean type
-                    if e_type != "bool".to_string() {
-                        Err(format!("Invalid use of operator {} on non-boolean value {}", u.op, *u.e))
+                    if e_type.as_str() != "bool" {
+                        Err(
+                            format!(
+                                "Invalid use of operator {} on non-boolean value {}",
+                                u.op,
+                                *u.e
+                            )
+                        )
                     } else {
                         Ok(true)
                     }
@@ -627,13 +747,12 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
             }
         },
         &Expression::VariableMapping(ref v) => {
-            match v.var_type.as_str() {
-                "bool" | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" => {
-                    Ok(true)
-                },
-                _ => {
-                    Err(format!("Invalid or unsupported variable type: \"{}\"", v.var_type))
-                }
+            if is_valid_unsigned(v.var_type.as_str())
+               || is_valid_signed(v.var_type.as_str())
+               || v.var_type.as_str() == "bool" {
+                Ok(true)
+            } else {
+                Err(format!("Invalid or unsupported variable type: \"{}\"", v.var_type))
             }
         },
         &Expression::BooleanLiteral(_) => {
@@ -641,23 +760,120 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
         },
         &Expression::UnsignedBitVector(ref u) => {
             match u.size {
-                8 | 16 | 32 | 64 => {
-                    Ok(true)
+                8 => {
+                    if (u.value >= u8::min_value() as u64) && (u.value <= u8::max_value() as u64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for u8 type: {}", u.value.to_string()))
+                    }
+                },
+                16 => {
+                    if (u.value >= u16::min_value() as u64)
+                       && (u.value <= u16::max_value() as u64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for u16 type: {}", u.value.to_string()))
+                    }
+                },
+                32 => {
+                    if (u.value >= u32::min_value() as u64)
+                       && (u.value <= u32::max_value() as u64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for u32 type: {}", u.value.to_string()))
+                    }
+                },
+                64 => {
+                    if (u.value >= u64::min_value() as u64)
+                       && (u.value <= u64::max_value() as u64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for u64 type: {}", u.value.to_string()))
+                    }
                 },
                 _ => {
-                   Err(format!("Invalid or Unsupported integer type: \"u{}\"", u.size.to_string()))
+                   Err(format!("Invalid or unsupported integer type: \"u{}\"", u.size.to_string()))
                 }
             }
         },
         &Expression::SignedBitVector(ref s) => {
             match s.size {
-                8 | 16 | 32 | 64 => {
-                    Ok(true)
+                8 => {
+                    if (s.value >= i8::min_value() as i64) && (s.value <= i8::max_value() as i64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for i8 type: {}", s.value.to_string()))
+                    }
+                },
+                16 => {
+                    if (s.value >= i16::min_value() as i64)
+                       && (s.value <= i16::max_value() as i64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for i16 type: {}", s.value.to_string()))
+                    }
+                },
+                32 => {
+                    if (s.value >= i32::min_value() as i64)
+                       && (s.value <= i32::max_value() as i64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for i32 type: {}", s.value.to_string()))
+                    }
+                },
+                64 => {
+                    if (s.value >= i64::min_value() as i64)
+                       && (s.value <= i64::max_value() as i64) {
+                        Ok(true)
+                    } else {
+                        Err(format!("Out of range value for i64 type: {}", s.value.to_string()))
+                    }
                 },
                 _ => {
-                    Err(format!("Invalid or Unsupported integer type: \"i{}\"", s.size.to_string()))
+                    Err(
+                        format!(
+                            "Invalid or unsupported integer type: \"i{}\"",
+                            s.size.to_string()
+                        )
+                    )
                 }
             }
         }
     }
+}
+
+/// Checks if argument string matches one of the supported unsigned integer types
+///
+/// # Arguments:
+/// * `var_type` - A string slice
+///
+/// # Return:
+/// * `true` if it matches, `false` otherwise
+///
+/// # Remarks:
+/// * Current supported types: u8, u16, u32, u64
+///
+fn is_valid_unsigned(var_type: &str) -> bool {
+    (var_type == "u8")
+    || (var_type == "u16")
+    || (var_type == "u32")
+    || (var_type == "u64")
+}
+
+/// Checks if argument string matches one of the supported signed integer types
+///
+/// # Arguments:
+/// * `var_type` - A string slice
+///
+/// # Return:
+/// * `true` if it matches, `false` otherwise
+///
+/// # Remarks:
+/// * Current supported types: i8, i16, i32, i64
+///
+fn is_valid_signed(var_type: &str) -> bool {
+    (var_type == "i8")
+    || (var_type == "i16")
+    || (var_type == "i32")
+    || (var_type == "i64")
 }

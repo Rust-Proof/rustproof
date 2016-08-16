@@ -24,17 +24,23 @@ use std::rc::Rc;
 
 use expression::*;
 
-// Now that we have a verification condition, we need to verify that it is always true.
-// Simply satisfying P->WP isn't enough. We need to verify that !(P->WP) is *unsatisfiable*
+/// Invokes Z3 to check the satisfiability of a verification condition.
+///
+/// # Arguments:
+/// * `vc` - A verification condition as an Expression.
+/// * `name` - The name of the function whose verification condition is being checked.
+/// * `debug` - A flag to enable/disable debug printing.
+///
+/// # Remarks:
+/// * Simply satisfying P->WP isn't enough; that will only tell us if P->WP is _sometimes true_. We
+/// * need to verify that !(P->WP) is *unsatisfiable* to determine that P->WP is _always true_.
+///
 pub fn gen_smtlib (vc: &Expression, name: String, debug: bool) {
     // Define an instance of Z3
     let mut z3: z3::Z3 = Default::default();
 
     // Declare a logic to use
     let mut solver = SMTLib2::new(Some(QF_ABV));
-
-    // Apply logic to Z3 instance
-    // solver.set_logic(&mut z3);
 
     // Check the satisfiability of the solver
     let vcon = solver.expr2smtlib(&vc);
@@ -44,26 +50,23 @@ pub fn gen_smtlib (vc: &Expression, name: String, debug: bool) {
     match res {
         Ok(..) => {
             match check {
-                SMTRes::Sat(_, ref model) => { println!("\nfn {}(..)\tVerification Condition is not valid.\n\n{}\n", name, model.clone().unwrap()); },
-                SMTRes::Unsat(..) => { println!("\nfn {}(..)\tVerification Condition is valid.\n", name); },
+                SMTRes::Sat(_, ref model) => {
+                    println!(
+                        "\nfn {}(..)\tVerification Condition is not valid.\n\n{}\n",
+                        name,
+                        model.clone().unwrap()
+                    );
+                },
+                SMTRes::Unsat(..) => {
+                    println!("\nfn {}(..)\tVerification Condition is valid.\n", name);
+                },
                 _ => { unimplemented!() }
             }
         },
-        Err(..) => { println!("\nfn {}(..)g\tError in Verification Condition Generation.\n", name); },
+        Err(..) => {
+            println!("\nfn {}(..)g\tError in Verification Condition Generation.\n", name);
+        },
     }
-
-    /*
-    // Check the satisfiability of the solver
-    if let Ok(result) = solver.solve(&mut z3) {
-        // If the assertion is satisfiable, then the VC is not valid (not always true)
-        // FIXME This should probably warn
-        println!("\nVerification Condition is not valid.");
-    } else {
-        // If the assertion is unsatisfiable, then the VC is valid (always true)
-        // FIXME Do we want to output if things are good?
-        println!("\nVerification Condition is valid!");
-    }
-    */
 }
 
 pub trait Pred2SMT {
@@ -73,10 +76,6 @@ pub trait Pred2SMT {
     fn expr2smtlib (&mut self, &Expression) -> Self::Idx;
 }
 
-// bajr is keeping this here for posterity... and misplaced pride
-//  impl<L: Logic> Pred2SMT for SMTLib2<L>
-//      where <L as Logic>::Sorts: From<array_ex::Sorts<QF_ABV_Sorts,QF_ABV_Sorts>> + From<bitvec::Sorts> + From<core::Sorts>,
-//            <L as Logic>::Fns: From<array_ex::OpCodes<QF_ABV_Sorts,QF_ABV_Sorts,QF_ABV_Fn>> + From<bitvec::OpCodes> + From<core::OpCodes>
 impl Pred2SMT for SMTLib2<QF_ABV> {
     type Idx = NodeIndex;
     type Logic = QF_ABV;
@@ -84,25 +83,20 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
     fn expr2smtlib (&mut self, vc: &Expression) -> Self::Idx {
         match vc {
             &Expression::BinaryExpression (ref b) => {
+                let l = self.expr2smtlib(b.left.as_ref());
+                let r = self.expr2smtlib(b.right.as_ref());
                 match b.op {
                     BinaryOperator::Addition => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvAdd, &[l,r]);
                     },
                     BinaryOperator::Subtraction => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvSub, &[l,r]);
                     },
                     BinaryOperator::Multiplication => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvMul, &[l,r]);
                     },
                     BinaryOperator::Division => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
+                        // Check for signedness
                         if determine_evaluation_type(vc).starts_with("i") {
                             return self.assert(bitvec::OpCodes::BvSDiv, &[l,r]);
                         } else {
@@ -110,8 +104,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::Modulo => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
+                        // Check for signedness
                         if determine_evaluation_type(vc).starts_with("i") {
                             return self.assert(bitvec::OpCodes::BvSMod, &[l,r]);
                         } else {
@@ -119,43 +112,28 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::SignedMultiplicationDoesNotOverflow => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvSMulDoesNotOverflow, &[l,r]);
                     },
                     BinaryOperator::SignedMultiplicationDoesNotUnderflow => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvSMulDoesNotUnderflow, &[l,r]);
                     },
                     BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvUMulDoesNotOverflow, &[l,r]);
                     },
                     BinaryOperator::BitwiseOr => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvOr, &[l,r]);
                     },
                     BinaryOperator::BitwiseAnd => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvAnd, &[l,r]);
                     },
                     BinaryOperator::BitwiseXor => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvXor, &[l,r]);
                     },
                     BinaryOperator::BitwiseLeftShift => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(bitvec::OpCodes::BvShl, &[l,r]);
                     },
                     BinaryOperator::BitwiseRightShift => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
+                        // Check for signedness
                         if determine_evaluation_type(vc).starts_with("i") {
                             return self.assert(bitvec::OpCodes::BvAShr, &[l,r]);
                         } else {
@@ -163,8 +141,6 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::LessThan => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         if determine_evaluation_type(b.left.as_ref()).starts_with("i") {
                             return self.assert(bitvec::OpCodes::BvSLt, &[l,r]);
                         } else {
@@ -172,8 +148,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::LessThanOrEqual => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
+                        // Check for signedness
                         if determine_evaluation_type(b.left.as_ref()).starts_with("i") {
                             return self.assert(bitvec::OpCodes::BvSLe, &[l,r]);
                         } else {
@@ -181,8 +156,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::GreaterThan => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
+                        // Check for signedness
                         if determine_evaluation_type(b.left.as_ref()).starts_with("i") {
                             return self.assert(bitvec::OpCodes::BvSGt, &[l,r]);
                         } else {
@@ -190,8 +164,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::GreaterThanOrEqual => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
+                        // Check for signedness
                         if determine_evaluation_type(b.left.as_ref()).starts_with("i") {
                             return self.assert(bitvec::OpCodes::BvSGe, &[l,r]);
                         } else {
@@ -199,73 +172,64 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::Equal => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Cmp, &[l,r]);
                     },
                     BinaryOperator::NotEqual => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         let eq = self.assert(core::OpCodes::Cmp, &[l,r]);
                         return self.assert(core::OpCodes::Not, &[eq]);
                     },
                     BinaryOperator::And => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::And, &[l,r]);
                     },
                     BinaryOperator::Or => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Or, &[l,r]);
                     },
                     BinaryOperator::Xor => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Xor, &[l,r]);
                     },
                     BinaryOperator::Implication => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Imply, &[l,r]);
                     },
 
                     BinaryOperator::BiImplication => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         return self.assert(core::OpCodes::Cmp, &[l,r]);
                     }
                 }
             },
             &Expression::UnaryExpression (ref u) => {
+                let n = self.expr2smtlib(u.e.as_ref());
                 match u.op {
                     UnaryOperator::Negation => {
-                        let n = self.expr2smtlib(u.e.as_ref());
                         return self.assert(bitvec::OpCodes::BvNeg, &[n]);
                     },
                     UnaryOperator::BitwiseNot => {
-                        let n = self.expr2smtlib(u.e.as_ref());
                         return self.assert(bitvec::OpCodes::BvNot, &[n]);
                     },
                     UnaryOperator::Not => {
-                        let n = self.expr2smtlib(u.e.as_ref());
                         return self.assert(core::OpCodes::Not, &[n]);
                     },
                 }
             },
             &Expression::VariableMapping (ref v) => {
-                match v.var_type.as_ref() {
-                    "bool" => { return self.new_var(Some(&v.name), bitvec::Sorts::Bool); },
-                    "i8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
-                    "i16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
-                    "i32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
-                    "i64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)); },
-                    "u8" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(8)); },
-                    "u16" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(16)); },
-                    "u32" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(32)); },
-                    "u64" => { return self.new_var(Some(&v.name), bitvec::Sorts::BitVector(64)); },
-                    _ => { rp_error!("Invalid or Unsupported type for variable: \"{}\" : \"{}\"", v.name, v.var_type); },
-                }
+                let sort = match v.var_type.as_ref() {
+                    "bool" => bitvec::Sorts::Bool,
+                    "i8" => bitvec::Sorts::BitVector(8),
+                    "i16" => bitvec::Sorts::BitVector(16),
+                    "i32" => bitvec::Sorts::BitVector(32),
+                    "i64" => bitvec::Sorts::BitVector(64),
+                    "u8" => bitvec::Sorts::BitVector(8),
+                    "u16" => bitvec::Sorts::BitVector(16),
+                    "u32" => bitvec::Sorts::BitVector(32),
+                    "u64" => bitvec::Sorts::BitVector(64),
+                    _ => {
+                        rp_error!(
+                            "Invalid or Unsupported type for variable: \"{}\" : \"{}\"",
+                            v.name,
+                            v.var_type
+                        );
+                    },
+                };
+                return self.new_var(Some(&v.name), sort);
             },
             &Expression::BooleanLiteral (ref b) => {
                 return self.new_const(core::OpCodes::Const(*b));
