@@ -25,7 +25,7 @@
 //     - String to expression //libsyntax as parser / parse_exper_from_source_str
 
 #![crate_type="dylib"]
-#![feature(plugin_registrar, rustc_private, stmt_expr_attributes)]
+#![feature(plugin_registrar, rustc_private)]
 
 #[macro_use] pub extern crate syntax;
 #[macro_use] pub mod reporting;
