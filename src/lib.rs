@@ -15,7 +15,7 @@
 //! satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
 //! This process results in a proof of function correctness.
 //!
-//! # Remarks:
+//! # Remarks:d
 //! Current supported types: I8, I16, I32, I64, U8, U16, U32, U64, Booleans
 
 
@@ -79,7 +79,6 @@ mod smt_output;
 mod weakest_precondition;
 #[cfg(test)]
 mod tests;
-
 
 
 // Register plugin with compiler
