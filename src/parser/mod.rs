@@ -19,15 +19,16 @@ use std::process;
 use std::rc::Rc;
 use errors::{ColorConfig, Handler};
 
-/// Checks for the applicable "condition" attribute and ensures correct usage. If usage is correct, it stores the argument strings.
+/// Analyzes an attribute on a function in the compiled code, and if the attribute is "condition",
+/// ensures correct usage. If usage is correct, it stores the argument strings.
 ///
 /// # Arguments:
-/// * `pre_string` - The pre-condition given by the user in string form
-/// * `post_string` - The post-condition given by the user in string form
-/// * `attr` - The attribute that calls rustproof to be executed
+/// * `pre_string` - Empty string. Will contain a user-submitted precondition if found.
+/// * `post_string` - Empty string. Will contain a user-submitted postcondition if found.
+/// * `attr` - The attribute being analyzed.
 ///
 /// # Remarks:
-/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64
+/// * Current supported variable and literal types: i8, i16, i32, i64, u8, u16, u32, u64, bool
 ///
 pub fn parse_attribute(pre_string: &mut String,
                        post_string: &mut String,
@@ -44,7 +45,10 @@ pub fn parse_attribute(pre_string: &mut String,
                 match args[0].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
                         if i_string != "pre" {
-                            rp_error!("The first argument must be \"pre\". {} was provided.", i_string);
+                            rp_error!(
+                                "The first argument must be \"pre\". {} was provided.",
+                                i_string
+                            );
                         }
                         // Get the argument
                         match literal.node {
@@ -60,7 +64,10 @@ pub fn parse_attribute(pre_string: &mut String,
                 match args[1].node {
                     MetaItemKind::NameValue(ref i_string, ref literal) => {
                         if i_string != "post" {
-                            rp_error!("The second argument must be \"post\". {} was provided.", i_string);
+                            rp_error!(
+                                "The second argument must be \"post\". {} was provided.",
+                                i_string
+                            );
                         }
                         // Get the argument
                         match literal.node {
@@ -77,16 +84,18 @@ pub fn parse_attribute(pre_string: &mut String,
         _ => {}
     }
 }
-/// Calls the predicate parser on a given pre/post condition, and returns a Expression if it is valid.
+
+/// Calls the expression parser on a given precondition or postcondition.
 ///
 /// # Arguments:
-/// * `condition` - The current weakest precondition that the "div by 0" is to be "And"ed to
+/// * `condition` - A user-submitted string
 ///
 /// # Return:
-/// * The pre or post condition in Expression form
+/// * If `condition` is valid, an Expression representing it.
 ///
 /// # Remarks:
-/// * Current supported ConstInt: I8, I16, I32, I64, U8, U16, U32, U64, Booleans
+/// * Current supported variable and literal types: i8, i16, i32, i64, u8, u16, u32, u64, bool
+///
 pub fn parse_condition(condition: &str) -> Expression {
     match expression_parser::parse_E1(condition) {
         Ok(e) => {
