@@ -13,14 +13,14 @@ fn main() { }
 // Tests signed integer overflow for 32 bit integers
 // Should be invalid
 #[condition(pre="(x: i32 <= i32::MAX - 4:i32) && (x: i32 >= i32::MIN + 5:i32)", post="return: i32 == (x: i32 +5:i32)")]
-fn invalid_sadd_five_i32(x: i32) -> i32 {
+fn invalid_add_five_i32(x: i32) -> i32 {
     x+5
 }
 
 // Tests signed integer overflow for 32 bit integers
 // Should be valid
 #[condition(pre="(x: i32 <= i32::MAX - 5:i32) && (x: i32 >= i32::MIN + 5:i32)", post="return: i32 == (x: i32 +5:i32)")]
-fn invalid_add_five_i32(x: i32) -> i32 {
+fn valid_add_five_i32(x: i32) -> i32 {
     x+5
 }
 
