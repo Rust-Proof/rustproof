@@ -39,7 +39,7 @@ fn test_example_file(file: String) -> bool {
 
     // For each function
     for s in split{
-        if !s.is_empty() {
+        if !s.is_empty() && !s.starts_with("(") {
             // If the output line starts with "invalid" it must end with "not valid"
             if s.ends_with("not valid.") != s.starts_with("\nfn invalid") {
                      no_failure = false;
