@@ -8,6 +8,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Rustproof is a compiler plugin for the Rust programming language. It generates verification
+//!conditions for functions with supplied preconditions(`P`) and postconditions. That is, given a
+//!supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics)
+//!to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for
+//!satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
+//!This process results in a proof of function correctness.
+
+
 // TODO Refactor this code to follow rust guidelines
 // https://github.com/rust-lang/rust/tree/master/src/doc/style
 
@@ -66,11 +74,10 @@ mod expression;
 mod parser;
 mod smt_output;
 mod weakest_precondition;
-#[cfg(test)]
 mod tests;
 
 
-
+#[cfg(test)]
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
@@ -79,6 +86,11 @@ pub fn registrar(reg: &mut Registry) {
     reg.register_mir_pass(Box::new(visitor));
 }
 
+/// Represents the data from the MirPass and parser_attributes functions
+///
+/// #Purpose:
+/// *Used to pass data from the MIR and the computed weakest_precondition
+///
 pub struct MirData<'tcx> {
     block_data: Vec<&'tcx BasicBlockData<'tcx>>,
     arg_data: Vec<&'tcx ArgDecl<'tcx>>,
@@ -87,11 +99,15 @@ pub struct MirData<'tcx> {
     func_return_type: String,
 }
 
+// required struct for Pass
 struct MirVisitor {}
 
-// This must be here, and it must be blank
+/// This must exsist and must be blank
 impl <'tcx> Pass for MirVisitor {}
 
+/// Sets up the compiler to go through MIR code.
+///
+/// # Remarks:
 impl <'tcx> MirPass<'tcx> for MirVisitor {
     // Visit the MIR of the entire program
     fn run_pass<'a>(&mut self, tcx: TyCtxt<'a, 'tcx, 'tcx>, src: MirSource, mir: &mut Mir<'tcx>) {
