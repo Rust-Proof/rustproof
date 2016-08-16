@@ -9,11 +9,11 @@
 // except according to those terms.
 
 //! Rustproof is a compiler plugin for the Rust programming language. It generates verification
-//!conditions for functions with supplied preconditions(`P`) and postconditions. That is, given a
-//!supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics)
-//!to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for
-//!satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
-//!This process results in a proof of function correctness.
+//! conditions for functions with supplied preconditions(`P`) and postconditions. That is, given a
+//! supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics)
+//! to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for
+//! satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
+//! This process results in a proof of function correctness.
 
 
 // TODO Refactor this code to follow rust guidelines
