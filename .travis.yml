@@ -1,3 +1,5 @@
+sudo: true
+
 language: rust
 
 script: cargo test --lib
