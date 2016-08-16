@@ -114,13 +114,8 @@ pub struct MirData<'tcx> {
     func_return_type: String,
 }
 
-<<<<<<< HEAD
-/// required struct for Pass function
-struct MirVisitor {}
-=======
 // required struct for Pass impl
 struct MirVisitor { debug: bool }
->>>>>>> 711adb461b5ea99a18da0822f890ae5398563ba8
 
 /// This must exist and must be blank
 impl <'tcx> Pass for MirVisitor {}
