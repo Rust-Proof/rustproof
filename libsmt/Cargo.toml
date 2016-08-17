@@ -1,0 +1,25 @@
+[package]
+name = "libsmt"
+version = "0.1.0"
+authors = ["Sushant <sushant.dinesh94@gmail.com>",
+		   "Karthik Senthil <karthik.senthil94@gmail.com>"]
+
+[[example]]
+name = "bitvec_x86_64"
+test = true
+
+[[example]]
+name = "fiestel"
+test = true
+
+[[example]]
+name = "simple_example"
+test = true
+
+[[example]]
+name = "bajr"
+test = true
+
+[dependencies]
+petgraph = "*"
+regex = "*"
