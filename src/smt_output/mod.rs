@@ -141,8 +141,6 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         }
                     },
                     BinaryOperator::LessThan => {
-                        let l = self.expr2smtlib(b.left.as_ref());
-                        let r = self.expr2smtlib(b.right.as_ref());
                         if determine_evaluation_type(b.left.as_ref()).starts_with('i') {
                             return self.assert(bitvec::OpCodes::BvSLt, &[l,r]);
                         } else {

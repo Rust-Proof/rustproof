@@ -157,7 +157,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
     wp
 }
 
-/// Returns the type of an operand as a `String` (ie: `i32`, `bool`, etc.)
+/// Returns the type of an operand as a `String` (ie: `"i32"`, `"bool"`, etc.)
 ///
 /// # Arguments:
 /// * `operand` - The operand whose type is being returned.
