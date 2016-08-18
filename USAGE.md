@@ -12,9 +12,9 @@ foo() { ... }
 Pre- and postconditions are made of boolean logical expressions. These expressions are composed of operands and operators. When all is said and done, the expressions should resolve to a boolean value.
 
 ## Operands
-Currently Rustproof will accept boolean literals (true, false), rust integer types (u8, i64, isize, etc.), and variables of either of those types. Variables are named just like Rust identifiers. Expressions can also be operands, if they resolve to the correct type.
-You must identify the type of your object with Rust-like syntax (except for "true" or "false"). Casting is not supported.
-In the precondition, the user can only reference variables that are arguments to the function in question. In the postcondition, only the returned value can be referenced, as a special variable called "return".
+Currently Rustproof will accept boolean literals (`true`, `false`), rust integer types (`u8`, `i64`, etc. excepting `isize` and `usize`), and variables of any of those types. Variables are named just like Rust identifiers, except for "return" which is a special variable only usable in the postcondition that refers to the return value of the function.
+Expressions can also be operands, if they resolve to the correct type. You must identify the type of your literal or variable with Rust-like syntax (except for "true" or "false"). Casting is not supported.
+In the precondition, the user can only reference variables that are arguments to the function in question. In the postcondition, one can reference arguments of the function and/or the special "return" variable, mentioned above.
 
 ## Operators
 There are three ways to think about operators: how many operands they work on, what types of operands they can work with, and what type an expression involving them resolves to. Currently there is no operator precedence, so complex expressions must be wrapped in parentheses to determine associativity. Rustproof uses infix notation.
@@ -43,12 +43,14 @@ There are three ways to think about operators: how many operands they work on, w
 | OR       | Disjunction                 | 2                  | Boolean       | Boolean         |
 | XOR      | Exclusive Disjunction / XOR | 2                  | Boolean       | Boolean         |
 | IMPLIES  | Implication                 | 2                  | Boolean       | Boolean         |
+| =>       | Implication                 | 2                  | Boolean       | Boolean         |
 | EQUIV    | Equivalence                 | 2                  | Boolean       | Boolean         |
+| <=>      | Equivalence                 | 2                  | Boolean       | Boolean         |
 | -        | Negation                    | 1                  | Integer       | Integer         |
 | !        | Bitwise Not                 | 1                  | Any Primitive | Any Primitive   |
 | NOT      | Logical Negation            | 1                  | Boolean       | Boolean         |
 
-__Note__: The "&&", "||", and "!" operators are treated identically to the "AND", "OR", and "NOT" operators, respectively. "AND" and "OR" are added as conventions to make clear what is and is not meant to be a Rust-like expression, and "!" is overriden in Rust to be both logical and bitwise negation, since bitwise negation on a boolean primitive type amounts to the same thing.
+__Note__: The "&&", "||", and "!" operators are treated identically to the "AND", "OR", and "NOT" operators, respectively. "AND" and "OR" are added as conventions to make clear what is and is not meant to be a Rust-like expression, and "!" is overriden in Rust to be both logical and bitwise negation, since bitwise negation on a boolean primitive type amounts to the same thing. "IMPLIES" is a synonym for "=>", and "EQUIV" is a synonym for "<=>".
 
 __Operator precedence is as follows__ (more tightly binding first):
 - (Unary), !, NOT
@@ -56,7 +58,7 @@ __Operator precedence is as follows__ (more tightly binding first):
 +, - (Binary)
 ^, &, |, <<, >>
 &&, ||
-AND, OR, XOR, IMPLICATION, BIIMPLICATION
+AND, OR, XOR, IMPLIES, =>, EQUIV, <=>
 
 __Examples__:
 

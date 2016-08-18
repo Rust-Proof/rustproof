@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Rust-Proof/rustproof.svg?branch=master)](https://travis-ci.org/Rust-Proof/rustproof)
 
-Rustproof is a compiler plugin for the Rust programming language. It generates verification conditions for functions with supplied preconditions(`P`) and postconditions. That is, given a supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics) to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)). This process results in a proof of function correctness.
+Rustproof is a compiler plugin for the Rust programming language. It generates verification conditions for functions with supplied preconditions(`P`) and postconditions(`Q`). That is, given a supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics) to generate a weakest precondition(`WP(S, Q)`) from the postcondition and a body of statements(`S`). The verification condition `P->WP(S,Q)` is then checked for validity by a SMT solver ([z3](https://github.com/Z3Prover/z3)). This process results in a proof of function correctness.
 
 ## Dependencies
 
@@ -35,7 +35,7 @@ See [EXAMPLES](EXAMPLES.md) for example functions with condition attributes.
 
 
 ## Contributors
-[Matthew Slocum][acro]  
+[Matthew Slocum][slocum]  
 [Sami Sahli][sahli]  
 [Vincent Schuster][schuster]  
 [Michael Salter][salter]  
@@ -43,7 +43,7 @@ See [EXAMPLES](EXAMPLES.md) for example functions with condition attributes.
 [Drew Gohman][gohman]  
 [Matthew O'Brien][obrien]  
 
-[acro]:https://github.com/arc3x
+[slocum]:https://github.com/arc3x
 [sahli]:https://github.com/ssahli
 [schuster]:https://github.com/VSchuster
 [salter]:https://github.com/salterm
