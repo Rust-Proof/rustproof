@@ -51,7 +51,7 @@ pub fn gen_smtlib (vc: &Expression, name: String, debug: bool) {
         Ok(..) => {
             match check {
                 SMTRes::Sat(_, ref model) => {
-                    println!(
+                    rp_warn!(
                         "\nfn {}(..)\tVerification Condition is not valid.\n\n{}\n",
                         name,
                         model.clone().unwrap()
