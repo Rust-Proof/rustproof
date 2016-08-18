@@ -4,7 +4,7 @@
 
 fn main() {}
 // This is acceptable: it is placed over a function
-#[condition(pre="x: i32 > 0: i32", post="return: i32 >= 5: i32")]
+#[condition(pre="x: i32 > 0i32", post="return: i32 >= 5i32")]
 fn add_five_or_three(x: i32) -> i32 {
     if x > 3 {
         x + 5
