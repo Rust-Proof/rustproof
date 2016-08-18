@@ -17,7 +17,7 @@ Expressions can also be operands, if they resolve to the correct type. You must 
 In the precondition, the user can only reference variables that are arguments to the function in question. In the postcondition, one can reference arguments of the function and/or the special "return" variable, mentioned above.
 
 ## Operators
-There are three ways to think about operators: how many operands they work on, what types of operands they can work with, and what type an expression involving them resolves to. Currently there is no operator precedence, so complex expressions must be wrapped in parentheses to determine associativity. Rustproof uses infix notation.
+There are three ways to think about operators: how many operands they work on, what types of operands they can work with, and what type an expression involving them resolves to. There are operator precendence rules (more on that below), but you may find that grouping expressions with parentheses is helpful.
 
 | Operator | Name                        | Number of operands | Operand type  | Resolution type |
 |----------|-----------------------------|--------------------|---------------|-----------------|
@@ -53,6 +53,7 @@ There are three ways to think about operators: how many operands they work on, w
 __Note__: The "&&", "||", and "!" operators are treated identically to the "AND", "OR", and "NOT" operators, respectively. "AND" and "OR" are added as conventions to make clear what is and is not meant to be a Rust-like expression, and "!" is overriden in Rust to be both logical and bitwise negation, since bitwise negation on a boolean primitive type amounts to the same thing. "IMPLIES" is a synonym for "=>", and "EQUIV" is a synonym for "<=>".
 
 __Operator precedence is as follows__ (more tightly binding first):
+( )
 - (Unary), !, NOT
 *, /, %
 +, - (Binary)
