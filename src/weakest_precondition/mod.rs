@@ -263,7 +263,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
         StatementKind::Assign(ref lval, ref rval) => {
             lvalue = Some(lval.clone());
             rvalue = Some(rval.clone());
-        }
+        },
     }
     // The variable or temp on the left-hand side of the assignment
     let mut var = gen_lvalue(lvalue.unwrap(), data);

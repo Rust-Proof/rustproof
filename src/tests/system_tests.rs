@@ -16,22 +16,22 @@ fn test_example_file(file: String) -> bool {
     // Clean rustproof to ensure this test runs
     // Note: this does not increase test time
     Command::new("cargo")
-        .arg("clean")
-        .arg("-p")
-        .arg("rustproof")
-        .output()
-        .unwrap();
+            .arg("clean")
+            .arg("-p")
+            .arg("rustproof")
+            .output()
+            .expect("failed to execute child process: cargo clean -p rustproof");
 
     // Flag to set false when a test fails
     let mut no_failure = true;
 
     // Compile the example
     let output = Command::new("cargo")
-        .arg("build")
-        .arg("--test")
-        .arg(file.clone())
-        .output()
-        .unwrap();
+                         .arg("build")
+                         .arg("--test")
+                         .arg(file.clone())
+                         .output()
+                         .expect(format!("failed to execute child process: cargo build --test {}", file.clone()).as_str());
 
     // Process the output
     let stdout_result = String::from_utf8_lossy(&output.stdout);
