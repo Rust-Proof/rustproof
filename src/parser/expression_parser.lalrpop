@@ -119,11 +119,13 @@ UOP: UnaryOperator = {
 
 BOP1: BinaryOperator = {
     "&&" => BinaryOperator::And,
-    "||" => BinaryOperator::Or,
     "AND" => BinaryOperator::And,
+    "||" => BinaryOperator::Or,
     "OR" => BinaryOperator::Or,
     "XOR" => BinaryOperator::Xor,
+    "=>" => BinaryOperator::Implication,
     "IMPLIES" => BinaryOperator::Implication,
+    "<=>" => BinaryOperator::BiImplication,
     "EQUIV" => BinaryOperator::BiImplication,
 };
 
