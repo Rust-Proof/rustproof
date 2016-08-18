@@ -264,8 +264,6 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
             lvalue = Some(lval.clone());
             rvalue = Some(rval.clone());
         },
-        // Other kinds of statements do not alter variable data, so return the wp as-is
-        _ => return Some(wp),
     }
     // The variable or temp on the left-hand side of the assignment
     let mut var = gen_lvalue(lvalue.unwrap(), data);
