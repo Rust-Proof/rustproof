@@ -6,7 +6,7 @@ Rustproof is a compiler plugin for the Rust programming language. It generates v
 
 ## Dependencies
 
-* `rustc 1.12.0-nightly (0ef24eed2 2016-08-10)` or later.
+* `rustc 1.12.0-nightly (0ef24eed2 2016-08-10)`.
 
 It is possible later versions of the rust compiler will deprecate the MIR pass used by rustproof. If rustproof won't compile use the nightly above.
 
