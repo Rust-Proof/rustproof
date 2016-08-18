@@ -1,5 +1,5 @@
 #![feature(plugin, custom_attribute)]
-#![plugin(rustproof(debug))]
+#![plugin(rustproof)]
 #![allow(dead_code)]
 /*
 fn main() {
