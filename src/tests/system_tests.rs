@@ -33,12 +33,13 @@ fn test_example_file(file: &str) -> bool {
     // For each function
     for s in split{
         if s.starts_with("fn") {
+            println!("{:?}", s);
             // If the output line starts with "invalid" it must end with "not valid"
             // If the output line starts with "valid" it must end with "valid"
             // If there is a mismatch, we have a test failure.
             // Lines beginning with anything else should be ignored
-            if !(s.starts_with("fn invalid") && s.ends_with("not valid."))
-               || (s.starts_with("fn valid") && s.ends_with("valid.")) {
+            if !((s.starts_with("fn invalid") && s.ends_with("not valid."))
+               || (s.starts_with("fn valid") && s.ends_with("valid.") && !s.ends_with("not valid."))) {
                 no_failure = false;
             }
         }
