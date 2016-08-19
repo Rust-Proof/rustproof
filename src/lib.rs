@@ -14,12 +14,17 @@
 //! to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for
 //! satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
 //! This process results in a proof of function correctness.
+//!
+//! Access the rustproof README [here](https://github.com/Rust-Proof/rustproof/blob/master/README.md).
+//!
+//! The following documentation is intended for the devlopers of rustproof.
+//! These descibed modules are not user-facing.
 
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
 
-#[macro_use] pub extern crate syntax;
-#[macro_use] pub mod reporting;
+#[macro_use] extern crate syntax;
+#[macro_use] mod reporting;
 
 // External crate imports
 #[macro_use] extern crate libsmt;
