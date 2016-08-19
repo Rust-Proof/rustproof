@@ -8,8 +8,6 @@ Rustproof is a compiler plugin for the Rust programming language. It generates v
 
 * `rustc 1.12.0-nightly (2016-08-12)`.
 
-It is possible later versions of the rust compiler will deprecate the MIR pass used by rustproof. If rustproof won't compile use the nightly above.
-
 * [z3](https://github.com/Z3Prover/z3)
 
 Your installation of z3 needs to be in your PATH for rustproof to work.
