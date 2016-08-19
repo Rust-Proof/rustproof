@@ -117,7 +117,7 @@ pub struct MirData<'tcx> {
 // required struct for Pass impl
 struct MirVisitor { debug: bool }
 
-/// This must exsist and must be blank
+/// This must exist and must be blank
 impl <'tcx> Pass for MirVisitor {}
 
 /// Sets up the compiler to go through MIR code.
