@@ -24,8 +24,8 @@ lalrpop = "0.11.0"
 [dependencies]
 env_logger = "0.3.4"
 lalrpop-util = "0.11.0"
-#libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git" }
-libsmt = { path = "/home/bajr/bajrFS/uni/CS469/libsmt.rs" }
+libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git" }
+#libsmt = { path = "/home/bajr/bajrFS/uni/CS469/libsmt.rs" }
 petgraph = "*"
 
 [lib]
