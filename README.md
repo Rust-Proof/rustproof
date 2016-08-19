@@ -24,6 +24,16 @@ Your installation of z3 needs to be in your PATH for rustproof to work.
 
 ## Usage
 
+### Including Rustproof in Your Project
+
+Add rustproof as a dependency in `Cargo.toml`
+```
+[dependencies]
+rustproof = { git = "https://github.com/Rust-Proof/rustproof.git" }
+```
+
+### Using Rustproof
+
 Rustproof uses a function attribute `condition` to allow declaring pre/postcondition.
 
 The attribute is supplied as:
