@@ -25,7 +25,7 @@ Your installation of z3 needs to be in your PATH for rustproof to work.
 ### Including Rustproof in Your Project
 
 Add rustproof as a dependency in `Cargo.toml`
-```
+```toml
 [dependencies]
 rustproof = { git = "https://github.com/Rust-Proof/rustproof.git" }
 ```
