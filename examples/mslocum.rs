@@ -10,42 +10,42 @@ fn main() { }
 
 // Tests signed integer overflow for 32 bit integers
 // Should be invalid
-#[condition(pre="(x: i32 <= i32::MAX - 4:i32) && (x: i32 >= i32::MIN + 5:i32)", post="return: i32 == (x: i32 +5:i32)")]
+#[condition(pre="(x: i32 <= i32::MAX - 4i32) && (x: i32 >= i32::MIN + 5i32)", post="return: i32 == (x: i32 +5i32)")]
 fn add_five_i32_invalid(x: i32) -> i32 {
     x+5
 }
 
 // Tests signed integer overflow for 32 bit integers
 // Should be valid
-#[condition(pre="(x: i32 <= i32::MAX - 5:i32) && (x: i32 >= i32::MIN + 5:i32)", post="return: i32 == (x: i32 +5:i32)")]
+#[condition(pre="(x: i32 <= i32::MAX - 5i32) && (x: i32 >= i32::MIN + 5i32)", post="return: i32 == (x: i32 +5i32)")]
 fn add_five_i32_valid(x: i32) -> i32 {
     x+5
 }
 
 // Tests signed integer overflow for 64 bit integers
 // Should be invalid
-#[condition(pre="(x: i64 <= i64::MAX - 4:i64) && (x: i64 >= i64::MIN + 5:i64)", post="return: i64 == (x: i64 +5:i64)")]
+#[condition(pre="(x: i64 <= i64::MAX - 4i64) && (x: i64 >= i64::MIN + 5i64)", post="return: i64 == (x: i64 +5i64)")]
 fn add_five_i64_invalid(x: i64) -> i64 {
     x+5
 }
 
 // Tests signed integer overflow for 64 bit integers
 // Should be invalid
-#[condition(pre="(x: i64 <= i64::MAX - 5:i64) && (x: i64 >= i64::MIN + 5:i64)", post="return: i64 == (x: i64 +5:i64)")]
+#[condition(pre="(x: i64 <= i64::MAX - 5i64) && (x: i64 >= i64::MIN + 5i64)", post="return: i64 == (x: i64 +5i64)")]
 fn add_five_i64_valid(x: i64) -> i64 {
     x+5
 }
 
 // Tests unsigned integer overflow for 32 bit integers
 // Should be invalid
-#[condition(pre="x: u32 <= u32::MAX - 4:u32", post="return: u32 == (x: u32 + 5:u32)")]
+#[condition(pre="x: u32 <= u32::MAX - 4u32", post="return: u32 == (x: u32 + 5u32)")]
 fn add_five_u32_invalid(x: u32) -> u32 {
     x+5
 }
 
 // Tests unsigned integer overflow for 32 bit integers
 // Should be valid
-#[condition(pre="x: u32 <= u32::MAX - 5:u32", post="return: u32 == (x: u32 + 5:u32)")]
+#[condition(pre="x: u32 <= u32::MAX - 5u32", post="return: u32 == (x: u32 + 5u32)")]
 fn add_five_u32_valid(x: u32) -> u32 {
     x+5
 }

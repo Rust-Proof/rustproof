@@ -9,28 +9,16 @@
 // except according to those terms.
 
 //! Rustproof is a compiler plugin for the Rust programming language. It generates verification
-//! conditions for functions with supplied preconditions(`P`) and postconditions. That is, given a
+//! conditions for functions with supplied preconditions(`P`) and postconditions(`Q`). That is, given a
 //! supplied postcondition on a function, rustproof uses [predicate transformer semantics](https://en.wikipedia.org/wiki/Predicate_transformer_semantics)
 //! to generate a weakest precondition(`WP`). The verification condition `P->WP` is then checked for
 //! satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
 //! This process results in a proof of function correctness.
-
-
-// TODO Refactor this code to follow rust guidelines
-// https://github.com/rust-lang/rust/tree/master/src/doc/style
-
-// These can be their own .rs file OR
-// a named directory with mod.rs + other files
-// see: https://doc.rust-lang.org/book/crates-and-modules.html
-// see: 'tests' module (some things need pub that tests doesnt mind priv)
-// see: 'reporting' module
-
-// NOTE: Things to talk to rust devs about:
-//     - Referencing lifetime stuff in struct that has impl
-//     - Slice access; see line 143
-//     - Unused attribute warnings since we aren't using register_syntax_extension
-//          internals.rust-lang.org / users.rust-lang.org
-//     - String to expression //libsyntax as parser / parse_exper_from_source_str
+//!
+//! Access the rustproof README [here](https://github.com/Rust-Proof/rustproof/blob/master/README.md).
+//!
+//! The following documentation is intended for the devlopers of rustproof.
+//! These descibed modules are not user-facing.
 
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
@@ -38,8 +26,8 @@
 //#![allow(needless_return)]
 
 
-#[macro_use] pub extern crate syntax;
-#[macro_use] pub mod reporting;
+#[macro_use] extern crate syntax;
+#[macro_use] mod reporting;
 
 // External crate imports
 #[macro_use] extern crate libsmt;

@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Parses rustproof attribute definitions.
+
 extern crate syntax;
 
 mod expression_parser;
