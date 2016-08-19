@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Prints user-facing errors and warnings.
+
 // Warning macro
 macro_rules! rp_warn {
     ($fmt:expr) => ({

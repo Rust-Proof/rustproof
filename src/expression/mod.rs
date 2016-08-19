@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Internal data structure and related functions to represent logical expressions.
+
 //#[macro_use]
 extern crate term;
 use std::fmt;

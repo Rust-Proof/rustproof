@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Generates a weakest precondition from MIR basic block data.
+
 extern crate rustc_const_math;
 
 use super::MirData;
