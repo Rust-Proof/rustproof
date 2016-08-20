@@ -22,9 +22,6 @@
 
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
-//bajr will remove this very soon
-//#![allow(needless_return)]
-
 
 #[macro_use] extern crate syntax;
 #[macro_use] mod reporting;
