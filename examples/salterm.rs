@@ -7,6 +7,8 @@ extern crate rustproof;
 fn main() {
 	let x: bool = true;
 	foo(x);
+	bar(x);
+	baz(x);
 }
 
 // Valid
@@ -17,12 +19,12 @@ fn foo(x: bool) -> bool {
 
 // Valid
 #[condition(pre="x: bool == false", post="return: bool == true")]
-fn foo(x: bool) -> bool {
+fn bar(x: bool) -> bool {
 		x | true
 }
 
 // Valid
 #[condition(pre="x: bool == false", post="return: bool == true")]
-fn foo(x: bool) -> bool {
+fn baz(x: bool) -> bool {
 		x ^ true
 }
