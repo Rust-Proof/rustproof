@@ -35,10 +35,9 @@ pub fn overflow_check(wp: &Expression,
                 "i16" => signed_overflow(binop, 16u8, lvalue, rvalue),
                 "i32" => signed_overflow(binop, 32u8, lvalue, rvalue),
                 "i64" => signed_overflow(binop, 64u8, lvalue, rvalue),
-                "u8" => unsigned_overflow(binop, lvalue, rvalue),
-                "u16" => unsigned_overflow(binop, lvalue, rvalue),
-                "u32" => unsigned_overflow(binop, lvalue, rvalue),
-                "u64" => unsigned_overflow(binop, lvalue, rvalue),
+                "u8" | "u16" | "u32" | "u64" => {
+                    unsigned_overflow(binop, lvalue, rvalue)
+                },
                 _ => panic!("Unsupported return type of binary operation: {}", v.var_type),
             }
         ),
@@ -49,23 +48,23 @@ pub fn overflow_check(wp: &Expression,
 // Signed: Match on the type of BinOp and call the correct function
 fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression)
                    -> Expression {
-    match binop {
-        &BinOp::Add => signed_add(size, lvalue, rvalue),
-        &BinOp::Mul => signed_mul(lvalue, rvalue),
-        &BinOp::Sub => signed_sub(size, lvalue, rvalue),
-        &BinOp::Div => signed_div(size, lvalue, rvalue),
-        &BinOp::Rem => unimplemented!(),
-        &BinOp::Shl => unimplemented!(),
-        &BinOp::Shr => unimplemented!(),
-        &BinOp::BitOr => unimplemented!(),
-        &BinOp::BitAnd => unimplemented!(),
-        &BinOp::BitXor => unimplemented!(),
-        &BinOp::Lt => unimplemented!(),
-        &BinOp::Le => unimplemented!(),
-        &BinOp::Gt => unimplemented!(),
-        &BinOp::Ge => unimplemented!(),
-        &BinOp::Eq => unimplemented!(),
-        &BinOp::Ne => unimplemented!(),
+    match *binop {
+        BinOp::Add => signed_add(size, lvalue, rvalue),
+        BinOp::Mul => signed_mul(lvalue, rvalue),
+        BinOp::Sub => signed_sub(size, lvalue, rvalue),
+        BinOp::Div => signed_div(size, lvalue, rvalue),
+        BinOp::Rem => unimplemented!(),
+        BinOp::Shl => unimplemented!(),
+        BinOp::Shr => unimplemented!(),
+        BinOp::BitOr => unimplemented!(),
+        BinOp::BitAnd => unimplemented!(),
+        BinOp::BitXor => unimplemented!(),
+        BinOp::Lt => unimplemented!(),
+        BinOp::Le => unimplemented!(),
+        BinOp::Gt => unimplemented!(),
+        BinOp::Ge => unimplemented!(),
+        BinOp::Eq => unimplemented!(),
+        BinOp::Ne => unimplemented!(),
     }
 }
 
@@ -485,23 +484,23 @@ fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 /// Routes to appropriate overflow check
 // Unsigned: Match on the type of BinOp and call the correct function
 fn unsigned_overflow(binop: &BinOp, lvalue: &Expression, rvalue: &Expression) -> Expression {
-    match binop {
-        &BinOp::Add => unsigned_add(lvalue, rvalue),
-        &BinOp::Sub => unsigned_sub(lvalue, rvalue),
-        &BinOp::Mul => unsigned_mul(lvalue, rvalue),
-        &BinOp::Div => unimplemented!(),
-        &BinOp::Rem => unimplemented!(),
-        &BinOp::Shl => unimplemented!(),
-        &BinOp::Shr => unimplemented!(),
-        &BinOp::BitOr => unimplemented!(),
-        &BinOp::BitAnd => unimplemented!(),
-        &BinOp::BitXor => unimplemented!(),
-        &BinOp::Lt => unimplemented!(),
-        &BinOp::Le => unimplemented!(),
-        &BinOp::Gt => unimplemented!(),
-        &BinOp::Ge => unimplemented!(),
-        &BinOp::Eq => unimplemented!(),
-        &BinOp::Ne => unimplemented!(),
+    match *binop {
+        BinOp::Add => unsigned_add(lvalue, rvalue),
+        BinOp::Sub => unsigned_sub(lvalue, rvalue),
+        BinOp::Mul => unsigned_mul(lvalue, rvalue),
+        BinOp::Div => unimplemented!(),
+        BinOp::Rem => unimplemented!(),
+        BinOp::Shl => unimplemented!(),
+        BinOp::Shr => unimplemented!(),
+        BinOp::BitOr => unimplemented!(),
+        BinOp::BitAnd => unimplemented!(),
+        BinOp::BitXor => unimplemented!(),
+        BinOp::Lt => unimplemented!(),
+        BinOp::Le => unimplemented!(),
+        BinOp::Gt => unimplemented!(),
+        BinOp::Ge => unimplemented!(),
+        BinOp::Eq => unimplemented!(),
+        BinOp::Ne => unimplemented!(),
     }
 }
 
