@@ -30,76 +30,51 @@ use errors::{ColorConfig, Handler};
 /// * `attr` - The attribute being analyzed.
 ///
 /// # Remarks:
-/// * Current supported variable and literal types: i8, i16, i32, i64, u8, u16, u32, u64, bool
+/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool`
 ///
 pub fn parse_attribute(pre_string: &mut String,
                        post_string: &mut String,
                        attr: &Spanned<Attribute_>) {
-    match attr.node.value.node {
-        MetaItemKind::List(ref attribute_name, ref args) => {
-            // Ignore if not a condition attribute
-            if attribute_name == "condition" {
-                // Only accept if exactly 2 arguments
-                if args.len() != 2 {
-                    rp_error!("The condition attribute must have exactly 2 arguments.");
-                }
-                // Parse the first argument
-                match args[0].node {
-                    MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "pre" {
-                            rp_error!(
-                                "The first argument must be named \"pre\". {} was provided.",
-                                i_string
-                            );
-                        }
-                        // Get the argument
-                        match literal.node {
-                            syntax::ast::LitKind::Str(ref i_string, _) => {
-                                *pre_string = i_string.to_string();
-                            }
-                            _ => {
-                                rp_error!(
-                                    "Conditions must be strings. Try wrapping conditions in \
-                                    quotation marks."
-                                );
-                            }
-                        }
-                    },
-                    _ => {
-                        rp_error!("The second argument must be named \"post\".");
-                    },
-                }
-                // Parse the second argument
-                match args[1].node {
-                    MetaItemKind::NameValue(ref i_string, ref literal) => {
-                        if i_string != "post" {
-                            rp_error!(
-                                "The second argument must be named \"post\". {} was provided.",
-                                i_string
-                            );
-                        }
-                        // Get the argument
-                        match literal.node {
-                            syntax::ast::LitKind::Str(ref i_string, _) => {
-                                *post_string = i_string.to_string();
-                            }
-                            _ => {
-                                rp_error!(
-                                    "Conditions must be strings. Try wrapping conditions in \
-                                    quotation marks."
-                                );
-                            }
-                        }
-                    },
-                    _ => {
-                        rp_error!("The second argument must be named \"post\".");
-                    },
-                }
+    if let MetaItemKind::List(ref attribute_name, ref args) = attr.node.value.node {
+        // Ignore if not a condition attribute
+        if attribute_name == "condition" {
+            // Only accept if exactly 2 arguments
+            if args.len() != 2 {
+                rp_error!("Condition attribute must have exactly 2 arguments.");
             }
-        },
-        _ => {
-            // Ignore if not a condition attribute
-        }
+            // Parse the first argument
+            if let MetaItemKind::NameValue(ref i_string, ref literal) = args[0].node {
+                if i_string != "pre" {
+                    rp_error!( "The first argument must be named \"pre\". {} was provided.",
+                               i_string);
+                }
+                // Get the argument
+                if let syntax::ast::LitKind::Str(ref i_string, _) = literal.node {
+                    *pre_string = i_string.to_string();
+                } else {
+                    rp_error!("Conditions must be strings. \
+                              Try wrapping conditions in quotation marks.");
+                }
+            } else {
+                        rp_error!("The first argument must be named \"pre\".");
+            }
+            // Parse the second argument
+            if let MetaItemKind::NameValue(ref i_string, ref literal) = args[1].node {
+                if i_string != "post" {
+                    rp_error!( "The second argument must be named \"post\". {} was provided.",
+                               i_string);
+                }
+                // Get the argument
+                if let syntax::ast::LitKind::Str(ref i_string, _) = literal.node {
+                    *post_string = i_string.to_string();
+                } else {
+                    rp_error!("Conditions must be strings. \
+                              Try wrapping conditions in quotation marks.");
+                }
+            } else {
+                rp_error!("The second argument must be named \"post\".");
+            }
+        } // Ignore if not a condition attribute
     }
 }
 
@@ -112,8 +87,7 @@ pub fn parse_attribute(pre_string: &mut String,
 /// * If `condition` is valid, an Expression representing it.
 ///
 /// # Remarks:
-/// * Current supported variable and literal types: i8, i16, i32, i64, u8, u16, u32, u64, bool
-///
+/// * Current supported types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool`
 pub fn parse_condition(condition: &str) -> Expression {
     match expression_parser::parse_E1(condition) {
         Ok(e) => {

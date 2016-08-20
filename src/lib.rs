@@ -28,6 +28,7 @@
 
 // External crate imports
 #[macro_use] extern crate libsmt;
+// The following line is being weird to me sometimes
 #[macro_use] extern crate log;
 extern crate petgraph;
 extern crate rustc;
@@ -85,10 +86,10 @@ pub fn registrar(reg: &mut Registry) {
     reg.register_mir_pass(Box::new(visitor));
 }
 
-/// Represents the data from the MirPass and parser_attributes functions
+/// Represents the data from the MIR pass relevant to the function being analyzed
 ///
 /// #Purpose:
-/// *Used to pass data from the MIR and the computed weakest_precondition
+/// *Used to pass data from the MIR and the computed weakest precondition
 ///
 pub struct MirData<'tcx> {
     block_data: Vec<&'tcx BasicBlockData<'tcx>>,
@@ -101,7 +102,7 @@ pub struct MirData<'tcx> {
 // required struct for Pass impl
 struct MirVisitor { debug: bool }
 
-/// This must exsist and must be blank
+/// This must exist and must be blank
 impl <'tcx> Pass for MirVisitor {}
 
 /// Sets up the compiler to go through MIR code.
