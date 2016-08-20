@@ -10,8 +10,5 @@
 
 
 mod test_reporting;
-mod test_smt_output;
-mod test_weakest_precondition;
-mod test_parser;
 mod test_expression;
 mod system_tests;
