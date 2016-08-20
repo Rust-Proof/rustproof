@@ -51,6 +51,7 @@ pub fn gen_smtlib (vc: &Expression, name: String, debug: bool) {
     let (res, check) = solver.solve(&mut z3, debug);
     match res {
         Ok(..) => {
+            println!("{:#?}", check);
             match check {
                 SMTRes::Sat(_, ref model) => {
                     rp_warn!(
@@ -123,13 +124,25 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         return self.assert(bitvec::OpCodes::BvUMulDoesNotOverflow, &[l,r]);
                     },
                     BinaryOperator::BitwiseOr => {
-                        return self.assert(bitvec::OpCodes::BvOr, &[l,r]);
+                        if determine_evaluation_type(vc) == "bool" {
+                            return self.assert(core::OpCodes::Or, &[l,r]);
+                        } else {
+                            return self.assert(bitvec::OpCodes::BvOr, &[l,r]);
+                        }
                     },
                     BinaryOperator::BitwiseAnd => {
-                        return self.assert(bitvec::OpCodes::BvAnd, &[l,r]);
+                        if determine_evaluation_type(vc) == "bool" {
+                            return self.assert(core::OpCodes::And, &[l,r]);
+                        } else {
+                            return self.assert(bitvec::OpCodes::BvAnd, &[l,r]);
+                        }
                     },
                     BinaryOperator::BitwiseXor => {
-                        return self.assert(bitvec::OpCodes::BvXor, &[l,r]);
+                        if determine_evaluation_type(vc) == "bool" {
+                            return self.assert(core::OpCodes::Xor, &[l,r]);
+                        } else {
+                            return self.assert(bitvec::OpCodes::BvXor, &[l,r]);
+                        }
                     },
                     BinaryOperator::BitwiseLeftShift => {
                         return self.assert(bitvec::OpCodes::BvShl, &[l,r]);
