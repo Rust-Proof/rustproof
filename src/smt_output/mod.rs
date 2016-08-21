@@ -48,28 +48,23 @@ pub fn gen_smtlib (vc: &Expression, name: String, debug: bool) {
     let vcon = solver.expr2smtlib(vc);
     let _ = solver.assert(core::OpCodes::Not, &[vcon]);
 
-    let (res, check) = solver.solve(&mut z3, debug);
-    match res {
-        Ok(..) => {
-            println!("{:#?}", check);
-            match check {
-                SMTRes::Sat(_, ref model) => {
-                    rp_warn!(
-                        "\nfn {}(..)\tVerification Condition is not valid.\n\n{}\n",
-                        name,
-                        model.clone().unwrap()
-                    );
-                },
-                SMTRes::Unsat(..) => {
-                    println!("\nfn {}(..)\tVerification Condition is valid.\n", name);
-                },
-                _ => { unimplemented!() }
-            }
+    let (_, check) = solver.solve(&mut z3, debug);
+    match check {
+        SMTRes::Sat(_, ref model) => {
+            println!(
+                "\nfn {}(..)\tVerification Condition is not valid.\n\n{}\n",
+                name,
+                model.clone().unwrap()
+            );
         },
-        Err(..) => {
-            println!("\nfn {}(..)g\tError in Verification Condition Generation.\n", name);
+        SMTRes::Unsat(..) => {
+            println!("\nfn {}(..)\tVerification Condition is valid.\n", name);
         },
+        SMTRes::Error(ref error, _) => {
+            println!("\nfn {}(..)\tError in Verification Condition Generation.\n{}\n", name, error);
+        }
     }
+
 }
 
 pub trait Pred2SMT {
