@@ -19,12 +19,18 @@ fn test_example_file(file: &str) -> bool {
     Command::new("cargo").args(&["clean","-p", "rustproof"]).output()
         .expect("failed to execute child process: cargo clean -p rustproof");
 
-    // Flag to set false when a test fails
-    let mut no_failure = true;
-
     // Compile the example
     let output = Command::new("cargo").args(&["build", "--test", file]).output()
         .expect(format!("failed to execute child process: cargo build --test {}", file).as_str());
+
+    // Read strerr for any rustproof errors. if found, return false
+    let stderr_result = String::from_utf8_lossy(&output.stderr);
+    let split_err = stderr_result.split("\n");
+    for s in split_err {
+        if s.starts_with("error") {
+            return false;
+        }
+    }
 
     // Process the output
     let stdout_result = String::from_utf8_lossy(&output.stdout);
@@ -39,12 +45,12 @@ fn test_example_file(file: &str) -> bool {
             // Lines beginning with anything else should be ignored
             if !((s.starts_with("fn invalid") && s.ends_with("not valid."))
                || (s.starts_with("fn valid") && s.ends_with("valid.") && !s.ends_with("not valid."))) {
-                no_failure = false;
+                return false;
             }
         }
     }
 
-    return no_failure;
+    return true;
 }
 
 // Original test condition example test
@@ -66,16 +72,16 @@ fn test_signed_examples(){
 }
 */
 // Test example for boolean examples
-//#[test]
-//fn test_boolean_examples(){
-//    assert!(test_example_file(""))
-//}
+#[test]
+fn test_boolean_examples(){
+    assert!(test_example_file("test_boolean_arithmetic"));
+}
 
 // Test example for conditional examples
-//#[test]
-//fn test_conditional_exampels(){
-//    assert!(test_example_file(""));
-//}
+#[test]
+fn test_conditional_exampels(){
+    assert!(test_example_file("test_conditionals"));
+}
 
 // Test example for assertion examples
 //#[test]
@@ -86,7 +92,6 @@ fn test_signed_examples(){
 #[test]
 #[should_panic]
 fn test_system_test_validity() {
-
     assert!(test_example_file("test_fail_valid"));
     assert!(test_example_file("test_fail_invalid"));
 }
