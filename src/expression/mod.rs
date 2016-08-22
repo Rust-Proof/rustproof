@@ -291,8 +291,8 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                                     b.op
                                 );
                             //Ensure both operand types are of same signedness
-                            } else if (l_type.starts_with('i') && r_type.starts_with('i'))
-                                       || (l_type.starts_with('u') && r_type.starts_with('u')) {
+                            } else if (l_type.starts_with('i') && !r_type.starts_with('i'))
+                                       || (l_type.starts_with('u') && !r_type.starts_with('u')) {
                                 rp_error!(
                                     "Binary operand types do not match: {} {} {}",
                                     l_type,
@@ -535,8 +535,8 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                             )
                                         )
                                     //Ensure both operand types are of same signedness
-                                    } else if (l_type.starts_with('i') && r_type.starts_with('i'))
-                                            || (l_type.starts_with('u') && r_type.starts_with('u')) {
+                                    } else if (l_type.starts_with('i') && !r_type.starts_with('i'))
+                                            || (l_type.starts_with('u') && !r_type.starts_with('u')) {
                                         Err(
                                             format!(
                                                 "Binary operand types do not match: {} {} {}",
