@@ -66,10 +66,10 @@ fn test_examples() {
 //}
 
 // Test example for boolean examples
-//#[test]
-//fn test_boolean_examples(){
-//    assert!(test_example_file(""))
-//}
+#[test]
+fn test_boolean_examples(){
+    assert!(test_example_file("test_boolean_examples"));
+}
 
 // Test example for conditional examples
 //#[test]
