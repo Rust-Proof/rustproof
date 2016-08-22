@@ -1,11 +1,12 @@
 #![feature(plugin, custom_attribute)]
 #![plugin(rustproof)]
 #![allow(dead_code)]
-<<<<<<< HEAD
 #![allow(unused_attributes)]
 fn main() {}
 
 
+
+// Matt's example set
 
 // Should be valid
 #[condition(pre="true", post="true")]
@@ -103,7 +104,7 @@ fn invalid_boolean_xor_bitwise(x : bool) -> bool {
 
 // Should be valid
 #[condition(pre="true",post="true AND true")]
-fn valid_attr_condition_and_AND()-> bool {
+fn valid_attr_condition_and_and()-> bool {
     true
 }
 
@@ -121,7 +122,7 @@ fn valid_attr_condition_and_bitwise()-> bool {
 
 // Should be valid
 #[condition(pre="true",post="true OR true")]
-fn valid_attr_condition_or_OR()-> bool {
+fn valid_attr_condition_or_or()-> bool {
     true
 }
 
@@ -145,10 +146,11 @@ fn valid_attr_condition_xor_bitwise()-> bool {
 
 // Should be valid
 #[condition(pre="true",post="true XOR false")]
-fn valid_attr_condition_xor_XOR()-> bool {
+fn valid_attr_condition_xor_xor()-> bool {
     true
-=======
+}
 
+// Vincent's example set
 // * * *
 // Boolean and Boolean Operator Tests
 // * * *
@@ -161,7 +163,7 @@ fn valid_attr_condition_xor_XOR()-> bool {
 // Simple boolean Tests
 // && and || overators Tests
 //
-fn main() {}
+// fn main() {}
 // Should be valid
 
 #[condition(pre="x: bool == true", post="return:bool == true")]
@@ -311,5 +313,4 @@ fn invalid_bool_complex(x:bool, y:bool, z:bool) -> bool {
             else
                 {return false;}
         }
->>>>>>> upstream/master
 }

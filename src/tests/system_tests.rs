@@ -71,6 +71,12 @@ fn test_examples() {
 //    assert!(test_example_file(""));
 //}
 
+// Test example for boolean examples
+#[test]
+fn test_boolean_examples(){
+    assert!(test_example_file("test_boolean_arithmetic"));
+}
+
 // Test example for conditional examples
 #[test]
 fn test_conditional_exampels(){
