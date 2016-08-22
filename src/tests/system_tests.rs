@@ -52,7 +52,7 @@ fn test_example_file(file: &str) -> bool {
 fn test_examples() {
     assert!(test_example_file("test_conditions"));
 }
-
+/*
 // Test examples for unsigned examples
 #[test]
 fn test_unsigned_examples(){
@@ -64,7 +64,7 @@ fn test_unsigned_examples(){
 fn test_signed_examples(){
     assert!(test_example_file("test_signed"));
 }
-
+*/
 // Test example for boolean examples
 //#[test]
 //fn test_boolean_examples(){
