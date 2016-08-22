@@ -5,26 +5,12 @@
 extern crate rustproof;
 
 fn main() {
-	let x: bool = true;
-	foo(x);
-	bar(x);
-	baz(x);
+	let x: i32 = 5;
+	invalid_bit_shift_left_two_i32(x);
 }
 
-// Valid
-#[condition(pre="x: bool == true", post="return: bool == true")]
-fn foo(x: bool) -> bool {
-		x & true
-}
-
-// Valid
-#[condition(pre="x: bool == false", post="return: bool == true")]
-fn bar(x: bool) -> bool {
-		x | true
-}
-
-// Valid
-#[condition(pre="x: bool == false", post="return: bool == true")]
-fn baz(x: bool) -> bool {
-		x ^ true
+// invalid
+#[condition(pre="(x: i32 > 0i32) && (x:i32 < 10i32)", post="return: i32 < 0i32")]
+fn invalid_bit_shift_left_two_i32(x: i32) -> i32 {
+		x << 2i32
 }
