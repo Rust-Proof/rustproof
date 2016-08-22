@@ -288,7 +288,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                 },
                 BinOp::Div => {
                     // Add the overflow and underflow expression checks, if operands are signed
-                    if determine_evaluation_type(rvalue).starts_with('i') {
+                    if determine_evaluation_type(&rvalue).starts_with('i') {
                         wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     }
                     // Add the division by 0 expression check
@@ -336,7 +336,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                 },
                 BinOp::Div => {
                     // Add the overflow and underflow expression checks, if operands are signed
-                    if determine_evaluation_type(rvalue).starts_with('i') {
+                    if determine_evaluation_type(&rvalue).starts_with('i') {
                         wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     }
                     // Add the division by 0 expression check
