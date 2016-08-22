@@ -58,6 +58,36 @@ fn test_examples() {
     assert!(test_example_file("test_conditions"));
 }
 
+// Test examples for unsigned examples
+//#[test]
+//fn test_unsigned_examples(){
+//    assert!(test_example_file(""));
+//}
+
+// Test examples for signed examples
+//#[test]
+//fn test_signed_examples(){
+//    assert!(test_example_file(""));
+//}
+
+// Test example for boolean examples
+//#[test]
+//fn test_boolean_examples(){
+//    assert!(test_example_file(""))
+//}
+
+// Test example for conditional examples
+//#[test]
+//fn test_conditional_exampels(){
+//    assert!(test_example_file(""));
+//}
+
+// Test example for assertion examples
+//#[test]
+//fn test_assertion_examples(){
+//    assert!(test_example_file(""));
+//}
+
 #[test]
 #[should_panic]
 fn test_system_test_validity() {
