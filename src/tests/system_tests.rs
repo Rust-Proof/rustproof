@@ -84,10 +84,10 @@ fn test_conditional_examples(){
 }
 
 // Test example for assertion examples
-//#[test]
-//fn test_assertion_examples(){
-//    assert!(test_example_file(""));
-//}
+#[test]
+fn test_assertion_examples(){
+    assert!(test_example_file("test_assert"));
+}
 
 #[test]
 #[should_panic]
