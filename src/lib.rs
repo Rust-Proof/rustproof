@@ -15,10 +15,12 @@
 //! satisfiability by a SMT solver ([z3](https://github.com/Z3Prover/z3)).
 //! This process results in a proof of function correctness.
 //!
+
 //! Access the rustproof README [here](https://github.com/Rust-Proof/rustproof/blob/master/README.md).
 //!
 //! The following documentation is intended for the devlopers of rustproof.
 //! These descibed modules are not user-facing.
+
 
 #![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private)]
@@ -66,6 +68,7 @@ mod weakest_precondition;
 #[cfg(test)]
 mod tests;
 
+
 // Register plugin with compiler
 #[plugin_registrar]
 pub fn registrar(reg: &mut Registry) {
@@ -88,8 +91,10 @@ pub fn registrar(reg: &mut Registry) {
 
 /// Represents the data from the MIR pass relevant to the function being analyzed
 ///
-/// #Purpose:
-/// *Used to pass data from the MIR and the computed weakest precondition
+
+/// # Purpose:
+/// * Used to pass data from the MIR and the computed weakest_precondition
+
 ///
 pub struct MirData<'tcx> {
     block_data: Vec<&'tcx BasicBlockData<'tcx>>,
