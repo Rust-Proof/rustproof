@@ -256,10 +256,7 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         | BinaryOperator::Subtraction
                         | BinaryOperator::Multiplication
                         | BinaryOperator::Division
-                        | BinaryOperator::Modulo
-                        | BinaryOperator::SignedMultiplicationDoesNotOverflow
-                        | BinaryOperator::SignedMultiplicationDoesNotUnderflow
-                        | BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
+                        | BinaryOperator::Modulo => {
                             let l_type: String = determine_evaluation_type(&*b.left);
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operands are numeric types
@@ -322,7 +319,10 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         BinaryOperator::LessThan
                         | BinaryOperator::LessThanOrEqual
                         | BinaryOperator::GreaterThan
-                        | BinaryOperator::GreaterThanOrEqual => {
+                        | BinaryOperator::GreaterThanOrEqual
+                        | BinaryOperator::SignedMultiplicationDoesNotOverflow
+                        | BinaryOperator::SignedMultiplicationDoesNotUnderflow
+                        | BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
                             let l_type: String = determine_evaluation_type(&*b.left);
                             let r_type: String = determine_evaluation_type(&*b.right);
                             // Ensure both operands are numeric types
@@ -662,8 +662,7 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                     if (l_type != "bool") || (r_type != "bool") {
                                         Err(
                                             format!(
-                                                "Invalid use of binary operator {} on numeric \
-                                                value(s)",
+                                                "Invalid use of binary operator {} on numeric value(s)",
                                                 b.op
                                             )
                                         )
@@ -681,7 +680,7 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
                                         Ok(true)
                                     }
                                 },
-                                Err(e) =>Err(e)
+                                Err(e) => Err(e)
                             }
                         },
                         Err(e) => Err(e)
