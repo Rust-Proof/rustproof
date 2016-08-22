@@ -10,6 +10,7 @@ fn main() { }
 // Integer Add Tests
 // * * *
 
+
 // Tests signed integer for 32 bit integers
 // Should be invalid
 #[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 > 5i32")]
@@ -73,7 +74,7 @@ fn valid_subtract_five_negative_i32(x: i32) -> i32 {
 // Should be invalid
 #[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 < 0i32")]
 fn invalid_multiply_five_i32(x: i32) -> i32 {
-    x * 5
+    x * 5i32
 }
 
 // Tests signed integer for 32 bit integers
@@ -96,7 +97,6 @@ fn invalid_multiply_five_negative_i32(x: i32) -> i32 {
 fn valid_multiply_five_negative_i32(x: i32) -> i32 {
     x * 5
 }
-
 
 // Tests signed integer for 32 bit integers
 // Should be invalid
@@ -151,7 +151,7 @@ fn invalid_mod_five_negative_i32(x: i32) -> i32 {
 
 // Tests signed integer for 32 bit integers
 // Should be valid
-#[condition(pre="(x: i32 < 0i32) && (x: i32 > -10i32)", post="return: i32 < 1i32")]
+#[condition(pre="(x: i32 < 0i32) && (x: i32 > -10i32)", post="return: i32 < 10i32")]
 fn valid_mod_five_negative_i32(x: i32) -> i32 {
     x % 5
 }
@@ -185,7 +185,6 @@ fn valid_unary_minus_five_negative_i32(x: i32) -> i32 {
     x + (-(5))
 }
 
-/*
 // Tests signed integer for 32 bit integers
 // Should be invalid
 #[condition(pre="(x: i32 > 0i32) && (x: i32 < 10i32)", post="return: i32 < 0i32")]
@@ -242,7 +241,6 @@ fn invalid_bit_shift_right_negative_two_i32(x: i32) -> i32 {
 fn valid_bit_shift_right_two_negative_i32(x: i32) -> i32 {
     x >> 2i32
 }
-*/
 
 // Tests signed integer for 16 bit integers
 // Should be valid

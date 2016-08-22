@@ -205,28 +205,54 @@ fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
 /// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`
 ///
 fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
-    Expression::BinaryExpression( BinaryExpressionData{
-        // And weakest precondtion and ovflow check
-        op: BinaryOperator::And,
-        left: Box::new(wp.clone()),
-        right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
-            op: BinaryOperator::NotEqual,
-            // The expresison to be checked
-            left: Box::new(exp.clone()),
-            // Need to set appropriate type with value of 0
-            right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-                // The bit-vector size of the given type
-                size: match determine_evaluation_type(exp).as_str() {
-                    "i8" | "u8" => 8,
-                    "i16" | "u16" => 16,
-                    "i32" | "u32" => 32,
-                    "i64" | "u64" => 64,
-                    _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
-                },
-                value: 0
+
+    if determine_evaluation_type(exp).starts_with('i') {
+        Expression::BinaryExpression( BinaryExpressionData{
+            // And weakest precondtion and ovflow check
+            op: BinaryOperator::And,
+            left: Box::new(wp.clone()),
+            right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::NotEqual,
+                // The expresison to be checked
+                left: Box::new(exp.clone()),
+                // Need to set appropriate type with value of 0
+                right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
+                    // The bit-vector size of the given type
+                    size: match determine_evaluation_type(exp).as_str() {
+                        "i8" => 8,
+                        "i16" => 16,
+                        "i32" => 32,
+                        "i64" => 64,
+                        _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
+                    },
+                    value: 0
+                }))
             }))
-        }))
-    })
+        })
+    } else {
+        Expression::BinaryExpression( BinaryExpressionData{
+            // And weakest precondtion and ovflow check
+            op: BinaryOperator::And,
+            left: Box::new(wp.clone()),
+            right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::NotEqual,
+                // The expresison to be checked
+                left: Box::new(exp.clone()),
+                // Need to set appropriate type with value of 0
+                right: Box::new(Expression::UnsignedBitVector( UnsignedBitVectorData {
+                    // The bit-vector size of the given type
+                    size: match determine_evaluation_type(exp).as_str() {
+                        "u8" => 8,
+                        "u16" => 16,
+                        "u32" => 32,
+                        "u64" => 64,
+                        _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
+                    },
+                    value: 0
+                }))
+            }))
+        })
+    }
 }
 
 

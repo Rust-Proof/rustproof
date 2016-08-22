@@ -195,7 +195,7 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             if debug {
                 println!("vc: {}\n", verification_condition);
             }
-
+            println!("{}", verification_condition);
             // Check that the verification condition is correctly typed
             match expression::ty_check(&verification_condition) {
                 Ok(_) => {},
@@ -204,6 +204,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
             // Output to SMT-LIB format
             gen_smtlib(&verification_condition, name, debug);
-        }
+       }
     }
 }
