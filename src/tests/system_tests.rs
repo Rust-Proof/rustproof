@@ -86,7 +86,7 @@ fn test_examples() {
 #[test]
 #[should_panic]
 fn test_system_test_validity() {
-
+    assert!(test_example_file("test_conditionals"));
     assert!(test_example_file("test_fail_valid"));
     assert!(test_example_file("test_fail_invalid"));
 }
