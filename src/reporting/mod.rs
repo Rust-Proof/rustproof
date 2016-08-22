@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Prints user-facing errors and warnings.
+
 // Warning macro
 macro_rules! rp_warn {
     ($fmt:expr) => ({
@@ -29,15 +31,15 @@ macro_rules! rp_error {
     ($fmt:expr) => ({
         let codemap = Rc::new(CodeMap::new());
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
-        let str = format!(concat!($fmt, "\n"));
+        let str = concat!($fmt, "\n");
         handler.err(&str);
-	process::exit(1);
+    process::exit(1);
     });
     ($fmt:expr, $($arg:tt)*) => ({
         let codemap = Rc::new(CodeMap::new());
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"), $($arg)*);
         handler.err(&str);
-	process::exit(1);
+    process::exit(1);
     });
 }

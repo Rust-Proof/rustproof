@@ -12,52 +12,86 @@ use std::process::Command;
 
 // Uses a /example file as a system test for rustproof
 // returns false on verification condition mismatch from function name prefix
-fn test_example_file(file: String) -> bool {
+fn test_example_file(file: &str) -> bool {
+
     // Clean rustproof to ensure this test runs
     // Note: this does not increase test time
-    Command::new("cargo")
-        .arg("clean")
-        .arg("-p")
-        .arg("rustproof")
-        .output()
-        .unwrap();
-
-    // Flag to set false when a test fails
-    let mut no_failure = true;
+    Command::new("cargo").args(&["clean","-p", "rustproof"]).output()
+        .expect("failed to execute child process: cargo clean -p rustproof");
 
     // Compile the example
-    let output = Command::new("cargo")
-        .arg("build")
-        .arg("--test")
-        .arg(file.clone())
-        .output()
-        .unwrap();
+    let output = Command::new("cargo").args(&["build", "--test", file]).output()
+        .expect(format!("failed to execute child process: cargo build --test {}", file).as_str());
+
+    // Read strerr for any rustproof errors. if found, return false
+    let stderr_result = String::from_utf8_lossy(&output.stderr);
+    let split_err = stderr_result.split("\n");
+    for s in split_err {
+        if s.starts_with("error") {
+            return false;
+        }
+    }
 
     // Process the output
     let stdout_result = String::from_utf8_lossy(&output.stdout);
-    let split = stdout_result.split("\n\n");
+    let split = stdout_result.split("\n");
 
     // For each function
     for s in split{
-        if !s.is_empty() && !s.starts_with("(") {
+        if s.starts_with("fn") {
             // If the output line starts with "invalid" it must end with "not valid"
-            if s.ends_with("not valid.") != s.starts_with("\nfn invalid") {
-                     no_failure = false;
+            // If the output line starts with "valid" it must end with "valid"
+            // If there is a mismatch, we have a test failure.
+            // Lines beginning with anything else should be ignored
+            if !((s.starts_with("fn invalid") && s.ends_with("not valid."))
+               || (s.starts_with("fn valid") && s.ends_with("valid.") && !s.ends_with("not valid."))) {
+                return false;
             }
         }
     }
 
-    return no_failure;
+    return true;
 }
 
+// Original test condition example test
 #[test]
 fn test_examples() {
-    assert!(test_example_file("test_conditions".to_string()));
+    assert!(test_example_file("test_conditions"));
 }
+
+// Test examples for unsigned examples
+//#[test]
+//fn test_unsigned_examples(){
+//    assert!(test_example_file(""));
+//}
+
+// Test examples for signed examples
+//#[test]
+//fn test_signed_examples(){
+//    assert!(test_example_file(""));
+//}
+
+// Test example for boolean examples
+//#[test]
+//fn test_boolean_examples(){
+//    assert!(test_example_file(""))
+//}
+
+// Test example for conditional examples
+#[test]
+fn test_conditional_exampels(){
+    assert!(test_example_file("test_conditionals"));
+}
+
+// Test example for assertion examples
+//#[test]
+//fn test_assertion_examples(){
+//    assert!(test_example_file(""));
+//}
 
 #[test]
 #[should_panic]
 fn test_system_test_validity() {
-    assert!(test_example_file("test_fail_valid".to_string()));
-    assert!(test_example_file("test_fail_invalid".to_string()));
+    assert!(test_example_file("test_fail_valid"));
+    assert!(test_example_file("test_fail_invalid"));
 }

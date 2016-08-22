@@ -8,11 +8,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! Functions to generate overflow checks in the weakest precondition.
+
 extern crate rustc_const_math;
 
 use expression::*;
 use rustc::mir::repr::*;
 
+
+/// Routes to appropriate overflow check (signed / unsigned)
 // One catch-all function for overflow checking.
 pub fn overflow_check(wp: &Expression,
                       var: &VariableMappingData,
@@ -31,36 +35,36 @@ pub fn overflow_check(wp: &Expression,
                 "i16" => signed_overflow(binop, 16u8, lvalue, rvalue),
                 "i32" => signed_overflow(binop, 32u8, lvalue, rvalue),
                 "i64" => signed_overflow(binop, 64u8, lvalue, rvalue),
-                "u8" => unsigned_overflow(binop, lvalue, rvalue),
-                "u16" => unsigned_overflow(binop, lvalue, rvalue),
-                "u32" => unsigned_overflow(binop, lvalue, rvalue),
-                "u64" => unsigned_overflow(binop, lvalue, rvalue),
+                "u8" | "u16" | "u32" | "u64" => {
+                    unsigned_overflow(binop, lvalue, rvalue)
+                },
                 _ => panic!("Unsupported return type of binary operation: {}", v.var_type),
             }
         ),
     })
 }
 
+/// Routes to appropriate overflow check
 // Signed: Match on the type of BinOp and call the correct function
 fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expression)
                    -> Expression {
-    match binop {
-        &BinOp::Add => signed_add(size, lvalue, rvalue),
-        &BinOp::Mul => signed_mul(lvalue, rvalue),
-        &BinOp::Sub => signed_sub(size, lvalue, rvalue),
-        &BinOp::Div => signed_div(size, lvalue, rvalue),
-        &BinOp::Rem => unimplemented!(),
-        &BinOp::Shl => unimplemented!(),
-        &BinOp::Shr => unimplemented!(),
-        &BinOp::BitOr => unimplemented!(),
-        &BinOp::BitAnd => unimplemented!(),
-        &BinOp::BitXor => unimplemented!(),
-        &BinOp::Lt => unimplemented!(),
-        &BinOp::Le => unimplemented!(),
-        &BinOp::Gt => unimplemented!(),
-        &BinOp::Ge => unimplemented!(),
-        &BinOp::Eq => unimplemented!(),
-        &BinOp::Ne => unimplemented!(),
+    match *binop {
+        BinOp::Add => signed_add(size, lvalue, rvalue),
+        BinOp::Mul => signed_mul(lvalue, rvalue),
+        BinOp::Sub => signed_sub(size, lvalue, rvalue),
+        BinOp::Div => signed_div(size, lvalue, rvalue),
+        BinOp::Rem => unimplemented!(),
+        BinOp::Shl => unimplemented!(),
+        BinOp::Shr => unimplemented!(),
+        BinOp::BitOr => unimplemented!(),
+        BinOp::BitAnd => unimplemented!(),
+        BinOp::BitXor => unimplemented!(),
+        BinOp::Lt => unimplemented!(),
+        BinOp::Le => unimplemented!(),
+        BinOp::Gt => unimplemented!(),
+        BinOp::Ge => unimplemented!(),
+        BinOp::Eq => unimplemented!(),
+        BinOp::Ne => unimplemented!(),
     }
 }
 
@@ -70,6 +74,7 @@ fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expres
 /// The following psuedocode provides a logically equivalent version of what is produced
 /// (false is returned if overflow/underflow has occurred, true otherwise)
 ///
+/// ```psuedo
 /// If lvalue >= 0 && rvalue >= 0
 ///   If lvalue + rvalue < 0
 ///     false
@@ -83,7 +88,7 @@ fn signed_overflow(binop: &BinOp, size: u8, lvalue: &Expression, rvalue: &Expres
 ///       true
 ///   Else
 ///     true
-///
+/// ```
 fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
@@ -234,6 +239,7 @@ fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 /// The following psuedocode provides a logically equivalent version of what is produced
 /// (false is returned if overflow/underflow has occurred, true otherwise)
 ///
+/// ```psuedo
 /// If lvalue >= 0 && rvalue < 0
 ///   If lvalue - rvalue < 0
 ///     false
@@ -247,7 +253,7 @@ fn signed_add(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
 ///       true
 ///   Else
 ///     true
-///
+/// ```
 fn signed_sub(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression {
     Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::And,
@@ -475,25 +481,26 @@ fn signed_div(size: u8, lvalue: &Expression, rvalue: &Expression) -> Expression 
     })
 }
 
+/// Routes to appropriate overflow check
 // Unsigned: Match on the type of BinOp and call the correct function
 fn unsigned_overflow(binop: &BinOp, lvalue: &Expression, rvalue: &Expression) -> Expression {
-    match binop {
-        &BinOp::Add => unsigned_add(lvalue, rvalue),
-        &BinOp::Sub => unsigned_sub(lvalue, rvalue),
-        &BinOp::Mul => unsigned_mul(lvalue, rvalue),
-        &BinOp::Div => unimplemented!(),
-        &BinOp::Rem => unimplemented!(),
-        &BinOp::Shl => unimplemented!(),
-        &BinOp::Shr => unimplemented!(),
-        &BinOp::BitOr => unimplemented!(),
-        &BinOp::BitAnd => unimplemented!(),
-        &BinOp::BitXor => unimplemented!(),
-        &BinOp::Lt => unimplemented!(),
-        &BinOp::Le => unimplemented!(),
-        &BinOp::Gt => unimplemented!(),
-        &BinOp::Ge => unimplemented!(),
-        &BinOp::Eq => unimplemented!(),
-        &BinOp::Ne => unimplemented!(),
+    match *binop {
+        BinOp::Add => unsigned_add(lvalue, rvalue),
+        BinOp::Sub => unsigned_sub(lvalue, rvalue),
+        BinOp::Mul => unsigned_mul(lvalue, rvalue),
+        BinOp::Div => unimplemented!(),
+        BinOp::Rem => unimplemented!(),
+        BinOp::Shl => unimplemented!(),
+        BinOp::Shr => unimplemented!(),
+        BinOp::BitOr => unimplemented!(),
+        BinOp::BitAnd => unimplemented!(),
+        BinOp::BitXor => unimplemented!(),
+        BinOp::Lt => unimplemented!(),
+        BinOp::Le => unimplemented!(),
+        BinOp::Gt => unimplemented!(),
+        BinOp::Ge => unimplemented!(),
+        BinOp::Eq => unimplemented!(),
+        BinOp::Ne => unimplemented!(),
     }
 }
 
@@ -517,7 +524,7 @@ fn unsigned_add(lvalue: &Expression, rvalue: &Expression) -> Expression {
                 right: Box::new(rvalue.clone()),
             })
         ),
-        // l
+        // r
         right: Box::new(rvalue.clone()),
     })
 }
@@ -534,8 +541,7 @@ fn unsigned_sub(lvalue: &Expression, rvalue: &Expression) -> Expression {
                 right: Box::new(rvalue.clone()),
             })
         ),
-        // l
+        // r
         right: Box::new(rvalue.clone()),
     })
 }
-

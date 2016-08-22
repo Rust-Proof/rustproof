@@ -10,6 +10,11 @@ authors = [
             "Bradley Rasmussen <rasmbj@pdx.edu>",
             "Drew Gohman <dgohman@pdx.edu>"
           ]
+license = "Apache-2.0/MIT"
+description = "Compiler plugin to generate verification conditions from Rust code."
+repository = "https://github.com/Rust-Proof/rustproof"
+readme = "README.md"
+keywords = ["plugin", "smt", "verification", "z3", "solver", "satisfiability"]
 
 #build = "build.rs"
 

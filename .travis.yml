@@ -3,7 +3,7 @@ language: rust
 script: cargo test --lib
 
 rust:
-- nightly
+- nightly-2016-08-12
 
 env:
   global:
