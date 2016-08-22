@@ -150,18 +150,22 @@ fn valid_bool_complex(x:bool, y:bool, z:bool) -> bool {
 fn invalid_bool_complex(x:bool, y:bool, z:bool) -> bool {
     let mut a = 4;
 
-    if z
-        { a = a + 5; }
-    else
-        { a = a + 10; }
+    if z {
+        a = a + 5;
+    }
+    else {
+        a = a + 10;
+    }
 
-    if a > 9 && y
-        { return true; }
-    else
-        {
-            if x
-                {return true;}
-            else
-                {return false;}
-        }
+    if a > 9 && y {
+        return true;
+    }
+    else {
+            if x {
+                return true;
+            }
+            else {
+                return false;
+            }
+    }
 }
