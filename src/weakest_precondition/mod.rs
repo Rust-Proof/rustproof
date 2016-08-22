@@ -287,8 +287,10 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                     BinaryOperator::Multiplication
                 },
                 BinOp::Div => {
-                    // Add the overflow and underflow expression checks
-                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
+                    // Add the overflow and underflow expression checks, if operands are signed
+                    if determine_evaluation_type(rvalue).starts_with('i') {
+                        wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
+                    }
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
@@ -333,8 +335,10 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                     BinaryOperator::Multiplication
                 },
                 BinOp::Div => {
-                    // Add the overflow and underflow expression checks
-                    wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
+                    // Add the overflow and underflow expression checks, if operands are signed
+                    if determine_evaluation_type(rvalue).starts_with('i') {
+                        wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
+                    }
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Division
