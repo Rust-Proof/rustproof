@@ -72,10 +72,10 @@ fn test_examples() {
 //}
 
 // Test example for conditional examples
-//#[test]
-//fn test_conditional_exampels(){
-//    assert!(test_example_file(""));
-//}
+#[test]
+fn test_conditional_exampels(){
+    assert!(test_example_file("test_conditionals"));
+}
 
 // Test example for assertion examples
 //#[test]
@@ -86,7 +86,6 @@ fn test_examples() {
 #[test]
 #[should_panic]
 fn test_system_test_validity() {
-    assert!(test_example_file("test_conditionals"));
     assert!(test_example_file("test_fail_valid"));
     assert!(test_example_file("test_fail_invalid"));
 }
