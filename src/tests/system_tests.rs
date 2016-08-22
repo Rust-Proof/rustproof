@@ -79,7 +79,7 @@ fn test_boolean_examples(){
 
 // Test example for conditional examples
 #[test]
-fn test_conditional_exampels(){
+fn test_conditional_examples(){
     assert!(test_example_file("test_conditionals"));
 }
 
