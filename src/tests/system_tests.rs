@@ -58,19 +58,19 @@ fn test_example_file(file: &str) -> bool {
 fn test_examples() {
     assert!(test_example_file("test_conditions"));
 }
-
+/*
 // Test examples for unsigned examples
-//#[test]
-//fn test_unsigned_examples(){
-//    assert!(test_example_file(""));
-//}
+#[test]
+fn test_unsigned_examples(){
+    assert!(test_example_file("test_unsigned"));
+}
 
 // Test examples for signed examples
-//#[test]
-//fn test_signed_examples(){
-//    assert!(test_example_file(""));
-//}
-
+#[test]
+fn test_signed_examples(){
+    assert!(test_example_file("test_signed"));
+}
+*/
 // Test example for boolean examples
 #[test]
 fn test_boolean_examples(){

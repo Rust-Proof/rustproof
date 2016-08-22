@@ -174,3 +174,4 @@ fn invalid_boolean_condition(x:bool) -> bool {
         false
     }
 }
+
