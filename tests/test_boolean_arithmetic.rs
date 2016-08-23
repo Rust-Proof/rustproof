@@ -278,27 +278,33 @@ fn valid_bool_post_or(x:bool) -> bool {
 fn valid_bool_complex(x:bool, y:bool, z:bool) -> bool {
     let mut a = 4;
 
-    if z
-        { a = a + 5; }
-    else
-        { a = a + 10; }
+    if z {
+        a = a + 5;
+    }
+    else {
+        a = a + 10;
+    }
 
-    if a > 9 && y
-        { return true; }
-    else
-        {
-            if x
-                {return true;}
-            else
-                {return false;}
+    if a > 9 && y {
+        return true;
+    }
+    else {
+            if x {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 }
 
 // Should be invalid
-#[condition(pre="(x: bool == false) && (y: bool == true) && (z: bool == true)", post="return:bool == true")]
-fn invalid_bool_complex(x:bool, y:bool, z:bool) -> bool {
+#[condition(pre="(w: i32 >= 6i32) && (x: bool == false) && (y: bool == true) && (z: bool == true)", post="return:bool == true")]
+fn invalid_bool_complex(x:bool, y:bool, z:bool, w:i32) -> bool {
     let mut a = 4;
-
+    if w > 5 {
+        return false;
+    }
     if z {
         a = a + 5;
     }
