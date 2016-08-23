@@ -8,24 +8,12 @@
 fn main() {}
 // Tests signed integer for 32 bit integers
 
-// Should be invalid
+// Should be invalid and return model
 
 #[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 < 0i32")]
 
-fn invalid_multiply_five_i32(x: i32) -> i32 {
+fn multiply_5(x: i32) -> i32 {
 
     x * 5i32
-
-}
-
-// Tests signed integer for 32 bit integers
-
-// Should be valid
-
-#[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 >= 0i32")]
-
-fn valid_multiply_five_i32(x: i32) -> i32 {
-
-    x * 5
 
 }
