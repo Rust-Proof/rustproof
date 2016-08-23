@@ -10,7 +10,7 @@ fn main() {}
 
 // Should be invalid and return model
 
-#[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 < 0i32")]
+#[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 > 0i32")]
 
 fn multiply_5(x: i32) -> i32 {
 
