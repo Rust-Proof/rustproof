@@ -488,7 +488,7 @@ fn unsigned_overflow(binop: &BinOp, lvalue: &Expression, rvalue: &Expression) ->
         BinOp::Add => unsigned_add(lvalue, rvalue),
         BinOp::Sub => unsigned_sub(lvalue, rvalue),
         BinOp::Mul => unsigned_mul(lvalue, rvalue),
-        BinOp::Div => unimplemented!(),
+        BinOp::Div => unreachable!(),
         BinOp::Rem => unimplemented!(),
         BinOp::Shl => unimplemented!(),
         BinOp::Shr => unimplemented!(),
