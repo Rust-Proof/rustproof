@@ -41,11 +41,6 @@ mod overflow;
 /// * This is the main generator for the weakest precondition, which evaluates the `BasicBlock`s recursively.
 ///
 pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, debug: bool) -> Option<Expression> {
-    // Shows the current BasicBlock index and the BasicBLockData associated with that index
-    if debug {
-        println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]);
-    }
-
     let mut wp: Option<Expression>;
 
     // Parse basic block terminator data
@@ -142,7 +137,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
 
     // Prints the current BasicBlock index
     if debug {
-        println!("bb{:?}", index);
+        println!("Processing bb{:?}:", index);
     }
 
     for stmt in stmts {
