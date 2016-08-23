@@ -52,19 +52,19 @@ fn test_example_file(file: &str) -> bool {
 
     return true;
 }
-/*
+
 // Original test condition example test
 #[test]
 fn test_examples() {
     assert!(test_example_file("test_conditions"));
 }
-*/
+
 // Test examples for unsigned examples
 #[test]
 fn test_unsigned_examples(){
     assert!(test_example_file("test_unsigned"));
 }
-/*
+
 // Test examples for signed examples
 #[test]
 fn test_signed_examples(){
@@ -95,4 +95,4 @@ fn test_system_test_validity() {
     assert!(test_example_file("test_fail_valid"));
     assert!(test_example_file("test_fail_invalid"));
 }
-*/
+

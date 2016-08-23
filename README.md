@@ -18,6 +18,7 @@ Your installation of z3 needs to be in your PATH for rustproof to work.
     * `isize` and `usize` are **unsupported**
 * Boolean Statements
 * Assertions (Integer/Boolean)
+    * `assert_eq!()` is **unsupported**
 * If Statements
 
 ## Usage

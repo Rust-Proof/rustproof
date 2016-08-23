@@ -9,6 +9,6 @@
 // except according to those terms.
 
 
-//mod test_reporting;
-//mod test_expression;
+mod test_reporting;
+mod test_expression;
 mod system_tests;

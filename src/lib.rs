@@ -181,6 +181,12 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
                 _ => { unimplemented!(); }
             };
 
+            if debug {
+                for index in 0..data.block_data.len() {
+                    println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]);
+                }
+            }
+            
             // Generate the weakest precondition
             let weakest_precondition = gen(0, &mut data, &post_expr, debug);
 
@@ -203,6 +209,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
 
             // Output to SMT-LIB format
             gen_smtlib(&verification_condition, name, debug);
-       }
+        }
     }
 }
