@@ -86,14 +86,14 @@ fn valid_multiply_five_i32(x: i32) -> i32 {
 
 // Tests signed integer for 32 bit integers
 // Should be invalid
-#[condition(pre="(x: i32 < 0i32) && (x: i32 >= -10i32)", post="return: i32 != -2i32")]
+#[condition(pre="(x: i32 < 0i32) && (x: i32 >= -10i32)", post="return: i32 == -2i32")]
 fn invalid_multiply_five_negative_i32(x: i32) -> i32 {
     x * 5
 }
 
 // Tests signed integer for 32 bit integers
 // Should be valid
-#[condition(pre="(x: i32 < 0i32) && (x: i32 >= -10i32)", post="return: i32 > 0i32")]
+#[condition(pre="(x: i32 < 0i32) && (x: i32 >= -10i32)", post="return: i32 < 0i32")]
 fn valid_multiply_five_negative_i32(x: i32) -> i32 {
     x * 5
 }
@@ -223,43 +223,44 @@ fn invalid_bit_shift_right_two_i32(x: i32) -> i32 {
 
 // Tests signed integer for 32 bit integers
 // Should be valid
-#[condition(pre="(x: i32 > 0i32) && (x: i32 < 10i32)", post="return: i32 > -10i32")]
+#[condition(pre="(x: i32 > 0i32) && (x: i32 < 10i32)", post="return: i32 >= 0i32")]
 fn valid_bit_shift_right_two_i32(x: i32) -> i32 {
     x >> 2i32
 }
 
 // Tests signed integer for 32 bit integers
 // Should be invalid
-#[condition(pre="(x: i32 < 0i32) && (x: i32 > -10i32)", post="return: i32 < 0i32")]
+#[condition(pre="(x: i32 < 0i32) && (x: i32 > -10i32)", post="return: i32 > 0i32")]
 fn invalid_bit_shift_right_negative_two_i32(x: i32) -> i32 {
     x >> 2i32
 }
 
 // Tests signed integer for 32 bit integers
 // Should be valid
-#[condition(pre="(x: i32 < 0i32) && (x: i32 > -10i32)", post="return: i32 < -20i32")]
+#[condition(pre="(x: i32 < 0i32) && (x: i32 > -10i32)", post="return: i32 <= 0i32")]
 fn valid_bit_shift_right_two_negative_i32(x: i32) -> i32 {
     x >> 2i32
 }
 
 // Tests signed integer for 16 bit integers
 // Should be valid
+#[condition(pre="(x: i8 < 10i8) && (x: i8 > 0i8)", post="return: i8 > 3i8")]
+fn valid_add_5_i8(x: i8) -> i8 {
+    x+5i8
+}
+
+
+// Tests signed integer for 16 bit integers
+// Should be valid
 #[condition(pre="(x: i16 < 10i16) && (x: i16 > 0i16)", post="return: i16 > 3i16")]
-fn valid_equal_only_test(x: i16) -> i16 {
+fn valid_add_5_i16(x: i16) -> i16 {
     x+5
 }
 
 // Tests signed integer for 64 bit integers
 // Should be valid
 #[condition(pre="(x: i64 < 10i64) && (x: i64 > 0i64)", post="return: i64 > 3i64")]
-fn valid_not_equal_test(x: i64) -> i64 {
-    x+5
-}
-
-// Tests signed integer for 32 bit integers
-// Should be valid
-#[condition(pre="(x: i32 == 0i32)", post="return: i32 == 10i32")]
-fn valid_xor_test(x: i32) -> i32 {
+fn valid_add_5_i64(x: i64) -> i64 {
     x+5
 }
 
