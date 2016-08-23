@@ -137,7 +137,7 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
 
     // Prints the current BasicBlock index
     if debug {
-        println!("bb{:?}", index);
+        println!("Processing bb{:?}:", index);
     }
 
     for stmt in stmts {

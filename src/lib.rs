@@ -182,11 +182,12 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             };
 
             if debug {
+                println!("Printing basic blocks...");
                 for index in 0..data.block_data.len() {
-                    println!("Examining bb{:?}\n{:#?}\n", index, data.block_data[index]);
+                    println!("bb{:?}\n{:#?}\n", index, data.block_data[index]);
                 }
             }
-            
+
             // Generate the weakest precondition
             let weakest_precondition = gen(0, &mut data, &post_expr, debug);
 

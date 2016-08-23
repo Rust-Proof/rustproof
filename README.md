@@ -14,11 +14,11 @@ Your installation of z3 needs to be in your PATH for rustproof to work.
 
 ## Supported Rust Language Features
 
-* Integer Arithmetic
+* Integer arithmetic
     * `isize` and `usize` are **unsupported**
-* Boolean Statements
-* Assertions (Integer/Boolean)
-* If Statements
+* Boolean expressions, variables, and literals
+* Assertions (integer/boolean)
+* If statements
 
 ## Usage
 
@@ -32,14 +32,19 @@ rustproof = { git = "https://github.com/Rust-Proof/rustproof.git" }
 
 ### Using Rustproof
 
-Rustproof uses a function attribute `condition` to allow declaring pre/postcondition.
+`#![plugin(rustproof)]` is required in each file where rustproof is used. Typically this is placed at the beginning of a file.
+
+Rustproof uses a custom attribute `condition` to allow declaring pre/postconditions on functions.
 
 The attribute is supplied as:
 `#[condition(pre=" ", post=" ")]`
+and must be supplied before a function definition.
 
 See [USAGE](USAGE.md) for a detailed explanation of the attribute system.
 
 See [EXAMPLES](EXAMPLES.md) for example functions with condition attributes.
+
+Additionally, `#![plugin(rustproof(debug))]` prints out basic blocks of each function annotated with `#[condition(..)]`, as well as a step-by-step view of generating the verification condition.
 
 
 ## Contributors
@@ -68,7 +73,7 @@ Please report all issues on the github [issue tracker][issues].
 
 ## License
 
-Rustproof is primarily distributed under the terms of both the MIT license and the Apache License (Version 2.0).
+Rustproof is distributed under the terms of both the MIT license and the Apache License (Version 2.0).
 
 See [LICENSE-APACHE][1], [LICENSE-MIT][2], and [COPYRIGHT][3] for details.
 
