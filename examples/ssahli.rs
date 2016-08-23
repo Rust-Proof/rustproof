@@ -3,7 +3,8 @@
 #![allow(dead_code)]
 fn main() {}
 
-#[condition(pre="true", post="true")]
+
 fn test() {
+    #![condition(pre="true", post="true")]
     assert_eq!(true, true);
 }
