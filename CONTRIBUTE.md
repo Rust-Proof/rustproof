@@ -1,3 +1,5 @@
+# Contributing to rustproof
+
 If you're looking to contribute to rustproof, this document should help you understand the design structure of the project.
 
 Last updated Aug 24
