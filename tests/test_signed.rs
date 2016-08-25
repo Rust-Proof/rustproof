@@ -264,3 +264,85 @@ fn valid_add_5_i64(x: i64) -> i64 {
     x+5
 }
 
+// Overflow Tests
+
+
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: i32 == i32::MAX)", post="return: i32 > 0i32")]
+fn invalid_add_five_overflow_i32(x: i32) -> i32 {
+    x + 5
+}
+
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: i32 == i32::MIN)", post="return: i32 < 0i32")]
+fn invalid_subtract_five_overflow_i32(x: i32) -> i32 {
+    x - 5
+}
+
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: i32 == i32::MIN)", post="return: i32 > 0i32")]
+fn invalid_divide_one_overflow_i32(x: i32) -> i32 {
+    x / -1
+}
+
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: i32 == i32::MIN)", post="return: i32 > 0i32")]
+fn invalid_mod_one_overflow_i32(x: i32) -> i32 {
+    x % -1
+}
+
+
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: i32 == i32::MAX)", post="return: i32 > 0i32")]
+fn invalid_multiply_five_overflow_i32(x: i32) -> i32 {
+    x * 5
+}
+
+// Tests signed integer for 16 bit integers
+// Should be invalid
+#[condition(pre="(x: i16 == i16::MAX)", post="return: i16 > 0i16")]
+fn invalid_add_five_overflow_i16(x: i16) -> i16 {
+    x + 5
+}
+
+// Tests signed integer for 16 bit integers
+// Should be invalid
+#[condition(pre="(x: i16 == i16::MIN)", post="return: i16 < 0i16")]
+fn invalid_subtract_five_overflow_i16(x: i16) -> i16 {
+    x - 5
+}
+
+// Tests signed integer for 8 bit integers
+// Should be invalid
+#[condition(pre="(x: i8 == i8::MAX)", post="return: i8 > 0i8")]
+fn invalid_add_five_overflow_i8(x: i8) -> i8 {
+    x + 5
+}
+
+// Tests signed integer for 8 bit integers
+// Should be invalid
+#[condition(pre="(x: i8 == i8::MIN)", post="return: i8 < 0i8")]
+fn invalid_subtract_five_overflow_i8(x: i8) -> i8 {
+    x - 5
+}
+
+// Tests signed integer for 64 bit integers
+// Should be invalid
+#[condition(pre="(x: i64 == i64::MAX)", post="return: i64 > 0i64")]
+fn invalid_add_five_overflow_i64(x: i64) -> i64 {
+    x + 5
+}
+
+// Tests signed integer for 64 bit integers
+// Should be invalid
+#[condition(pre="(x: i64 == i64::MIN)", post="return: i64 < 0i64")]
+fn invalid_subtract_five_overflow_i64(x: i64) -> i64 {
+    x - 5
+}
+
+

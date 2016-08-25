@@ -138,3 +138,67 @@ fn valid_add_5_u64(x: u64) -> u64 {
     x+5
 }
 
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: u32 == u32::MAX)", post="return: u32 > 20u32")]
+fn invalid_add_five_overflow_u32(x: u32) -> u32 {
+    x + 5
+}
+
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: u32 == u32::MIN)", post="return: u32 < 20u32")]
+fn invalid_subtract_five_overflow_u32(x: u32) -> u32 {
+    x - 5
+}
+
+// Tests signed integer for 32 bit integers
+// Should be invalid
+#[condition(pre="(x: u32 == u32::MAX)", post="true")]
+fn invalid_multiply_two_overflow_u32(x: u32) -> u32 {
+    x * 2
+}
+
+// Tests signed integer for 16 bit integers
+// Should be invalid
+#[condition(pre="(x: u16 == u16::MAX)", post="return: u16 > 20u16")]
+fn invalid_add_five_overflow_u16(x: u16) -> u16 {
+    x + 5
+}
+
+// Tests signed integer for 16 bit integers
+// Should be invalid
+#[condition(pre="(x: u16 == u16::MIN)", post="return: u16 < 20u16")]
+fn invalid_subtract_five_overflow_u16(x: u16) -> u16 {
+    x - 5
+}
+
+// Tests signed integer for 8 bit integers
+// Should be invalid
+#[condition(pre="(x: u8 == u8::MAX)", post="return: u8 > 20u8")]
+fn invalid_add_five_overflow_u8(x: u8) -> u8 {
+    x + 5
+}
+
+// Tests signed integer for 8 bit integers
+// Should be invalid
+#[condition(pre="(x: u8 == u8::MIN)", post="return: u8 < 20u8")]
+fn invalid_subtract_five_overflow_u8(x: u8) -> u8 {
+    x - 5
+}
+
+// Tests signed integer for 64 bit integers
+// Should be invalid
+#[condition(pre="(x: u64 == u64::MAX)", post="return: u64 > 20u64")]
+fn invalid_add_five_overflow_u64(x: u64) -> u64 {
+    x + 5
+}
+
+// Tests signed integer for 64 bit integers
+// Should be invalid
+#[condition(pre="(x: u64 == u64::MIN)", post="return: u64 < 20u64")]
+fn invalid_subtract_five_overflow_u64(x: u64) -> u64 {
+    x - 5
+}
+
+
