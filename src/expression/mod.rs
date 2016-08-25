@@ -256,174 +256,33 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                         | BinaryOperator::Subtraction
                         | BinaryOperator::Multiplication
                         | BinaryOperator::Division
-                        | BinaryOperator::Modulo => {
-                            let l_type: String = determine_evaluation_type(&*b.left);
-                            let r_type: String = determine_evaluation_type(&*b.right);
-                            // Ensure both operands are numeric types
-                            if (l_type == "bool") || (r_type == "bool") {
-                                rp_error!(
-                                    "Invalid use of binary operator {} on boolean value(s)",
-                                    b.op
-                                );
-                            // Ensure both operand types match
-                            } else if l_type != r_type {
-                                rp_error!(
-                                    "Binary operand types do not match: {} {} {}",
-                                    l_type,
-                                    b.op,
-                                    r_type
-                                );
-                            } else {
-                                l_type
-                            }
-                        },
-                        BinaryOperator::BitwiseLeftShift | BinaryOperator::BitwiseRightShift => {
-                            let l_type: String = determine_evaluation_type(&*b.left);
-                            let r_type: String = determine_evaluation_type(&*b.right);
-
-                            // Ensure both operands are numeric types
-                            if (l_type == "bool") || (r_type == "bool") {
-                                rp_error!(
-                                    "Invalid use of binary operator {} on boolean value(s)",
-                                    b.op
-                                );
-                            //Ensure both operand types are of same signedness
-                            } else if (l_type.starts_with('i') && !r_type.starts_with('i'))
-                                       || (l_type.starts_with('u') && !r_type.starts_with('u')) {
-                                rp_error!(
-                                    "Binary operand types do not match: {} {} {}",
-                                    l_type,
-                                    b.op, r_type
-                                );
-                            } else {
-                                l_type
-                            }
-                        },
-                        BinaryOperator::BitwiseOr
+                        | BinaryOperator::Modulo
+                        | BinaryOperator::BitwiseLeftShift
+                        | BinaryOperator::BitwiseRightShift
+                        | BinaryOperator::BitwiseOr
                         | BinaryOperator::BitwiseAnd
-                        | BinaryOperator::BitwiseXor => {
-                            let l_type: String = determine_evaluation_type(&*b.left);
-                            let r_type: String = determine_evaluation_type(&*b.right);
-                            // Ensure both operand types match
-                            if l_type != r_type {
-                                rp_error!(
-                                    "Binary operand types do not match: {} {} {}",
-                                    l_type,
-                                    b.op,
-                                    r_type
-                                );
-                            } else {
-                                l_type
-                            }
-                        },
+                        | BinaryOperator::BitwiseXor => determine_evaluation_type(&*b.left),
                         BinaryOperator::LessThan
                         | BinaryOperator::LessThanOrEqual
                         | BinaryOperator::GreaterThan
                         | BinaryOperator::GreaterThanOrEqual
                         | BinaryOperator::SignedMultiplicationDoesNotOverflow
                         | BinaryOperator::SignedMultiplicationDoesNotUnderflow
-                        | BinaryOperator::UnsignedMultiplicationDoesNotOverflow => {
-                            let l_type: String = determine_evaluation_type(&*b.left);
-                            let r_type: String = determine_evaluation_type(&*b.right);
-                            // Ensure both operands are numeric types
-                            if (l_type == "bool") || (r_type == "bool") {
-                                rp_error!(
-                                    "Invalid use of binary operator {} on boolean value(s)",
-                                    b.op
-                                );
-                            // Ensure both operand types match
-                            } else if l_type != r_type {
-                                rp_error!(
-                                    "Binary operand types do not match: {} {} {}",
-                                    l_type,
-                                    b.op,
-                                    r_type
-                                );
-                            } else {
-                                "bool".to_string()
-                            }
-                        },
-                        BinaryOperator::Equal
-                        | BinaryOperator::NotEqual => {
-                            let l_type: String = determine_evaluation_type(&*b.left);
-                            let r_type: String = determine_evaluation_type(&*b.right);
-                            // Ensure both operand types match
-                            if l_type != r_type {
-                                rp_error!(
-                                    "Binary operand types do not match: {} {} {}",
-                                    l_type,
-                                    b.op,
-                                    r_type
-                                );
-                            } else {
-                                "bool".to_string()
-                            }
-                        },
-                        BinaryOperator::And
+                        | BinaryOperator::UnsignedMultiplicationDoesNotOverflow
+                        | BinaryOperator::Equal
+                        | BinaryOperator::NotEqual
+                        | BinaryOperator::And
                         | BinaryOperator::Or
                         | BinaryOperator::Xor
                         | BinaryOperator::Implication
-                        | BinaryOperator::BiImplication => {
-                            let l_type: String = determine_evaluation_type(&*b.left);
-                            let r_type: String = determine_evaluation_type(&*b.right);
-                            // Ensure both operands are boolean types
-                            if (l_type != "bool") || (r_type != "bool") {
-                                rp_error!(
-                                    "Invalid use of binary operator {} on numeric value(s)",
-                                    b.op
-                                );
-                            // Ensure both operand types match
-                            } else if l_type != r_type {
-                                rp_error!(
-                                    "Binary operand types do not match: {} {} {}",
-                                    l_type,
-                                    b.op,
-                                    r_type
-                                );
-                            } else {
-                                "bool".to_string()
-                            }
-                        }
+                        | BinaryOperator::BiImplication => "bool".to_string(),
                     }
                 },
                 Expression::UnaryExpression(ref u) => {
                     match u.op {
-                        UnaryOperator::Negation => {
-                            let e_type: String = determine_evaluation_type(&*u.e);
-                            // Ensure operand is a numeric type
-                            if e_type == "bool" {
-                                rp_error!(
-                                    "Invalid use of operator {} on boolean value {}",
-                                    u.op,
-                                    *u.e
-                                );
-                            // Ensure operand is not an unsigned type
-                            } else if is_valid_unsigned(e_type.as_str()) {
-                                rp_error!(
-                                    "Invalid use of operator {} on unsigned value {}",
-                                    u.op,
-                                    *u.e
-                                );
-                            } else {
-                                e_type
-                            }
-                        },
+                        UnaryOperator::Negation
+                        | UnaryOperator::Not => e_type,
                         UnaryOperator::BitwiseNot => determine_evaluation_type(&*u.e),
-                        UnaryOperator::Not => {
-                            let e_type: String = determine_evaluation_type(&*u.e);
-                            // Ensure operand is a boolean type
-                            if e_type != "bool" {
-                                rp_error!(
-                                    "Invalid use of operator {} on non-boolean value {}",
-                                    u.op,
-                                    *u.e
-                                );
-                            } else {
-                                e_type
-                            }
-                        }
-                    }
-                },
                 Expression::VariableMapping(ref v) => v.var_type.clone(),
                 Expression::BooleanLiteral(_) => "bool".to_string(),
                 Expression::UnsignedBitVector(ref u) => {
