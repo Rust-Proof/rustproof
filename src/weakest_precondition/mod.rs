@@ -317,13 +317,17 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                     BinaryOperator::Division
                 },
                 BinOp::Rem => {
+                	// Add the overflow and underflow expression checks, if operands are signed
+                    if determine_evaluation_type(&rvalue).starts_with('i') {
+                        wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
+                    }
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Modulo
                 },
-                BinOp::Shl => { BinaryOperator::BitwiseLeftShift },
-                BinOp::Shr => { BinaryOperator::BitwiseRightShift },
-                _ => { rp_error!("Unsupported checked binary operation!"); }
+                BinOp::Shl => BinaryOperator::BitwiseLeftShift,
+                BinOp::Shr => BinaryOperator::BitwiseRightShift,
+                _ => rp_error!("Unsupported checked binary operation!"),
             };
 
             var.name = var.name + ".0";
@@ -365,6 +369,10 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                     BinaryOperator::Division
                 },
                 BinOp::Rem => {
+                	// Add the overflow and underflow expression checks, if operands are signed
+                    if determine_evaluation_type(&rvalue).starts_with('i') {
+                        wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
+                    }
                     // Add the division by 0 expression check
                     wp = add_zero_check(&wp, &rvalue);
                     BinaryOperator::Modulo
