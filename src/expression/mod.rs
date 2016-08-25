@@ -281,8 +281,10 @@ pub fn determine_evaluation_type ( expression: &Expression ) -> String {
                 Expression::UnaryExpression(ref u) => {
                     match u.op {
                         UnaryOperator::Negation
-                        | UnaryOperator::Not => e_type,
+                        | UnaryOperator::Not => determine_evaluation_type(&*u.e),
                         UnaryOperator::BitwiseNot => determine_evaluation_type(&*u.e),
+                    }
+                },
                 Expression::VariableMapping(ref v) => v.var_type.clone(),
                 Expression::BooleanLiteral(_) => "bool".to_string(),
                 Expression::UnsignedBitVector(ref u) => {
