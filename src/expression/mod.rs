@@ -13,11 +13,6 @@
 //#[macro_use]
 extern crate term;
 use std::fmt;
-use std::process;
-
-use errors::{ColorConfig, Handler};
-use syntax::codemap::CodeMap;
-use std::rc::Rc;
 
 // Boolean Expression type
 #[derive(Clone, PartialEq)]

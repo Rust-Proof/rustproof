@@ -38,7 +38,7 @@ extern crate rustc_plugin;
 extern crate rustc_data_structures;
 extern crate rustc_const_math;
 //extern crate syntax;
-extern crate rustc_errors as errors;
+extern crate rustc_errors;
 
 // External imports
 use rustc_data_structures::indexed_vec::Idx;
@@ -49,10 +49,6 @@ use rustc::ty::{TyCtxt, FnOutput};
 use syntax::feature_gate::AttributeType;
 use syntax::parse::token::InternedString;
 use syntax::ast::MetaItemKind;
-use errors::{ColorConfig, Handler};
-use syntax::codemap::CodeMap;
-use std::rc::Rc;
-use std::process;
 
 // Local imports
 use expression::*;

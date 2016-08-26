@@ -15,11 +15,8 @@ extern crate syntax;
 mod expression_parser;
 
 use syntax::ast::{MetaItemKind, Attribute_};
-use syntax::codemap::{Spanned, CodeMap};
+use syntax::codemap::Spanned;
 use expression::{Expression, ty_check};
-use std::process;
-use std::rc::Rc;
-use errors::{ColorConfig, Handler};
 
 /// Analyzes an attribute on a function in the compiled code, and if the attribute is "condition",
 /// ensures correct usage. If usage is correct, it stores the argument strings.

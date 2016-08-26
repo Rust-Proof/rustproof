@@ -13,17 +13,12 @@
 extern crate rustc_const_math;
 
 use super::MirData;
-use std::process;
 use expression::*;
 use rustc::mir::repr::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_const_math::ConstInt;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::{TypeVariants};
-
-use errors::{ColorConfig, Handler};
-use syntax::codemap::CodeMap;
-use std::rc::Rc;
 
 mod overflow;
 

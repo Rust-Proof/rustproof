@@ -13,12 +13,18 @@
 // Warning macro
 macro_rules! rp_warn {
     ($fmt:expr) => ({
+        use rustc_errors::{ColorConfig, Handler};
+        use syntax::codemap::CodeMap;
+        use std::rc::Rc;
         let codemap = Rc::new(CodeMap::new());
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"));
         handler.warn(&str);
     });
     ($fmt:expr, $($arg:tt)*) => ({
+        use rustc_errors::{ColorConfig, Handler};
+        use syntax::codemap::CodeMap;
+        use std::rc::Rc;
         let codemap = Rc::new(CodeMap::new());
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"), $($arg)*);
@@ -29,17 +35,25 @@ macro_rules! rp_warn {
 // Error macro
 macro_rules! rp_error {
     ($fmt:expr) => ({
+        use rustc_errors::{ColorConfig, Handler};
+        use syntax::codemap::CodeMap;
+        use std::rc::Rc;
+        use std::process;
         let codemap = Rc::new(CodeMap::new());
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
         let str = concat!($fmt, "\n");
         handler.err(&str);
-    process::exit(1);
+        process::exit(1);
     });
     ($fmt:expr, $($arg:tt)*) => ({
+        use rustc_errors::{ColorConfig, Handler};
+        use syntax::codemap::CodeMap;
+        use std::rc::Rc;
+        use std::process;
         let codemap = Rc::new(CodeMap::new());
         let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(codemap.clone()));
         let str = format!(concat!($fmt, "\n"), $($arg)*);
         handler.err(&str);
-    process::exit(1);
+        process::exit(1);
     });
 }
