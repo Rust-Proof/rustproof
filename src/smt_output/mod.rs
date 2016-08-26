@@ -11,7 +11,6 @@
 //! Interface between rustproof and libsmt(z3).
 
 use std::fmt::Debug;
-use std::process;
 
 use libsmt::backends::smtlib2::*;
 use libsmt::backends::backend::*;
@@ -19,10 +18,6 @@ use libsmt::backends::z3;
 use libsmt::theories::{bitvec, core};
 use libsmt::logics::qf_abv::*;
 use petgraph::graph::NodeIndex;
-
-use errors::{ColorConfig, Handler};
-use syntax::codemap::CodeMap;
-use std::rc::Rc;
 
 use expression::*;
 
@@ -95,7 +90,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     },
                     BinaryOperator::Division => {
                         // Check for signedness
-                        if determine_evaluation_type(vc).starts_with('i') {
+                        if is_signed_type(determine_evaluation_type(vc)) {
                             return self.assert(bitvec::OpCodes::BvSDiv, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvUDiv, &[l,r]);
@@ -103,7 +98,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     },
                     BinaryOperator::Modulo => {
                         // Check for signedness
-                        if determine_evaluation_type(vc).starts_with('i') {
+                        if is_signed_type(determine_evaluation_type(vc)) {
                             return self.assert(bitvec::OpCodes::BvSMod, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvURem, &[l,r]);
@@ -119,21 +114,21 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                         return self.assert(bitvec::OpCodes::BvUMulDoesNotOverflow, &[l,r]);
                     },
                     BinaryOperator::BitwiseOr => {
-                        if determine_evaluation_type(vc) == "bool" {
+                        if determine_evaluation_type(vc) == Types::Bool {
                             return self.assert(core::OpCodes::Or, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvOr, &[l,r]);
                         }
                     },
                     BinaryOperator::BitwiseAnd => {
-                        if determine_evaluation_type(vc) == "bool" {
+                        if determine_evaluation_type(vc) == Types::Bool {
                             return self.assert(core::OpCodes::And, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvAnd, &[l,r]);
                         }
                     },
                     BinaryOperator::BitwiseXor => {
-                        if determine_evaluation_type(vc) == "bool" {
+                        if determine_evaluation_type(vc) == Types::Bool {
                             return self.assert(core::OpCodes::Xor, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvXor, &[l,r]);
@@ -144,14 +139,14 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     },
                     BinaryOperator::BitwiseRightShift => {
                         // Check for signedness
-                        if determine_evaluation_type(vc).starts_with('i') {
+                        if is_signed_type(determine_evaluation_type(vc)) {
                             return self.assert(bitvec::OpCodes::BvAShr, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvLShr, &[l,r]);
                         }
                     },
                     BinaryOperator::LessThan => {
-                        if determine_evaluation_type(b.left.as_ref()).starts_with('i') {
+                        if is_signed_type(determine_evaluation_type(b.left.as_ref())) {
                             return self.assert(bitvec::OpCodes::BvSLt, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvULt, &[l,r]);
@@ -159,7 +154,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     },
                     BinaryOperator::LessThanOrEqual => {
                         // Check for signedness
-                        if determine_evaluation_type(b.left.as_ref()).starts_with('i') {
+                        if is_signed_type(determine_evaluation_type(b.left.as_ref())) {
                             return self.assert(bitvec::OpCodes::BvSLe, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvULe, &[l,r]);
@@ -167,7 +162,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     },
                     BinaryOperator::GreaterThan => {
                         // Check for signedness
-                        if determine_evaluation_type(b.left.as_ref()).starts_with('i') {
+                        if is_signed_type(determine_evaluation_type(b.left.as_ref())) {
                             return self.assert(bitvec::OpCodes::BvSGt, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvUGt, &[l,r]);
@@ -175,7 +170,7 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                     },
                     BinaryOperator::GreaterThanOrEqual => {
                         // Check for signedness
-                        if determine_evaluation_type(b.left.as_ref()).starts_with('i') {
+                        if is_signed_type(determine_evaluation_type(b.left.as_ref())) {
                             return self.assert(bitvec::OpCodes::BvSGe, &[l,r]);
                         } else {
                             return self.assert(bitvec::OpCodes::BvUGe, &[l,r]);
@@ -218,19 +213,13 @@ impl Pred2SMT for SMTLib2<QF_ABV> {
                 }
             },
             Expression::VariableMapping (ref v) => {
-                let sort = match v.var_type.as_ref() {
-                    "bool" => bitvec::Sorts::Bool,
-                    "i8" | "u8" => bitvec::Sorts::BitVector(8),
-                    "i16" | "u16" => bitvec::Sorts::BitVector(16),
-                    "i32" | "u32" => bitvec::Sorts::BitVector(32),
-                    "i64" | "u64" => bitvec::Sorts::BitVector(64),
-                    _ => {
-                        rp_error!(
-                            "Invalid or Unsupported type for variable: \"{}\" : \"{}\"",
-                            v.name,
-                            v.var_type
-                        );
-                    },
+                let sort = match v.var_type {
+                    Types::Bool => bitvec::Sorts::Bool,
+                    Types::I8 | Types::U8 => bitvec::Sorts::BitVector(8),
+                    Types::I16 | Types::U16 => bitvec::Sorts::BitVector(16),
+                    Types::I32 | Types::U32 => bitvec::Sorts::BitVector(32),
+                    Types::I64 | Types::U64 => bitvec::Sorts::BitVector(64),
+                    Types::Void => unreachable!(),
                 };
                 return self.new_var(Some(&v.name), sort);
             },

@@ -55,7 +55,7 @@ use std::rc::Rc;
 use std::process;
 
 // Local imports
-use expression::{Expression, BinaryOperator, BinaryExpressionData};
+use expression::*;
 use parser::*;
 use smt_output::*;
 use weakest_precondition::*;
@@ -101,7 +101,7 @@ pub struct MirData<'tcx> {
     arg_data: Vec<&'tcx ArgDecl<'tcx>>,
     var_data: Vec<&'tcx VarDecl<'tcx>>,
     temp_data: Vec<&'tcx TempDecl<'tcx>>,
-    func_return_type: String,
+    func_return_type: Types,
 }
 
 // required struct for Pass impl
@@ -140,13 +140,21 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
             pre_expr = Some(parser::parse_condition(pre_string.as_str()));
             post_expr = Some(parser::parse_condition(post_string.as_str()));
 
+            // Get the return type
+            let func_return_type: String = match mir.return_ty {
+                FnOutput::FnConverging(t) => {
+                    t.to_string()
+                },
+                _ => unimplemented!(),
+            };
+
             // Struct to carry MIR data to later stages
             let mut data = MirData {
                 block_data: Vec::new(),
                 arg_data: Vec::new(),
                 var_data: Vec::new(),
                 temp_data: Vec::new(),
-                func_return_type: "".to_string(),
+                func_return_type: string_to_type(func_return_type),
             };
 
             // Get the basic block data
@@ -172,14 +180,6 @@ impl <'tcx> MirPass<'tcx> for MirVisitor {
                 let var = Var::new(index);
                 data.var_data.push(&mir.var_decls[var]);
             }
-
-            // Get the return type
-            data.func_return_type = match mir.return_ty {
-                FnOutput::FnConverging(t) => {
-                    t.to_string()
-                },
-                _ => { unimplemented!(); }
-            };
 
             if debug {
                 println!("Printing basic blocks...");

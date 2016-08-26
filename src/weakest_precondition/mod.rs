@@ -154,103 +154,6 @@ pub fn gen(index: usize, data: &mut MirData, post_expr: &Option<Expression>, deb
     wp
 }
 
-/// Returns the type of an operand as a `String` (ie: `"i32"`, `"bool"`, etc.)
-///
-/// # Arguments:
-/// * `operand` - The operand whose type is being returned.
-/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from
-///            the MIR pass.
-///
-/// # Remarks:
-///
-fn gen_ty(operand: &Operand, data: &mut MirData) -> String {
-    match operand.clone() {
-        Operand::Constant(ref constant) => constant.ty.to_string(),
-        Operand::Consume(ref lvalue) => {
-            match *lvalue {
-                // Function argument
-                Lvalue::Arg(ref arg) => {
-                    data.arg_data[arg.index()].ty.to_string()
-                },
-                // Temporary variable
-                Lvalue::Temp(ref temp) => {
-                    data.temp_data[temp.index()].ty.to_string()
-                },
-                // Local variable
-                Lvalue::Var(ref var) => {
-                    data.var_data[var.index()].ty.to_string()
-                },
-                _ => unimplemented!(),
-            }
-        }
-    }
-}
-
-/// Generates a version of wp "And"ed together with a conditional expression that mimics a check
-/// to ensure division by 0 does not occur.
-///
-/// # Arguments:
-/// * `wp` - The current weakest precondition that the "div by 0" is to be "And"ed to
-/// * `exp` - The expression to check to make sure it is not divided by 0
-///
-/// # Return Value:
-/// * Returns the modified weakest precondition with "div by 0" Expression "And"ed
-///
-/// # Remarks:
-/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`
-///
-fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
-
-    if determine_evaluation_type(exp).starts_with('i') {
-        Expression::BinaryExpression( BinaryExpressionData{
-            // And weakest precondtion and ovflow check
-            op: BinaryOperator::And,
-            left: Box::new(wp.clone()),
-            right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
-                op: BinaryOperator::NotEqual,
-                // The expresison to be checked
-                left: Box::new(exp.clone()),
-                // Need to set appropriate type with value of 0
-                right: Box::new(Expression::SignedBitVector( SignedBitVectorData {
-                    // The bit-vector size of the given type
-                    size: match determine_evaluation_type(exp).as_str() {
-                        "i8" => 8,
-                        "i16" => 16,
-                        "i32" => 32,
-                        "i64" => 64,
-                        _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
-                    },
-                    value: 0
-                }))
-            }))
-        })
-    } else {
-        Expression::BinaryExpression( BinaryExpressionData{
-            // And weakest precondtion and ovflow check
-            op: BinaryOperator::And,
-            left: Box::new(wp.clone()),
-            right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
-                op: BinaryOperator::NotEqual,
-                // The expresison to be checked
-                left: Box::new(exp.clone()),
-                // Need to set appropriate type with value of 0
-                right: Box::new(Expression::UnsignedBitVector( UnsignedBitVectorData {
-                    // The bit-vector size of the given type
-                    size: match determine_evaluation_type(exp).as_str() {
-                        "u8" => 8,
-                        "u16" => 16,
-                        "u32" => 32,
-                        "u64" => 64,
-                        _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
-                    },
-                    value: 0
-                }))
-            }))
-        })
-    }
-}
-
-
 /// Returns a (possibly) modified weakest precondition based on the content of a statement
 ///
 /// # Arguments:
@@ -309,7 +212,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                 },
                 BinOp::Div => {
                     // Add the overflow and underflow expression checks, if operands are signed
-                    if determine_evaluation_type(&rvalue).starts_with('i') {
+                    if is_signed_type(determine_evaluation_type(&rvalue)) {
                         wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     }
                     // Add the division by 0 expression check
@@ -317,8 +220,8 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                     BinaryOperator::Division
                 },
                 BinOp::Rem => {
-                	// Add the overflow and underflow expression checks, if operands are signed
-                    if determine_evaluation_type(&rvalue).starts_with('i') {
+                    // Add the overflow and underflow expression checks, if operands are signed
+                    if is_signed_type(determine_evaluation_type(&rvalue)) {
                         wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     }
                     // Add the division by 0 expression check
@@ -361,7 +264,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                 },
                 BinOp::Div => {
                     // Add the overflow and underflow expression checks, if operands are signed
-                    if determine_evaluation_type(&rvalue).starts_with('i') {
+                    if is_signed_type(determine_evaluation_type(&rvalue)) {
                         wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     }
                     // Add the division by 0 expression check
@@ -369,8 +272,8 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
                     BinaryOperator::Division
                 },
                 BinOp::Rem => {
-                	// Add the overflow and underflow expression checks, if operands are signed
-                    if determine_evaluation_type(&rvalue).starts_with('i') {
+                    // Add the overflow and underflow expression checks, if operands are signed
+                    if is_signed_type(determine_evaluation_type(&rvalue)) {
                         wp = overflow::overflow_check(&wp, &var, binop, &lvalue, &rvalue);
                     }
                     // Add the division by 0 expression check
@@ -401,7 +304,7 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
             let exp: Expression = gen_expression(val, data);
             let op: UnaryOperator = match *unop {
                 UnOp::Not => {
-                    if determine_evaluation_type(&exp) == "bool" {
+                    if determine_evaluation_type(&exp) == Types::Bool {
                         UnaryOperator::Not
                     } else {
                         UnaryOperator::BitwiseNot
@@ -462,6 +365,89 @@ fn gen_stmt(mut wp: Expression, stmt: Statement, data: &mut MirData, debug: bool
     return Some(wp);
 }
 
+/// Returns the type of an operand as a `Types`
+///
+/// # Arguments:
+/// * `operand` - The operand whose type is being returned.
+/// * `data` - Contains the `BasicBlockData` and all argument, temp, and variable declarations from
+///            the MIR pass.
+///
+/// # Remarks:
+///
+fn gen_ty(operand: &Operand, data: &mut MirData) -> Types {
+    let type_string: String = match operand.clone() {
+        Operand::Constant(ref constant) => constant.ty.to_string(),
+        Operand::Consume(ref lvalue) => {
+            match *lvalue {
+                // Function argument
+                Lvalue::Arg(ref arg) => data.arg_data[arg.index()].ty.to_string(),
+                // Temporary variable
+                Lvalue::Temp(ref temp) => data.temp_data[temp.index()].ty.to_string(),
+                // Local variable
+                Lvalue::Var(ref var) => data.var_data[var.index()].ty.to_string(),
+                _ => unimplemented!(),
+            }
+        },
+    };
+
+    string_to_type(type_string)
+}
+
+/// Generates a version of wp "And"ed together with a conditional expression that mimics a check
+/// to ensure division by 0 does not occur.
+///
+/// # Arguments:
+/// * `wp` - The current weakest precondition that the "div by 0" is to be "And"ed to
+/// * `exp` - The expression to check to make sure it is not divided by 0
+///
+/// # Return Value:
+/// * Returns the modified weakest precondition with "div by 0" Expression "And"ed
+///
+/// # Remarks:
+/// * Currently supported `ConstInt`: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`
+///
+fn add_zero_check(wp: &Expression, exp: &Expression) -> Expression {
+    let zero;
+    if is_signed_type(determine_evaluation_type(exp)) {
+        zero = Expression::SignedBitVector( SignedBitVectorData {
+            // The bit-vector size of the given type
+            size: match determine_evaluation_type(exp) {
+                Types::I8 => 8,
+                Types::I16 => 16,
+                Types::I32 => 32,
+                Types::I64 => 64,
+                _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
+            },
+            value: 0
+        });
+    } else {
+        zero = Expression::UnsignedBitVector( UnsignedBitVectorData {
+            // The bit-vector size of the given type
+            size: match determine_evaluation_type(exp) {
+                Types::U8 => 8,
+                Types::U16 => 16,
+                Types::U32 => 32,
+                Types::U64 => 64,
+                _ => rp_error!("Unimplemented checkeddAdd right-hand operand type"),
+            },
+            value: 0
+        });
+    }
+
+    Expression::BinaryExpression( BinaryExpressionData{
+        // And the weakest precondtion and the zero check
+        op: BinaryOperator::And,
+        left: Box::new(wp.clone()),
+        right: Box::new(Expression::BinaryExpression( BinaryExpressionData{
+            op: BinaryOperator::NotEqual,
+            // The expression to be checked
+            left: Box::new(exp.clone()),
+            // Need to set appropriate type with value of 0
+            right: Box::new(zero),
+        }))
+    })
+}
+
 /// Generates an appropriate variable mapping based on whatever variable, temp, or field is found
 ///
 /// # Arguments:
@@ -481,7 +467,7 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
             // Find the name and type in the declaration
             VariableMappingData{
                 name: data.arg_data[arg.index()].debug_name.as_str().to_string(),
-                var_type: data.arg_data[arg.index()].ty.clone().to_string()
+                var_type: string_to_type(data.arg_data[arg.index()].ty.clone().to_string())
             }
         },
         // Temporary variable
@@ -495,7 +481,7 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
             }
             VariableMappingData{
                 name: "tmp".to_string() + temp.index().to_string().as_str(),
-                var_type: ty
+                var_type: string_to_type(ty)
             }
         },
         // Local variable
@@ -503,7 +489,7 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
             // Find the name and type in the declaration
             VariableMappingData{
                 name: "var".to_string() + var.index().to_string().as_str(),
-                var_type: data.var_data[var.index()].ty.clone().to_string()
+                var_type: string_to_type(data.var_data[var.index()].ty.clone().to_string())
             }
         },
         // The returned value
@@ -521,29 +507,28 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                 // Index(ref o)
                 ProjectionElem::Index(_) => unimplemented!(),
                 // Field(ref field, ref ty)
-                ProjectionElem::Field(ref field, _) => { (field.index() as i32).to_string() }
+                ProjectionElem::Field(ref field, _) => (field.index() as i32).to_string(),
                 _ => unimplemented!(),
             };
 
             // Get the name of the variable being projected
             let lvalue_name;
-            let lvalue_type;
+            let lvalue_type_string;
 
             match pro.as_ref().base {
                 // Argument
                 Lvalue::Arg(ref arg) => {
                     // Return the name of the argument
                     lvalue_name = data.arg_data[arg.index()].debug_name.as_str().to_string();
-                    lvalue_type = data.arg_data[arg.index()].ty.clone().to_string();
+                    lvalue_type_string = data.arg_data[arg.index()].ty.clone().to_string();
                 },
                 // Temporary variable
                 Lvalue::Temp(ref temp) => {
                     // Return "temp<index>"
                     lvalue_name = "tmp".to_string() + temp.index().to_string().as_str();
-                    // warning: value assigned to `lvalue_type` is never read
-                    // lvalue_type = data.temp_data[temp.index()].ty.clone().to_string();
+
                     match data.temp_data[temp.index()].ty.sty {
-                        TypeVariants::TyTuple(t) => { lvalue_type = t[0].to_string(); },
+                        TypeVariants::TyTuple(t) => lvalue_type_string = t[0].to_string(),
                         _ => unimplemented!(),
                     }
                 },
@@ -552,10 +537,9 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                     // Return the name of the variable
                     let i = index.parse::<usize>().unwrap();
                     lvalue_name = "var".to_string() + var.index().to_string().as_str();
+
                     match data.var_data[var.index()].ty.sty {
-                        TypeVariants::TyTuple(t) => {
-                            lvalue_type = t[i].to_string();
-                        },
+                        TypeVariants::TyTuple(t) => lvalue_type_string = t[i].to_string(),
                         _ => unimplemented!(),
                     }
                 },
@@ -577,13 +561,14 @@ fn gen_lvalue(lvalue: Lvalue, data: &mut MirData) -> VariableMappingData {
                 _ => unimplemented!(),
             };
 
+            let lvalue_type: Types = string_to_type(lvalue_type_string);
+
             // Get the index int from index_operand, then stick it in the VariableMappingData
             VariableMappingData{ name: lvalue_name + "." + index.as_str(), var_type: lvalue_type }
         },
         _=> unimplemented!(),
     }
 }
-
 
 /// Generates an Expression based on some operand, either a literal or some kind of variable, temp,
 /// or field
