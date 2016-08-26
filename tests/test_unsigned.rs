@@ -44,7 +44,7 @@ fn valid_subtract_five_u32(x: u32) -> u32 {
 // Test to check unsigned subtration underflow
 // Should be valid
 #[condition(pre="x:u64 == 7u64", post="return:u64 == 5u64")]
-fn valid_subtraction_overflow(x:u64) -> u64 {
+fn valid_subtraction_underflow(x:u64) -> u64 {
     return x-2;
 }
 
