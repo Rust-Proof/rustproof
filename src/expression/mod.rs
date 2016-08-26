@@ -58,13 +58,13 @@ impl fmt::Display for Expression {
                 write!(f, "({} {} {})", *b.left, b.op, *b.right)
             },
             Expression::UnaryExpression (ref u) => write!(f, "({} {})", u.op, *u.e),
-            Expression::VariableMapping (ref v) => write!(f, "({} : {})", v.name, v.var_type),
+            Expression::VariableMapping (ref v) => write!(f, "({}: {})", v.name, v.var_type),
             Expression::BooleanLiteral (ref b) => write!(f, "({})", b),
             Expression::UnsignedBitVector(ref u) => {
-                write!(f, "({} : u{})", u.value, u.size.to_string())
+                write!(f, "({}u{})", u.value, u.size.to_string())
             },
             Expression::SignedBitVector(ref s) => {
-                write!(f, "({} : i{})", s.value, s.size.to_string())
+                write!(f, "({}i{})", s.value, s.size.to_string())
             }
         }
     }
@@ -92,7 +92,7 @@ impl Eq for VariableMappingData {}
 
 impl fmt::Display for VariableMappingData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({} : {})", self.name, self.var_type)
+        write!(f, "({}: {})", self.name, self.var_type)
     }
 }
 
