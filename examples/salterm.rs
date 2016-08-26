@@ -5,20 +5,11 @@
 extern crate rustproof;
 
 fn main() {
-	let x: i32 = 5;
-	invalid_multiply_five_i32(x);
-	valid_multiply_five_i32(x);
+	let x: bool = true;
+	valid_boolean_and_logical(x);
 }
 
-// Tests signed integer for 32 bit integers
-// Should be invalid
-#[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 < 0i32")]
-fn invalid_multiply_five_i32(x: i32) -> i32 {
-    x * 5i32
-}
-// Tests signed integer for 32 bit integers
-// Should be valid
-#[condition(pre="(x: i32 <= 10i32) && (x: i32 >= 0i32)", post="return: i32 >= 0i32")]
-fn valid_multiply_five_i32(x: i32) -> i32 {
-    x * 5i32
+#[condition(pre="x:bool == true", post="return:bool == true")]
+fn valid_boolean_and_logical(x:bool) -> bool {
+    x && true
 }

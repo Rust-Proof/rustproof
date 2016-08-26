@@ -24,21 +24,19 @@ pub fn overflow_check(wp: &Expression,
                       lvalue: &Expression,
                       rvalue: &Expression)
                       -> Expression {
-    let v = var.clone();
-
     Expression::BinaryExpression( BinaryExpressionData {
         op: BinaryOperator::And,
         left: Box::new(wp.clone()),
         right: Box::new(
-            match v.var_type.as_str() {
-                "i8" => signed_overflow(binop, 8u8, lvalue, rvalue),
-                "i16" => signed_overflow(binop, 16u8, lvalue, rvalue),
-                "i32" => signed_overflow(binop, 32u8, lvalue, rvalue),
-                "i64" => signed_overflow(binop, 64u8, lvalue, rvalue),
-                "u8" | "u16" | "u32" | "u64" => {
+            match var.var_type {
+                Types::I8 => signed_overflow(binop, 8u8, lvalue, rvalue),
+                Types::I16 => signed_overflow(binop, 16u8, lvalue, rvalue),
+                Types::I32 => signed_overflow(binop, 32u8, lvalue, rvalue),
+                Types::I64 => signed_overflow(binop, 64u8, lvalue, rvalue),
+                Types::U8 | Types::U16 | Types::U32 | Types::U64 => {
                     unsigned_overflow(binop, lvalue, rvalue)
                 },
-                _ => panic!("Unsupported return type of binary operation: {}", v.var_type),
+                _ => panic!("Unsupported return type of binary operation: {}", var.var_type),
             }
         ),
     })
