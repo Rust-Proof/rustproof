@@ -4,12 +4,9 @@
 #![allow(unused_attributes)]
 fn main() { }
 
-// FIXME: some preconditions are unnecisarilly restricitve ie add_five_u32_invalid does not need x: u32 >= u32::MIN + 5u32
-
 // * * *
-// Integer Add Tests
+// Unsigned Integer Operator Tests
 // * * *
-
 
 // Tests unsigned integer for 32 bit integers
 // Should be invalid
@@ -18,14 +15,12 @@ fn invalid_add_five_u32(x: u32) -> u32 {
     x + 5
 }
 
-
 // Tests unsigned integer for 32 bit integers
 // Should be valid
 #[condition(pre="(x: u32 <= 10u32) && (x: u32 >= 0u32)", post="return: u32 > 4u32")]
 fn valid_add_five_u32(x: u32) -> u32 {
     x + 5
 }
-
 
 // Tests unsigned integer for 32 bit integers
 // Should be invalid
@@ -48,7 +43,6 @@ fn valid_subtraction_underflow(x:u64) -> u64 {
     return x-2;
 }
 
-
 // Tests unsigned integer for 32 bit integers
 // Should be invalid
 #[condition(pre="(x: u32 <= 10u32) && (x: u32 >= 0u32)", post="return: u32 < 0u32")]
@@ -70,14 +64,12 @@ fn invalid_divide_five_u32(x: u32) -> u32 {
     5 / x
 }
 
-
 // Tests unsigned integer for 32 bit integers
 // Should be valid
 #[condition(pre="(x: u32 > 0u32) && (x: u32 <= 10u32)", post="return: u32 >= 0u32")]
 fn valid_divide_five_u32(x: u32) -> u32 {
     2 / x
 }
-
 
 // Tests unsigned integer for 32 bit integers
 // Should be invalid
@@ -93,7 +85,6 @@ fn valid_mod_five_u32(x: u32) -> u32 {
     x % 5
 }
 
-
 // Tests unsigned integer for 32 bit integers
 // Should be invalid
 #[condition(pre="(x: u32 > 0u32) && (x: u32 < 10u32)", post="return: u32 < 0u32")]
@@ -107,7 +98,6 @@ fn invalid_bit_shift_left_two_u32(x: u32) -> u32 {
 fn valid_bit_shift_left_two_u32(x: u32) -> u32 {
     x << 2u32
 }
-
 
 // Tests unsigned integer for 32 bit integers
 // Should be invalid
@@ -129,7 +119,6 @@ fn valid_bit_shift_right_two_u32(x: u32) -> u32 {
 fn valid_add_5_u8(x: u8) -> u8 {
     x+5u8
 }
-
 
 // Tests unsigned integer for 16 bit integers
 // Should be valid

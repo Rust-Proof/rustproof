@@ -4,9 +4,9 @@
 #![allow(unused_attributes)]
 fn main() {}
 
-
-
-// Matt's example set
+// * * *
+// Boolean and Boolean Operator Tests
+// * * *
 
 // Should be valid
 #[condition(pre="true", post="true")]
@@ -150,22 +150,8 @@ fn valid_attr_condition_xor_xor()-> bool {
     true
 }
 
-// Vincent's example set
-// * * *
-// Boolean and Boolean Operator Tests
-// * * *
 
-//  &&, ||
-// !, &, |, ^
-// literals
-// variables
-
-// Simple boolean Tests
-// && and || overators Tests
-//
-// fn main() {}
 // Should be valid
-
 #[condition(pre="x: bool == true", post="return:bool == true")]
 fn valid_simple_bool_and(x:bool) -> bool {
     x && true
@@ -205,7 +191,6 @@ fn invalid_simple_bool_not_2(x:bool) -> bool {
     !x || false
 }
 
-
 // * * *
 // test & and | operator
 // * * *
@@ -215,8 +200,6 @@ fn valid_simple_bool_bitwise_and(x:bool) -> bool {
     x & true
 }
 
-
-
 // Should be invalid
 #[condition(pre="x: bool == false", post="return:bool == false")]
 fn invalid_simple_bool_bitwise_or(x:bool) -> bool {
@@ -224,7 +207,6 @@ fn invalid_simple_bool_bitwise_or(x:bool) -> bool {
 }
 
 // Should be invalid
-
 #[condition(pre="x: bool == true", post="return:bool == true")]
 fn invalid_simple_bool_bitwise_and_2(x:bool) -> bool {
     x & false
@@ -243,28 +225,31 @@ fn valid_simple_bool_bitwise_or_2(x:bool) -> bool {
 // Should be valid
 #[condition(pre="x: bool == false", post="return:bool == true")]
 fn valid_simple_bool_bitwise_or_if_else(x:bool) -> bool {
-    if x
-        { x | false }
-    else
-        { x | true }
+    if x {
+        x | false
+    } else {
+        x | true
+    }
 }
 
 // Should be valid
 #[condition(pre="(x: bool == true) || (x: bool == false)", post="return:bool == true")]
 fn valid_simple_bool_pre_or(x:bool) -> bool {
-    if x
-        {true}
-    else
-        {true}
+    if x {
+        true
+    } else {
+        true
+    }
 }
 
 // Should be invalid
 #[condition(pre="(x: bool == true) && (y: bool == false)", post="return:bool == false")]
 fn invalid_bool_pre_and(x:bool, y:bool) -> bool {
-    if x | y
-        { true }
-    else
-        { false }
+    if x | y {
+        true
+    } else {
+        false
+    }
 }
 
 // Should be valid
@@ -280,22 +265,20 @@ fn valid_bool_complex(x:bool, y:bool, z:bool) -> bool {
 
     if z {
         a = a + 5;
-    }
-    else {
+    } else {
         a = a + 10;
     }
 
     if a > 9 && y {
         return true;
-    }
-    else {
-            if x {
-                return true;
-            }
-            else {
-                return false;
-            }
+    } else {
+        if x {
+            return true;
         }
+        else {
+            return false;
+        }
+    }
 }
 
 // Should be invalid
@@ -307,20 +290,17 @@ fn invalid_bool_complex(x:bool, y:bool, z:bool, w:i32) -> bool {
     }
     if z {
         a = a + 5;
-    }
-    else {
+    } else {
         a = a + 10;
     }
 
     if a > 9 && y {
         return true;
-    }
-    else {
-            if x {
-                return true;
-            }
-            else {
-                return false;
-            }
+    } else {
+        if x {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

@@ -89,10 +89,10 @@ fn test_assertion_examples(){
     assert!(test_example_file("test_assert"));
 }
 
+// Tests whether the system testing functions are appropriately catching test failure
 #[test]
 #[should_panic]
 fn test_system_test_validity() {
     assert!(test_example_file("test_fail_valid"));
     assert!(test_example_file("test_fail_invalid"));
 }
-

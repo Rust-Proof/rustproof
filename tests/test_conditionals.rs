@@ -8,8 +8,7 @@ fn main() {}
 fn valid_variable_conditional(x: i32, y: bool) -> i32 {
     if y {
         x + 5
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -18,8 +17,7 @@ fn valid_variable_conditional(x: i32, y: bool) -> i32 {
 fn valid_literal_conditional(x: i32) -> i32 {
     if false {
         x + 5
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -28,8 +26,7 @@ fn valid_literal_conditional(x: i32) -> i32 {
 fn valid_expression_conditional(x: i32) -> i32 {
     if x > 5 {
         x + 5
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -38,11 +35,9 @@ fn valid_expression_conditional(x: i32) -> i32 {
 fn valid_triple_branch_conditional(x: i32) -> i32 {
     if x > 5 {
         x + 5
-    }
-    else if x < 5 {
+    } else if x < 5 {
         x + 7
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -51,26 +46,21 @@ fn valid_triple_branch_conditional(x: i32) -> i32 {
 fn valid_nested_conditionals(x: i32, y: bool) -> i32 {
     if y {
         x + 5
-    }
-    else {
+    } else {
         if x > 5 {
             x + 7
-        }
-        else {
+        } else {
             x + 6
         }
     }
 }
-
-
 
 // Tests that should return 'invalid'
 #[condition(pre="(x: i32 < i32::MAX - 6i32) && (y: bool == true)", post="return: i32 == (x: i32 + 6i32)")]
 fn invalid_variable_conditional(x: i32, y: bool) -> i32 {
     if y {
         x + 5
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -79,8 +69,7 @@ fn invalid_variable_conditional(x: i32, y: bool) -> i32 {
 fn invalid_literal_conditional(x: i32) -> i32 {
     if true {
         x + 5
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -89,8 +78,7 @@ fn invalid_literal_conditional(x: i32) -> i32 {
 fn invalid_expression_conditional(x: i32) -> i32 {
     if x < 5 {
         x + 5
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -99,11 +87,9 @@ fn invalid_expression_conditional(x: i32) -> i32 {
 fn invalid_triple_branch_conditional(x: i32) -> i32 {
     if x > 5 {
         x + 5
-    }
-    else if x == 5 {
+    } else if x == 5 {
         x + 7
-    }
-    else {
+    } else {
         x + 6
     }
 }
@@ -112,12 +98,10 @@ fn invalid_triple_branch_conditional(x: i32) -> i32 {
 fn invalid_nested_conditionals(x: i32, y: bool) -> i32 {
     if y {
         x + 5
-    }
-    else {
+    } else {
         if x < 5 {
             x + 7
-        }
-        else {
+        } else {
             x + 6
         }
     }
