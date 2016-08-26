@@ -41,6 +41,13 @@ fn valid_subtract_five_u32(x: u32) -> u32 {
     x - 5
 }
 
+// Test to check unsigned subtration underflow
+// Should be valid
+#[condition(pre="x:u64 == 7u64", post="return:u64 == 5u64")]
+fn valid_subtraction_underflow(x:u64) -> u64 {
+    return x-2;
+}
+
 
 // Tests unsigned integer for 32 bit integers
 // Should be invalid
@@ -200,5 +207,3 @@ fn invalid_add_five_overflow_u64(x: u64) -> u64 {
 fn invalid_subtract_five_overflow_u64(x: u64) -> u64 {
     x - 5
 }
-
-

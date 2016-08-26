@@ -529,19 +529,47 @@ fn unsigned_add(lvalue: &Expression, rvalue: &Expression) -> Expression {
     })
 }
 
-// l - r <= l
+// Evaluates true when no overflow occurs
+// l-r <= l ||
+// l-r <= r
 fn unsigned_sub(lvalue: &Expression, rvalue: &Expression) -> Expression {
+    // l-r <= l || l-r <= r
     Expression::BinaryExpression( BinaryExpressionData{
-        op: BinaryOperator::LessThanOrEqual,
-        //l - r
+        op: BinaryOperator::Or,
         left: Box::new(
+            // l-r <= l
             Expression::BinaryExpression( BinaryExpressionData{
-                op: BinaryOperator::Subtraction,
-                left: Box::new(lvalue.clone()),
-                right: Box::new(rvalue.clone()),
+                op: BinaryOperator::LessThanOrEqual,
+                // l - r
+                left: Box::new(
+                    Expression::BinaryExpression( BinaryExpressionData{
+                        op: BinaryOperator::Subtraction,
+                        left: Box::new(lvalue.clone()),
+                        right: Box::new(rvalue.clone()),
+                    })
+                ),
+                // l
+                right: Box::new(lvalue.clone()),
             })
         ),
-        // r
-        right: Box::new(rvalue.clone()),
+        right: Box::new(
+            // l-r <= r
+            Expression::BinaryExpression( BinaryExpressionData{
+                op: BinaryOperator::LessThanOrEqual,
+                // l - r
+                left: Box::new(
+                    Expression::BinaryExpression( BinaryExpressionData{
+                        op: BinaryOperator::Subtraction,
+                        left: Box::new(lvalue.clone()),
+                        right: Box::new(rvalue.clone()),
+                    })
+                ),
+                // r
+                right: Box::new(rvalue.clone()),
+            })
+        )
     })
+
+
+
 }
