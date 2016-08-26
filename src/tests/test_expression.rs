@@ -23,15 +23,15 @@ fn test_all_substitute_binary_operators() {
 fn determine_evaluation_type_comparison_unary(){
     let u: Expression = Expression::VariableMapping( VariableMappingData{
         name: "x".to_string(),
-        var_type:"bool".to_string()
+        var_type: expression::Types::Bool
     });
     let to_test: Expression = Expression::UnaryExpression( UnaryExpressionData{
         op: UnaryOperator::Not,
         e: Box::new(u.clone()),
     });
-    let returned_string = determine_evaluation_type(&to_test);
-    let correct_result = "bool";
-    assert_eq!(returned_string, correct_result);
+    let determined_type = determine_evaluation_type(&to_test);
+    let correct_result = expression::Types::Bool;
+    assert_eq!(determined_type, correct_result);
 }
 
 
@@ -39,11 +39,11 @@ fn determine_evaluation_type_comparison_unary(){
 fn determine_evaluation_type_comparison_binary(){
     let left_side: Expression = Expression::VariableMapping( VariableMappingData{
         name:"x".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let right_side: Expression = Expression::VariableMapping( VariableMappingData{
         name:"y".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let to_test: Expression = Expression::BinaryExpression(BinaryExpressionData{
         op: BinaryOperator::Addition,
@@ -60,11 +60,12 @@ fn determine_evaluation_type_comparison_binary(){
 fn test_all_substitute_unary_operators(){
     let target_var : VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "i32".to_string()};
-    let target: Expression = Expression::VariableMapping(target_var.clone() );
+        var_type: expression::Types::I32
+    };
+    let target: Expression = Expression::VariableMapping(target_var.clone());
     let replacement: Expression = Expression::VariableMapping( VariableMappingData{
         name: "y".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let mut p: Expression = Expression::UnaryExpression(UnaryExpressionData{
         op: UnaryOperator::Not,
@@ -83,16 +84,16 @@ fn test_all_substitute_unary_operators(){
 fn substitute_variable_with_expression_greater_than_or_equal(){
     let target_var : VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     };
     let target: Expression = Expression::VariableMapping( target_var.clone() );
     let superfluous: Expression = Expression::VariableMapping( VariableMappingData {
         name: "z".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let replacement: Expression = Expression::VariableMapping( VariableMappingData {
         name: "y".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let mut p: Expression = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::GreaterThanOrEqual,
@@ -113,16 +114,16 @@ fn substitute_variable_with_expression_greater_than_or_equal(){
 fn substitute_variable_with_expression_less_than() {
     let target_var : VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     };
     let target: Expression = Expression::VariableMapping( target_var.clone() );
     let superfluous: Expression = Expression::VariableMapping( VariableMappingData {
         name: "z".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let replacement: Expression = Expression::VariableMapping( VariableMappingData {
         name: "y".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let mut p: Expression = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::LessThan,
@@ -143,16 +144,16 @@ fn substitute_variable_with_expression_less_than() {
 fn substitute_variable_with_expression_less_than_or_equal() {
     let target_var : VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     };
     let target: Expression = Expression::VariableMapping( target_var.clone() );
     let superfluous: Expression = Expression::VariableMapping( VariableMappingData {
         name: "z".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let replacement: Expression = Expression::VariableMapping( VariableMappingData {
         name: "y".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let mut p: Expression = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::LessThanOrEqual,
@@ -174,16 +175,16 @@ fn substitute_variable_with_expression_less_than_or_equal() {
 fn substitute_variable_with_expression_greater_than(){
     let target_var : VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     };
     let target: Expression = Expression::VariableMapping( target_var.clone() );
     let superfluous: Expression = Expression::VariableMapping( VariableMappingData {
         name: "z".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let replacement: Expression = Expression::VariableMapping( VariableMappingData {
         name: "y".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     });
     let mut p: Expression = Expression::BinaryExpression( BinaryExpressionData{
         op: BinaryOperator::GreaterThan,
@@ -205,27 +206,23 @@ fn substitute_variable_with_expression_greater_than(){
 fn variable_mapping_data_equality() {
     let var1: VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     };
     let var2: VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     };
     let var3: VariableMappingData = VariableMappingData {
         name: "y".to_string(),
-        var_type: "i32".to_string()
+        var_type: expression::Types::I32
     };
     let var4: VariableMappingData = VariableMappingData {
         name: "x".to_string(),
-        var_type: "u32".to_string()
+        var_type: expression::Types::U32
     };
     let var5: VariableMappingData = VariableMappingData {
         name: "y".to_string(),
-        var_type: "u32".to_string()
-    };
-    let var6: VariableMappingData = VariableMappingData {
-        name: "".to_string(),
-        var_type: "".to_string()
+        var_type: expression::Types::U32
     };
 
     assert!(var1 == var1);
@@ -234,5 +231,151 @@ fn variable_mapping_data_equality() {
     assert!(var1 != var4);
     assert!(var1 != var5);
     assert!(var1 != var6);
-    assert!(var6 == var6);
+}
+
+#[test]
+fn check_signedness_bool() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::Bool,
+    };
+
+    assert!(!is_valid_signed(var));
+    assert!(!is_valid_unsigned(var));
+}
+
+#[test]
+fn check_signedness_i8() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::I8,
+    };
+    let num: SignedBitVectorData = SignedBitVectorData {
+        size: 8u8,
+        value: 1i64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
+}
+
+#[test]
+fn check_signedness_i16() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::I16,
+    };
+    let num: SignedBitVectorData = SignedBitVectorData {
+        size: 16u8,
+        value: 1i64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
+}
+
+#[test]
+fn check_signedness_i32() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::I32,
+    };
+    let num: SignedBitVectorData = SignedBitVectorData {
+        size: 32u8,
+        value: 1i64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
+}
+
+#[test]
+fn check_signedness_i64() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::I64,
+    };
+    let num: SignedBitVectorData = SignedBitVectorData {
+        size: 64u8,
+        value: 1i64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
+}
+
+#[test]
+fn check_signedness_u8() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::U8,
+    };
+    let num: UnsignedBitVectorData = UnsignedBitVectorData {
+        size: 8u8,
+        value: 1u64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
+}
+
+#[test]
+fn check_signedness_u16() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::U16,
+    };
+    let num: UnsignedBitVectorData = UnsignedBitVectorData {
+        size: 16u8,
+        value: 1u64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
+}
+
+#[test]
+fn check_signedness_u32() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::U32,
+    };
+    let num: UnsignedBitVectorData = UnsignedBitVectorData {
+        size: 32u8,
+        value: 1u64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
+}
+
+#[test]
+fn check_signedness_u64() {
+    let var: VariableMappingData = VariableMappingData {
+        name: "v".to_string(),
+        var_type: expression::Types::U64,
+    };
+    let num: UnsignedBitVectorData = UnsignedBitVectorData {
+        size: 64u8,
+        value: 1u64,
+    };
+
+    assert!(is_valid_signed(var));
+    assert!(is_valid_signed(num));
+    assert!(!is_valid_unsigned(var));
+    assert!(!is_valid_unsigned(num));
 }

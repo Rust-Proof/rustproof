@@ -19,20 +19,6 @@ use errors::{ColorConfig, Handler};
 use syntax::codemap::CodeMap;
 use std::rc::Rc;
 
-#[derive(Clone, PartialEq)]
-pub struct BinaryExpressionData {
-    pub op: BinaryOperator,
-    pub left: Box<Expression>,
-    pub right: Box<Expression>
-}
-
-#[derive(Clone, PartialEq)]
-pub struct UnaryExpressionData {
-    pub op: UnaryOperator,
-    pub e: Box<Expression>
-}
-
-// TODO Fix these enum variant names not to end with the enum name
 // Boolean Expression type
 #[derive(Clone, PartialEq)]
 pub enum Expression {
@@ -76,8 +62,21 @@ impl fmt::Debug for Expression {
     }
 }
 
+#[derive(Clone, PartialEq)]
+pub struct BinaryExpressionData {
+    pub op: BinaryOperator,
+    pub left: Box<Expression>,
+    pub right: Box<Expression>
+}
+
+#[derive(Clone, PartialEq)]
+pub struct UnaryExpressionData {
+    pub op: UnaryOperator,
+    pub e: Box<Expression>
+}
+
 #[derive(Clone, Debug)]
-pub struct VariableMappingData { pub name: String, pub var_type: String}
+pub struct VariableMappingData { pub name: String, pub var_type: Types }
 
 // Check equality for VariableMappingData types.
 // Should return true if the name and type of the variables are the same.
@@ -192,6 +191,35 @@ impl fmt::Display for UnaryOperator {
             UnaryOperator::Negation => { write!(f, "-") },
             UnaryOperator::BitwiseNot => { write!(f, "!") },
             UnaryOperator::Not => { write!(f, "NOT") }
+        }
+    }
+}
+
+#[derive(Clone, PartialEq)]
+pub enum Types {
+	Bool,
+	I8,
+	I16,
+	I32,
+	I64,
+	U8,
+	U16,
+	U32,
+	U64
+}
+
+impl fmt::Display for Types {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Types::Bool => { write!(f, "bool") },
+            Types::I8 => { write!(f, "i8") },
+            Types::I16 => { write!(f, "i16") },
+            Types::I32 => { write!(f, "i32") },
+            Types::I64 => { write!(f, "i64") },
+            Types::U8 => { write!(f, "u8") },
+            Types::U16 => { write!(f, "u16") },
+            Types::U32 => { write!(f, "u32") },
+            Types::U64 => { write!(f, "u64") },
         }
     }
 }
@@ -700,10 +728,10 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
     }
 }
 
-/// Checks if argument string matches one of the supported unsigned integer types
+/// Checks if an Expression matches one of the supported unsigned integer types
 ///
 /// # Arguments:
-/// * `var_type` - A string slice
+/// * `e` - An Expression
 ///
 /// # Return:
 /// * `true` if it matches, `false` otherwise
@@ -711,17 +739,28 @@ pub fn ty_check( expression: &Expression ) -> Result<bool, String> {
 /// # Remarks:
 /// * Current supported types: u8, u16, u32, u64
 ///
-fn is_valid_unsigned(var_type: &str) -> bool {
-    (var_type == "u8")
-    || (var_type == "u16")
-    || (var_type == "u32")
-    || (var_type == "u64")
+fn is_valid_unsigned(e: Expression) -> bool {
+    match e {
+    	Expression::VariableMapping(v) => {
+    		match v.var_type {
+    			U8 | U16 | U32 | U64 => true,
+    			_ => false,
+    		}
+    	}
+    	Expression::UnsignedBitVector(u) => {
+    		match u.size {
+    			8u8 | 16u8 | 32u8 | 64u8 => true,
+    			_ => false,
+    		}
+    	}
+    	_ => false,
+    }
 }
 
-/// Checks if argument string matches one of the supported signed integer types
+/// Checks if an Expression matches one of the supported signed integer types
 ///
 /// # Arguments:
-/// * `var_type` - A string slice
+/// * `e` - An Expression
 ///
 /// # Return:
 /// * `true` if it matches, `false` otherwise
@@ -729,9 +768,20 @@ fn is_valid_unsigned(var_type: &str) -> bool {
 /// # Remarks:
 /// * Current supported types: i8, i16, i32, i64
 ///
-fn is_valid_signed(var_type: &str) -> bool {
-    (var_type == "i8")
-    || (var_type == "i16")
-    || (var_type == "i32")
-    || (var_type == "i64")
+fn is_valid_signed(e: Expression) -> bool {
+    match e {
+    	Expression::VariableMapping(v) => {
+    		match v.var_type {
+    			I8 | I16 | I32 | I64 => true,
+    			_ => false,
+    		}
+    	}
+    	Expression::SignedBitVector(s) => {
+    		match s.size {
+    			8u8 | 16u8 | 32u8 | 64u8 => true,
+    			_ => false,
+    		}
+    	}
+    	_ => false,
+    }
 }
