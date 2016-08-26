@@ -57,7 +57,7 @@ mod __parse__E1 {
         E9((usize, Expression, usize)),
         IDENTIFIER((usize, String, usize)),
         INT__BOUNDS((usize, Expression, usize)),
-        TYPE((usize, String, usize)),
+        TYPE((usize, Types, usize)),
         UOP((usize, UnaryOperator, usize)),
         ____E1((usize, Expression, usize)),
     }
@@ -9596,7 +9596,7 @@ mod __parse__E1 {
         __lookahead: Option<(usize, (usize, &'input str), usize)>,
         __sym0: &mut Option<(usize, String, usize)>,
         __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, String, usize)>,
+        __sym2: &mut Option<(usize, Types, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<>), __ParseError<usize,(usize, &'input str),()>>
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<>);
@@ -13205,7 +13205,7 @@ mod __parse__E1 {
         __lookahead: Option<(usize, (usize, &'input str), usize)>,
         __sym0: &mut Option<(usize, String, usize)>,
         __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, String, usize)>,
+        __sym2: &mut Option<(usize, Types, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<>), __ParseError<usize,(usize, &'input str),()>>
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<>);
@@ -17545,7 +17545,7 @@ pub fn __action33<
     input: &'input str,
     (_, n, _): (usize, String, usize),
     (_, _, _): (usize, &'input str, usize),
-    (_, t, _): (usize, String, usize),
+    (_, t, _): (usize, Types, usize),
 ) -> Expression
 {
     Expression::VariableMapping( VariableMappingData {
@@ -17883,7 +17883,7 @@ pub fn __action65<
             "yield" => {
                 panic!("Use of reserved keyword as identifier: {}", i.to_string());
             },
-            _ => { i.to_string() },
+            _ => i.to_string(),
         }
     }
 }
@@ -17893,9 +17893,9 @@ pub fn __action66<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "bool".to_string()
+    Types::Bool
 }
 
 pub fn __action67<
@@ -17903,9 +17903,9 @@ pub fn __action67<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "i8".to_string()
+    Types::I8
 }
 
 pub fn __action68<
@@ -17913,9 +17913,9 @@ pub fn __action68<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "i16".to_string()
+    Types::I16
 }
 
 pub fn __action69<
@@ -17923,9 +17923,9 @@ pub fn __action69<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "i32".to_string()
+    Types::I32
 }
 
 pub fn __action70<
@@ -17933,9 +17933,9 @@ pub fn __action70<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "i64".to_string()
+    Types::I64
 }
 
 pub fn __action71<
@@ -17943,9 +17943,9 @@ pub fn __action71<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "u8".to_string()
+    Types::U8
 }
 
 pub fn __action72<
@@ -17953,9 +17953,9 @@ pub fn __action72<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "u16".to_string()
+    Types::U16
 }
 
 pub fn __action73<
@@ -17963,9 +17963,9 @@ pub fn __action73<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "u32".to_string()
+    Types::U32
 }
 
 pub fn __action74<
@@ -17973,9 +17973,9 @@ pub fn __action74<
 >(
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
-) -> String
+) -> Types
 {
-    "u64".to_string()
+    Types::U64
 }
 
 pub fn __action75<
