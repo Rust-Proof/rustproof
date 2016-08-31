@@ -14,7 +14,7 @@ license = "Apache-2.0/MIT"
 description = "Compiler plugin to generate verification conditions from Rust code."
 repository = "https://github.com/Rust-Proof/rustproof"
 readme = "README.md"
-keywords = ["plugin", "smt", "verification", "z3", "solver", "satisfiability"]
+keywords = ["plugin", "smt", "verification", "solver", "satisfiability"]
 exclude = [
 			"documents/*",
 			"scripts/*",
