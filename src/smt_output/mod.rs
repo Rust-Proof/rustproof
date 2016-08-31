@@ -12,11 +12,11 @@
 
 use std::fmt::Debug;
 
-use libsmt::backends::smtlib2::*;
-use libsmt::backends::backend::*;
-use libsmt::backends::z3;
-use libsmt::theories::{bitvec, core};
-use libsmt::logics::qf_abv::*;
+use rustproof_libsmt::backends::smtlib2::*;
+use rustproof_libsmt::backends::backend::*;
+use rustproof_libsmt::backends::z3;
+use rustproof_libsmt::theories::{bitvec, core};
+use rustproof_libsmt::logics::qf_abv::*;
 use petgraph::graph::NodeIndex;
 
 use expression::*;
