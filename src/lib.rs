@@ -29,7 +29,7 @@
 #[macro_use] mod reporting;
 
 // External crate imports
-#[macro_use] extern crate libsmt;
+#[macro_use] extern crate rustproof_libsmt;
 // The following line is being weird to me sometimes
 #[macro_use] extern crate log;
 extern crate petgraph;

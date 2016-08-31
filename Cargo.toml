@@ -31,8 +31,8 @@ lalrpop = "0.11.0"
 [dependencies]
 env_logger = "0.3.4"
 lalrpop-util = "0.11.0"
-libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git" }
-petgraph = "*"
+rustproof-libsmt = "0.1.0"
+petgraph = "0.2.7"
 
 [lib]
 name = "rustproof"
