@@ -1,6 +1,6 @@
 [package]
 name = "rustproof"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
             "Matthew Slocum <arco000@gmail.com>",
             "Sami Sahli <samisahli@me.com>",
@@ -9,12 +9,19 @@ authors = [
             "Michael Salter <salterm@pdx.edu>",
             "Bradley Rasmussen <rasmbj@pdx.edu>",
             "Drew Gohman <dgohman@pdx.edu>"
-          ]
+]
 license = "Apache-2.0/MIT"
 description = "Compiler plugin to generate verification conditions from Rust code."
 repository = "https://github.com/Rust-Proof/rustproof"
 readme = "README.md"
 keywords = ["plugin", "smt", "verification", "z3", "solver", "satisfiability"]
+exclude = [
+			"documents/*",
+			"scripts/*",
+			"build.rs",
+			".travis.yml",
+			"src/parser/expression_parser.lalrpop",
+]
 
 #build = "build.rs"
 
@@ -25,7 +32,6 @@ lalrpop = "0.11.0"
 env_logger = "0.3.4"
 lalrpop-util = "0.11.0"
 libsmt = { git = "https://github.com/Rust-Proof/libsmt.rs.git" }
-#libsmt = { path = "libsmt.rs" }
 petgraph = "*"
 
 [lib]
